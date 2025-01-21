@@ -1,0 +1,32 @@
+FROM us-central1-docker.pkg.dev/dnastack-asap-parkinsons/workflow-images/util:1.1.1 as scripts
+
+LABEL MAINTAINER="Karen Fang <karen@dnastack.com>"
+
+ARG IMAGE_NAME
+ENV IMAGE_NAME "${IMAGE_NAME}"
+ARG IMAGE_TAG
+ENV IMAGE_TAG "${IMAGE_TAG}"
+
+ARG GCLOUD_CLI_VERSION
+ENV GCLOUD_CLI_VERSION "${GCLOUD_CLI_VERSION}"
+
+RUN apt-get -qq update \
+	&& apt-get -qq install \
+		build-essential \
+		unzip \
+		time \
+	&& rm -rf /var/lib/apt/lists/*
+
+# GeoMxNGSPipeline
+# Linux installation was obtained from https://university.nanostring.com/geomx-dsp-software-updates
+# N.B. this must in the same directory as the Dockerfile or subdirectory relative to it
+ARG GEOMX_NGS_VERSION
+ENV GEOMX_NGS_VERSION "${GEOMX_NGS_VERSION}"
+COPY GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION}.zip /opt/
+RUN cd /opt \
+	&& unzip GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION}.zip \
+	&& rm GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION}.zip \
+	&& cd /opt/GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION} \
+	&& tar xf GeoMxNGSPipeline.tgz
+RUN chmod a+rx /opt/GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION}/geomxngspipeline \
+	&& ln -s /opt/GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION} /usr/local/bin/
