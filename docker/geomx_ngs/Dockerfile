@@ -24,9 +24,11 @@ ARG GEOMX_NGS_VERSION
 ENV GEOMX_NGS_VERSION "${GEOMX_NGS_VERSION}"
 COPY GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION}.zip /opt/
 RUN cd /opt \
-	&& unzip GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION}.zip \
+	&& unzip -d /opt/geomx_ngs GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION}.zip \
 	&& rm GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION}.zip \
-	&& cd /opt/GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION} \
+	&& cd /opt/geomx_ngs \
 	&& tar xf GeoMxNGSPipeline.tgz
-RUN chmod a+rx /opt/GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION}/geomxngspipeline \
-	&& ln -s /opt/GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION} /usr/local/bin/
+RUN chmod a+rx /opt/geomx_ngs/geomxngspipeline \
+	&& ln -s /opt/geomx_ngs /usr/local/bin/
+RUN touch /opt/geomx_ngs/agreement_cli_yes
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
