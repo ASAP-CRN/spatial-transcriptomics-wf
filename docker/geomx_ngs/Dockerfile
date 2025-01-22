@@ -29,6 +29,6 @@ RUN cd /opt \
 	&& cd /opt/geomx_ngs \
 	&& tar xf GeoMxNGSPipeline.tgz
 RUN chmod a+rx /opt/geomx_ngs/geomxngspipeline \
-	&& ln -s /opt/geomx_ngs /usr/local/bin/
-RUN touch /opt/geomx_ngs/agreement_cli_yes
+	&& touch /opt/geomx_ngs/agreement_cli_yes
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+ENV PATH "${PATH}:/opt/geomx_ngs"
