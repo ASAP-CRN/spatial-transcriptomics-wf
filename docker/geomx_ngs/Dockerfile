@@ -15,6 +15,17 @@ RUN apt-get -qq update \
 		build-essential \
 		unzip \
 		time \
+		curl \
+		zlib1g-dev \
+		libncursesw5-dev \
+		libssl-dev \
+		libsqlite3-dev \
+		tk-dev \
+		libgdbm-dev \
+		libc6-dev \
+		libbz2-dev \
+		libffi-dev \
+		liblzma-dev \
 	&& rm -rf /var/lib/apt/lists/*
 
 # GeoMxNGSPipeline
@@ -22,7 +33,7 @@ RUN apt-get -qq update \
 # N.B. this must in the same directory as the Dockerfile or subdirectory relative to it
 ARG GEOMX_NGS_VERSION
 ENV GEOMX_NGS_VERSION "${GEOMX_NGS_VERSION}"
-COPY GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION}.zip /opt/
+COPY ./GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION}.zip /opt/GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION}.zip
 RUN cd /opt \
 	&& unzip -d /opt/geomx_ngs GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION}.zip \
 	&& rm GeoMxNGSPipeline_Linux_${GEOMX_NGS_VERSION}.zip \
@@ -32,3 +43,25 @@ RUN chmod a+rx /opt/geomx_ngs/geomxngspipeline \
 	&& touch /opt/geomx_ngs/agreement_cli_yes
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 ENV PATH "${PATH}:/opt/geomx_ngs"
+
+# Python
+ARG PYTHON3_VERSION
+ENV PYTHON3_VERSION "${PYTHON3_VERSION}"
+RUN curl -O https://www.python.org/ftp/python/${PYTHON3_VERSION}/Python-${PYTHON3_VERSION}.tar.xz && \
+	tar -xvf Python-${PYTHON3_VERSION}.tar.xz --directory /opt/ && \
+	rm Python-${PYTHON3_VERSION}.tar.xz
+RUN cd /opt/Python-${PYTHON3_VERSION} && \
+	./configure && \
+	make && \
+	make altinstall
+
+ENV PATH "${PATH}:/opt/Python-${PYTHON3_VERSION}"
+
+RUN rm -f /usr/bin/python3
+RUN ln -s /opt/Python-${PYTHON3_VERSION}/python /usr/bin/python3
+
+COPY ./requirements.txt /opt/requirements.txt
+RUN python3 -m pip install -r /opt/requirements.txt
+
+COPY scripts /opt/scripts
+ENV PATH "${PATH}:/opt/scripts"
