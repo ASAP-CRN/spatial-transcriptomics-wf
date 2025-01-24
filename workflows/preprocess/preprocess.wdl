@@ -1,10 +1,10 @@
 version 1.0
 
-# Convert FASTQ files to DCC (digital count conversion) files to count matrices
+# Generate a AnnData object by converting FASTQ files to DCC (digital count conversion) files to count matrices
 
 import "../../wf-common/wdl/structs.wdl"
 
-workflow generate_count_matrix {
+workflow preprocess {
 	input {
 		String team_id
 		String dataset_id
@@ -24,7 +24,7 @@ workflow generate_count_matrix {
 	}
 
 	# Task and subworkflow versions
-	String sub_workflow_name = "generate_count_matrix"
+	String sub_workflow_name = "preprocess"
 	String fastq_to_dcc_task_version = "1.0.0"
 	String dcc_to_count_matrix_task_version = "1.0.0"
 
