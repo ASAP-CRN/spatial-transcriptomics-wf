@@ -30,7 +30,8 @@ def main(args):
         target2index[targets[i]] = i
 
     dcc_file_paths = [
-        file for file in os.listdir(args.dcc_files_dir_input)
+        os.path.join(args.dcc_files_dir_input, file)
+        for file in os.listdir(args.dcc_files_dir_input)
         if os.path.isfile(os.path.join(args.dcc_files_dir_input, file))
     ]
 
@@ -41,7 +42,11 @@ def main(args):
         with open(dcc_file_path, "rt") as dcc_in:
             for line in dcc_in:
                 line = line.strip()
-                if line in {"<Code_Summary>", "</Code_Summary>"}:
+                if line == "<Code_Summary>":
+                    break
+            for line in dcc_in:
+                line = line.strip()
+                if line == "</Code_Summary>":
                     break
                 tokens = line.split(",")
                 assert len(tokens) == 2
@@ -81,7 +86,8 @@ def main(args):
     ###########################
     ## GENERATE ADATA OBJECT ##
     ###########################
-    adata = anndata.AnnData(X=matrix, obs=obs, var=var, dtype=matrix.dtype)
+    matrix = matrix.astype("int")
+    adata = AnnData(X=matrix, obs=obs, var=var)
     for col in adata.obs.columns:
         if pd.api.types.is_object_dtype(adata.obs[col].dtype):
             adata.obs[col] = adata.obs[col].astype(str)
