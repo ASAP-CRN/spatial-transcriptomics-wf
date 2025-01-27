@@ -1,6 +1,6 @@
 version 1.0
 
-# Merge and process adata object with QC, filtering, and normalization
+# Merge and process adata object with QC, filtering, normalization, clustering, and annotation
 
 import "../../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
 import "../../wf-common/wdl/tasks/upload_final_outputs.wdl" as UploadFinalOutputs
@@ -23,6 +23,7 @@ workflow cohort_analysis {
 		String workflow_release
 		String run_timestamp
 		String raw_data_path_prefix
+		Array[String] staging_data_buckets
 		String billing_project
 		String container_registry
 		String zones
