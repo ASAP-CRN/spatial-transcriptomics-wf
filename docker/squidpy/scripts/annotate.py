@@ -37,7 +37,7 @@ def main(args):
         color=[
             "total_counts",
             "n_genes_by_counts",
-        ]
+        ],
     )
     plt.savefig(f"{args.cohort_id}.spatial_coord_by_counts.png", dpi=300, bbox_inches="tight")
 
@@ -46,7 +46,7 @@ def main(args):
         adata,
         img_key="hires",
         color="clusters",
-        size=1.5
+        size=1.5,
     )
     plt.savefig(f"{args.cohort_id}.spatial_coord_by_clusters.png", dpi=300, bbox_inches="tight")
 

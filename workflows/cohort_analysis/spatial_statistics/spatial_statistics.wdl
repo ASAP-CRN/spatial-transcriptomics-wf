@@ -35,10 +35,25 @@ workflow spatial_statistics {
 			zones = zones
 	}
 
+	call spatially_variable_gene_analysis {
+		input:
+			cohort_id = cohort_id,
+			nhood_enrichment_adata_object = neighbors_enrichment_analysis.nhood_enrichment_adata_object, #!FileCoercion
+			raw_data_path = raw_data_path,
+			workflow_info = workflow_info,
+			billing_project = billing_project,
+			container_registry = container_registry,
+			zones = zones
+	}
+
 	output {
 		# Neighborhood enrichment adata object and plot
 		File nhood_enrichment_adata_object = neighbors_enrichment_analysis.nhood_enrichment_adata_object #!FileCoercion
 		File nhood_enrichment_plot_png = neighbors_enrichment_analysis.nhood_enrichment_plot_png #!FileCoercion
+
+		# Moran’s I global spatial auto-correlation statistics
+		File spatial_autocorr_moran_adata_object = spatially_variable_gene_analysis.spatial_autocorr_moran_adata_object #!FileCoercion
+		File moran_top_10_variable_genes_csv = spatially_variable_gene_analysis.moran_top_10_variable_genes_csv #!FileCoercion
 	}
 }
 
@@ -76,6 +91,52 @@ task neighbors_enrichment_analysis {
 	output {
 		String nhood_enrichment_adata_object = "~{raw_data_path}/~{cohort_id}.nhood_enrichment_adata_object.h5ad"
 		String nhood_enrichment_plot_png = "~{raw_data_path}/~{cohort_id}.nhood_enrichment.png"
+	}
+
+	runtime {
+		docker: "~{container_registry}/squidpy:1.6.2"
+		cpu: 2
+		memory: "~{mem_gb} GB"
+		disks: "local-disk ~{disk_size} HDD"
+		preemptible: 3
+		zones: zones
+	}
+}
+
+task spatially_variable_gene_analysis {
+	input {
+		String cohort_id
+		File nhood_enrichment_adata_object
+
+		String raw_data_path
+		Array[Array[String]] workflow_info
+		String billing_project
+		String container_registry
+		String zones
+	}
+
+	Int mem_gb = ceil(size(nhood_enrichment_adata_object, "GB") * 2 + 20)
+	Int disk_size = ceil(size(nhood_enrichment_adata_object, "GB") * 2 + 50)
+
+	command <<<
+		set -euo pipefail
+
+		python3 /opt/scripts/moran_i_score.py \
+			--cohort-id ~{cohort_id} \
+			--adata-input ~{nhood_enrichment_adata_object} \
+			--adata-output ~{cohort_id}.spatial_autocorr_moran.h5ad
+
+		upload_outputs \
+			-b ~{billing_project} \
+			-d ~{raw_data_path} \
+			-i ~{write_tsv(workflow_info)} \
+			-o "~{cohort_id}.spatial_autocorr_moran.h5ad" \
+			-o "~{cohort_id}.moran_top_10_variable_genes.csv"
+	>>>
+
+	output {
+		String spatial_autocorr_moran_adata_object = "~{raw_data_path}/~{cohort_id}.spatial_autocorr_moran.h5ad"
+		String moran_top_10_variable_genes_csv = "~{raw_data_path}/~{cohort_id}.moran_top_10_variable_genes.csv"
 	}
 
 	runtime {
