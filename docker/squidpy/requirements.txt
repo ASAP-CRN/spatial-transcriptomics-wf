@@ -6,3 +6,4 @@ squidpy==1.6.2
 matplotlib==3.10.0
 seaborn==0.13.2
 scanpy==1.10.4
+scanorama==1.6
