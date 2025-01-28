@@ -172,18 +172,13 @@ workflow pmdbs_spatial_transcriptomics_analysis {
 	parameter_meta {
 		cohort_id: {help: "Name of the cohort; used to name output files during cross-team downstream analysis."}
 		projects: {help: "The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis."}
-		reference: {help: "The primary assembly FASTA, gene annotation GTF, transcripts FASTA from GENCODE, and a generated all transcripts FASTA."}
-		run_alignment_quantification: {help: "Option to align raw reads with STAR and quantify aligned reads with Salmon. This and/or 'run_pseudo_mapping_quantification' must be set to true. [true]"}
-		run_star_index_ref_genome: {help: "Option to index reference genome with STAR. If set to false, 'star_genome_dir_tar_gz' must be provided. [false]"}
-		star_genome_dir_tar_gz: {help: "The indexed reference genome files required for STAR."}
-		run_pseudo_mapping_quantification: {help: "Option to map and directly quantify raw reads with Salmon. This and/or 'run_alignment_quantification' must be set to true. [false]"}
-		run_salmon_index_ref_genome: {help: "Option to create decoy sequences (from genome), concatenating transcriptome and genome, and index concatenated genome with Salmon. If set to false, 'salmon_genome_dir_tar_gz' must be provided [false]"}
-		salmon_genome_dir_tar_gz: {help: "The indexed concatenated transcriptome and genome files required for Salmon."}
-		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only upstream steps (QC, align/map, and quantify) will run for samples. [false]"}
+		config_ini: {help: "The configuration (.ini) file, containing pipeline processing parameters."}
+		geomxngs_config_pkc: {help: "The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers."}
+		filter_cells_min_counts: {help: "Minimum number of counts required for a cell to pass filtering. [5000]"}
+		filter_genes_min_cells: {help: "Minimum number of cells expressed required for a gene to pass filtering. [10]"}
+		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (GeoMxNGSPipeline and generating the initial adata object(s)) will run for samples. [false]"}
 		cohort_raw_data_bucket: {help: "Bucket to upload cross-team downstream intermediate files to."}
 		cohort_staging_data_buckets: {help: "Set of buckets to stage cross-team downstream analysis outputs in."}
-		gene_map_csv: {help: "CSV containing mapped transcript IDs and gene IDs that must be in this order."}
-		gene_ids_and_names_json: {help: "JSON file containing mapped gene IDs and gene names created from the gene annotation GTF."}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}
 		zones: {help: "Space-delimited set of GCP zones where compute will take place."}
 	}
