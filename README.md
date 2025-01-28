@@ -1,5 +1,3 @@
-# [WIP]
-
 # pmdbs-spatial-transcriptomics-wf
 Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) workflow harmonized across ASAP with human and mouse spatial transcriptomics data.
 
@@ -19,7 +17,7 @@ Common workflows, tasks, utility scripts, and docker images reused across harmon
 
 Worfklows are defined in [the `workflows` directory](workflows).
 
-This workflow is set up to analyze bulk RNAseq in WDL using mainly command line and a Python script.
+This workflow is set up to analyze spatial transcriptomics data: Nanostring GeoMx and 10x Visium in WDL using mainly command line and a Python script.
 
 ![Workflow diagram](workflows/workflow_diagram.svg "Workflow diagram")
 
@@ -27,21 +25,17 @@ This workflow is set up to analyze bulk RNAseq in WDL using mainly command line 
 
 **Input template**: [workflows/inputs.json](workflows/inputs.json)
 
-The workflow is broken up into #TODO main chunks:
+The workflow is broken up into two main chunks:
 
-1. [Upstream](#upstream)
-2. [Downstream](#downstream)
-3. [Cohort analysis](#cohort-analysis)
+1. [Preprocessing](#preprocessing)
+2. [Cohort analysis](#cohort-analysis)
 
-## Upstream
+## Preprocessing
 
-Run once per sample; only rerun when the upstream workflow version is updated. Upstream outputs are stored in the originating team's raw and staging data buckets.
-
-## Downstream
-
-Run once per team (all samples from a single team). This can be rerun using different sample subsets; including additional samples requires this entire analysis to be rerun. Intermediate files from previous runs are not reused and are stored in timestamped directories.
+Run once per sample; only rerun when the preprocessing workflow version is updated. Preprocessing outputs are stored in the originating team's raw and staging data buckets.
 
 ## Cohort analysis
+
 Run once per team (all samples from a single team) if `project.run_project_cohort_analysis` is set to `true`, and once for the whole cohort (all samples from all teams) if `run_cross_team_cohort_analysis` is set to `true`. This can be rerun using different sample subsets; including additional samples requires this entire analysis to be rerun. Intermediate files from previous runs are not reused and are stored in timestamped directories.
 
 
@@ -51,10 +45,15 @@ An input template file can be found at [workflows/inputs.json](workflows/inputs.
 
 | Type | Name | Description |
 | :- | :- | :- |
-| String | cohort_id | Name of the cohort; used to name output files during cross-team downstream analysis. |
-| Array[[Project](#project)] | projects | The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis. |
-| String | cohort_raw_data_bucket | Bucket to upload cross-team downstream intermediate files to. |
-| Array[String] | cohort_staging_data_buckets | Buckets to upload cross-team downstream analysis outputs to. |
+| String | cohort_id | Name of the cohort; used to name output files during cross-team cohort analysis. |
+| Array[[Project](#project)] | projects | The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis. |
+| File | config_ini | The configuration (.ini) file, containing pipeline processing parameters. |
+| File | geomxngs_config_pkc | The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers; see https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-configuration-files/. |
+| Int? | filter_cells_min_counts | Minimum number of counts required for a cell to pass filtering. [5000] |
+| Int? | filter_genes_min_cells | Minimum number of cells expressed required for a gene to pass filtering. [10] |
+| Boolean? | run_cross_team_cohort_analysis | Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (GeoMxNGSPipeline and generating the initial adata object(s)) will run for samples. [false] |
+| String | cohort_raw_data_bucket | Bucket to upload cross-team cohort analysis intermediate files to. |
+| Array[String] | cohort_staging_data_buckets | Buckets to upload cross-team cohort analysis outputs to. |
 | String | container_registry | Container registry where workflow Docker images are hosted. |
 | String? | zones | Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f'] |
 
@@ -119,37 +118,30 @@ Example usage:
 
 - `cohort_id`: either the `team_id` for project-level downstream analysis, or the `cohort_id` for the full cohort
 - `workflow_run_timestamp`: format: `%Y-%m-%dT%H-%M-%SZ`
-- The list of samples used to generate the downstream analysis will be output alongside other downstream analysis outputs in the staging data bucket (`${cohort_id}.sample_list.tsv`)
+- The list of samples used to generate the cohort analysis will be output alongside other cohort analysis outputs in the staging data bucket (`${cohort_id}.sample_list.tsv`)
 - The MANIFEST.tsv file in the staging data bucket describes the file name, md5 hash, timestamp, workflow version, workflow name, and workflow release for the run used to generate each file in that directory
 
 ### Raw data (intermediate files and final outputs for all runs of the workflow)
 
 The raw data bucket will contain *some* artifacts generated as part of workflow execution. Following successful workflow execution, the artifacts will also be copied into the staging bucket as final outputs.
 
-In the workflow, task outputs are either specified as `String` (final outputs, which will be copied in order to live in raw data buckets and staging buckets) or `File` (intermediate outputs that are periodically cleaned up, which will live in the cromwell-output bucket). This was implemented to reduce storage costs. Upstream final outputs are defined in the workflow at [main.wdl](workflows/main.wdl#L85-L116), downstream analysis final outputs are defined at [downstream.wdl](workflows/main.wdl#L182-200), and cohort analysis final outputs are defined at [cohort_analysis.wdl](workflows/cohort_analysis/cohort_analysis.wdl#L85-93).
+In the workflow, task outputs are either specified as `String` (final outputs, which will be copied in order to live in raw data buckets and staging buckets) or `File` (intermediate outputs that are periodically cleaned up, which will live in the cromwell-output bucket). This was implemented to reduce storage costs. Preprocess final outputs are defined in the workflow at [main.wdl](workflows/main.wdl#L61-L65) and cohort analysis final outputs are defined at [cohort_analysis.wdl](workflows/cohort_analysis/cohort_analysis.wdl#L106-L129).
 
 ```bash
-#TODO
 asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 └── workflow_execution
 	└── pmdbs_spatial_transcriptomics
 		├── cohort_analysis
 		│	└──${cohort_analysis_workflow_version}
-		│		└── ${salmon_mode}
-		│			└── ${workflow_run_timestamp}
+		│		└── ${workflow_run_timestamp}
 		│				└── <cohort_analysis outputs>
-		├── downstream
-		│	└──${downstream_workflow_version}
-		│		└── ${salmon_mode}
-		│			└── ${workflow_run_timestamp}
-		│				└── <downstream outputs>
-		└── upstream
-			├── fastqc_raw_reads
-			│	└── ${fastqc_task_version}
-			│		└── <fastqc_raw_reads output>
-			└── pseudo_mapping_quantification
-				└── ${pseudo_mapping_quantification_workflow_version}
-					└── <pseudo_mapping_quantification output>
+        └── preprocess
+            ├── fastq_to_dcc
+            │   └── ${fastq_to_dcc_task_version}
+            │       └── <fastq_to_dcc output>
+            └── dcc_to_count_matrix
+                └── ${dcc_to_count_matrix_task_version}
+                    └── <dcc_to_count_matrix output>
 ```
 
 ### Staging data (intermediate workflow objects and final workflow outputs for the latest run of the workflow)
@@ -159,28 +151,34 @@ Following QC by researchers, the objects in the dev or uat bucket are synced int
 Data may be synced using [the `promote_staging_data` script](#promoting-staging-data).
 
 ```bash
-#TODO
 asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 └── pmdbs_spatial_transcriptomics
 	├── cohort_analysis
-	│   └── ${salmon_mode}
-	│       ├── ${cohort_id}.sample_list.tsv
-	│    	├──	${cohort_id}.${salmon_mode}.overlapping_significant_genes.csv # Only for cross_team_cohort_analysis
-	│       ├── ${cohort_id}.${salmon_mode}.pca_plot.png
-	│    	└── MANIFEST.tsv
-	├── downstream
-	│   └── ${salmon_mode}
-	│       ├── ${team_id}.${salmon_mode}.dds.pkl
-	│       ├── ${team_id}.${salmon_mode}.pydeseq2_significant_genes.csv
-	│       ├── ${team_id}.${salmon_mode}.volcano_plot.png
-	│       └── MANIFEST.tsv
-	└── upstream
-		└── ${salmon_mode}
-			├── ${sampleA_id}.${salmon_mode}.salmon_quant.tar.gz
-			├── MANIFEST.tsv
-			├── ...
-			├── ${sampleN_id}.${salmon_mode}.salmon_quant.tar.gz
-			└── MANIFEST.tsv
+	│   ├── ${cohort_id}.sample_list.tsv
+	│   ├──	${cohort_id}.merged_adata_object.h5ad
+	│   ├── ${cohort_id}.qc_hist.png
+	│   ├── ${cohort_id}.filtered_normalized.h5ad
+	│   ├── ${cohort_id}.umap_cluster.h5ad
+	│   ├── ${cohort_id}.umap.png
+	│   ├── ${cohort_id}.spatial_coord_by_counts.png
+	│   ├── ${cohort_id}.spatial_coord_by_clusters.png
+	│   ├── ${cohort_id}.nhood_enrichment_adata_object.h5ad
+	│   ├── ${cohort_id}.nhood_enrichment.png
+	│   ├── ${cohort_id}.co_occurrence.h5ad
+	│   ├── ${cohort_id}.co_occurrence.png
+	│   ├── ${cohort_id}.final_adata_object.h5ad
+	│   ├── ${cohort_id}.moran_top_10_variable_genes.csv
+	│   └── MANIFEST.tsv
+	└── preprocess
+		├── ${sampleA_id}.DCC.zip
+		├── ${sampleA_id}.geomxngs_out_dir.tar.gz
+		├── ${sampleA_id}.count_matrix.h5ad
+		├── MANIFEST.tsv
+		├── ...
+		├── ${sampleN_id}.DCC.zip
+		├── ${sampleN_id}.geomxngs_out_dir.tar.gz
+		├── ${sampleN_id}.count_matrix.h5ad
+		└── MANIFEST.tsv
 ```
 
 ## Promoting staging data
@@ -227,21 +225,21 @@ Docker images are defined in [the `docker` directory](docker). Each image must m
 
 Example directory structure:
 ```bash
-#TODO
 docker
-├── fastp
+├── geomxngs
 │   ├── build.env
 │   └── Dockerfile
-├── star_samtools
-│   ├── build.env
-│   └── Dockerfile
-└── pydeseq2
+└── squidpy
 	├── build.env
 	├── Dockerfile
 	├── requirements.txt
 	└── scripts
-		├── dge_analysis.py
-		└── cohort_analysis.py
+		├── merge_and_qc.py
+		├── filter_and_normalize.py
+		├── cluster.py
+		├── neighbors_enrichment_analysis.py
+		├── co_occurrence_probability.py
+		└── moran_i_score.py
 ```
 
 ## The `build.env` file
@@ -261,7 +259,7 @@ Docker images can be build using the [`build_docker_images`](https://github.com/
 
 ```bash
 # Build a single image
-./build_docker_images -d docker/fastp
+./build_docker_images -d docker/geomxngs
 
 # Build all images in the `docker` directory
 ./build_docker_images -d docker
@@ -274,9 +272,8 @@ Docker images can be build using the [`build_docker_images`](https://github.com/
 
 | Image | Major tool versions | Links |
 | :- | :- | :- |
-| fastqc | <ul><li>[fastqc v0.12.0](https://github.com/s-andrews/FastQC/releases/tag/v0.12.0)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/fastqc) |
-| pydeseq2 | Python (v3.12.5) libraries: <ul><li>[pydeseq2 v0.4.11](https://github.com/owkin/PyDESeq2/releases/tag/v0.4.11)</li><li>[scikit-learn 1.5.2](https://github.com/scikit-learn/scikit-learn/releases/tag/1.5.2)</li><li>[scipy v1.13.0](https://github.com/scipy/scipy/releases/tag/v1.13.0)</li><li>[pytximport 0.8.0](https://github.com/complextissue/pytximport/releases/tag/0.8.0)</li><li>[matplotlib v3.9.2](https://github.com/matplotlib/matplotlib/releases/tag/v3.9.2)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-bulk-rnaseq-wf/tree/main/docker/pydeseq2) |
-| multiqc | <ul><li>[multiqc v1.24.1](https://github.com/MultiQC/MultiQC/releases/tag/v1.24.1)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/multiqc) |
+| geomxngs | <ul><li>[geomxngs v3.1.1.6](https://nanostring.app.box.com/v/GeoMxSW3-1-0/folder/233772026049)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/geomxngs) |
+| squidpy | Python (v3.12.5) libraries: <ul><li>[squidpy v1.6.2](https://github.com/scverse/squidpy/releases/tag/v1.6.2)</li><li>[matplotlib v3.10.0](https://github.com/matplotlib/matplotlib/releases/tag/v3.10.0)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li><li>[scanpy v1.10.4](https://github.com/scverse/scanpy/releases/tag/1.10.4)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/squidpy) |
 | util | <ul><li>[google-cloud-cli 444.0.0-slim](https://cloud.google.com/sdk/docs/release-notes#44400_2023-08-22)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/util) |
 
 
@@ -284,7 +281,7 @@ Docker images can be build using the [`build_docker_images`](https://github.com/
 
 [`wdl-ci`](https://github.com/DNAstack/wdl-ci) provides tools to validate and test workflows and tasks written in [Workflow Description Language (WDL)](https://github.com/openwdl/wdl). In addition to the tests packaged in `wdl-ci`, the [pmdbs-wdl-ci-custom-test-dir](./pmdbs-bulk-rnaseq-wdl-ci-custom-test-dir) is a directory containing custom WDL-based tests that are used to test workflow tasks. `wdl-ci` in this repository is set up to run on pull request.
 
-In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-ci.config.json) and compare current outputs and validated outputs based on changed tasks/workflows to ensure outputs are still valid by meeting the critera in the specified tests. For example, if the Differential Gene Expression Analysis task in our workflow was changed, then this task would be submitted and that output would be considered the "current output". When inspecting the raw counts generated by PyDESeq2, there is a test specified in the [wdl-ci.config.json](./wdl-ci.config.json) called, "check_pkl". The test will compare the "current output" and "validated output" (provided in the [wdl-ci.config.json](./wdl-ci.config.json)) to make sure that the dds.pkl file is still a valid PKL file.
+In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-ci.config.json) and compare current outputs and validated outputs based on changed tasks/workflows to ensure outputs are still valid by meeting the critera in the specified tests. For example, if the DCC to count matrix task in our workflow was changed, then this task would be submitted and that output would be considered the "current output". When inspecting the initial count matrix adata object, there is a test specified in the [wdl-ci.config.json](./wdl-ci.config.json) called, "check_hdf5". The test will compare the "current output" and "validated output" (provided in the [wdl-ci.config.json](./wdl-ci.config.json)) to make sure that the .h5ad file is still a valid HDF5 file.
 
 
 # Notes
