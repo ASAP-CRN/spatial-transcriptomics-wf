@@ -123,7 +123,7 @@ workflow pmdbs_spatial_transcriptomics_analysis {
 		## List of samples included in the cohort
 		Array[File?] project_cohort_sample_list = project_cohort_analysis.cohort_sample_list
 
-		# Merged adata objects, filtered and normalized adata objects, clustered and annotated adata objects, and plots
+		# Merged adata objects, filtered and normalized adata objects, clustered adata objects, and plots
 		Array[File?] project_merged_adata_object = project_cohort_analysis.merged_adata_object
 		Array[File?] project_qc_plots_png = project_cohort_analysis.qc_plots_png
 		Array[Float?] project_qc_unassigned_ctrl_probes_percentage = project_cohort_analysis.qc_unassigned_ctrl_probes_percentage
@@ -146,7 +146,7 @@ workflow pmdbs_spatial_transcriptomics_analysis {
 		## List of samples included in the cohort
 		File? cohort_cohort_sample_list = cross_team_cohort_analysis.cohort_sample_list
 
-		# Merged adata objects, filtered and normalized adata objects, clustered and annotated adata objects, and plots
+		# Merged adata objects, filtered and normalized adata objects, clustered adata objects, and plots
 		File? cohort_merged_adata_object = cross_team_cohort_analysis.merged_adata_object
 		File? cohort_qc_plots_png = cross_team_cohort_analysis.qc_plots_png
 		Float? cohort_qc_unassigned_ctrl_probes_percentage = cross_team_cohort_analysis.qc_unassigned_ctrl_probes_percentage

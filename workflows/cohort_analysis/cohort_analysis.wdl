@@ -1,6 +1,6 @@
 version 1.0
 
-# Merge and process adata object with QC, filtering, normalization, clustering, and annotation
+# Merge and process adata object with QC, filtering, normalization, and clustering
 
 import "../../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
 import "spatial_statistics/spatial_statistics.wdl" as SpatialStatistics
@@ -72,7 +72,7 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call annotate {
+	call cluster {
 		input:
 			cohort_id = cohort_id,
 			filtered_normalized_adata_object = filter_and_normalize.filtered_normalized_adata_object, #!FileCoercion
@@ -86,7 +86,7 @@ workflow cohort_analysis {
 	call SpatialStatistics.spatial_statistics {
 		input:
 			cohort_id = cohort_id,
-			umap_cluster_adata_object = annotate.umap_cluster_adata_object, #!FileCoercion
+			umap_cluster_adata_object = cluster.umap_cluster_adata_object, #!FileCoercion
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -115,9 +115,9 @@ workflow cohort_analysis {
 			filter_and_normalize.filtered_normalized_adata_object
 		],
 		[
-			annotate.umap_cluster_adata_object
+			cluster.umap_cluster_adata_object
 		],
-		annotate.umap_and_spatial_coord_plots_png,
+		cluster.umap_and_spatial_coord_plots_png,
 		[
 			spatial_statistics.nhood_enrichment_adata_object,
 			spatial_statistics.nhood_enrichment_plot_png,
@@ -148,9 +148,9 @@ workflow cohort_analysis {
 		# Filtered and normalized adata object
 		File filtered_normalized_adata_object = filter_and_normalize.filtered_normalized_adata_object #!FileCoercion
 
-		# Annotated and clustered adata object and UMAP and spatial coordinates plots
-		File umap_cluster_adata_object = annotate.umap_cluster_adata_object #!FileCoercion
-		Array[File] umap_and_spatial_coord_plots_png = annotate.umap_and_spatial_coord_plots_png #!FileCoercion
+		# Leiden clustered adata object and UMAP and spatial coordinates plots
+		File umap_cluster_adata_object = cluster.umap_cluster_adata_object #!FileCoercion
+		Array[File] umap_and_spatial_coord_plots_png = cluster.umap_and_spatial_coord_plots_png #!FileCoercion
 
 		# Spatial statistics outputs
 		File nhood_enrichment_adata_object = spatial_statistics.nhood_enrichment_adata_object
@@ -262,7 +262,7 @@ task filter_and_normalize {
 	}
 }
 
-task annotate {
+task cluster {
 	input {
 		String cohort_id
 		File filtered_normalized_adata_object
@@ -280,7 +280,7 @@ task annotate {
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/annotate.py \
+		python3 /opt/scripts/cluster.py \
 			--cohort-id ~{cohort_id} \
 			--adata-input ~{filtered_normalized_adata_object} \
 			--adata-output ~{cohort_id}.umap_cluster.h5ad

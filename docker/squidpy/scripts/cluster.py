@@ -8,9 +8,9 @@ import squidpy as sq
 
 
 def main(args):
-    #######################
-    ## ANNOTATE AND PLOT ##
-    #######################
+    ######################
+    ## CLUSTER AND PLOT ##
+    ######################
     adata = sc.read_h5ad(args.adata_input)
 
     sc.pp.pca(adata)
@@ -70,14 +70,14 @@ if __name__ == "__main__":
         "--adata-input",
         type=str,
         required=True,
-        help="Adata object to annotate and plot"
+        help="Adata object to cluster and plot"
     )
     parser.add_argument(
         "-o",
         "--adata-output",
         type=str,
         required=True,
-        help="Output file name for the UMAP clustered AnnData object"
+        help="Output file name for the Leiden clustered AnnData object"
     )
 
     args = parser.parse_args()
