@@ -23,7 +23,7 @@ def main(args):
     ########
     ## QC ##
     ########
-    merged_adata.var["NegPrb"] = merged_adata.var_names.str.startswith("NegPrb")
+    merged_adata.var["NegPrb"] = merged_adata.var_names.str.startswith("NegProbe")
     sc.pp.calculate_qc_metrics(merged_adata, qc_vars=["NegPrb"], inplace=True)
     pd.set_option("display.max_columns", None)
 

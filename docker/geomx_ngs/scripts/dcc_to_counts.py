@@ -75,7 +75,6 @@ def main(args):
                 probes.append(probe["DisplayName"])
                 rts_ids.append(probe["RTS_ID"])
                 genes.append(display_name)
-
         pkc_df = pd.DataFrame(index=rts_ids, data={"gene": genes, "probe": probes})
         pkc_df["genome"] = genome
     var = pd.DataFrame(index=targets)

@@ -27,8 +27,8 @@ def main(args):
             "leiden",
         ],
         wspace=0.4,
+        save=f"{args.cohort_id}.umap.png",
     )
-    plt.savefig(f"{args.cohort_id}.umap.png", dpi=300, bbox_inches="tight")
 
     plt.rcParams["figure.figsize"] = (8, 8)
     sc.pl.spatial(
@@ -38,8 +38,8 @@ def main(args):
             "total_counts",
             "n_genes_by_counts",
         ],
+        save=f"{args.cohort_id}.spatial_coord_by_counts.png",
     )
-    plt.savefig(f"{args.cohort_id}.spatial_coord_by_counts.png", dpi=300, bbox_inches="tight")
 
     plt.rcParams["figure.figsize"] = (8, 8)
     sc.pl.spatial(
@@ -47,8 +47,8 @@ def main(args):
         img_key="hires",
         color="clusters",
         size=1.5,
+        save=f"{args.cohort_id}.spatial_coord_by_clusters.png",
     )
-    plt.savefig(f"{args.cohort_id}.spatial_coord_by_clusters.png", dpi=300, bbox_inches="tight")
 
     # Save adata object
     adata.write_h5ad(filename=args.counts_output)
