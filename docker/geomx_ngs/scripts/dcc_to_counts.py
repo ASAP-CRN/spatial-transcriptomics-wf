@@ -82,6 +82,8 @@ def main(args):
     obs = pd.DataFrame(index=[os.path.splitext(os.path.basename(path))[0] for path in dcc_file_paths])
     obs["plate_well"] = obs.index.str.split(r"[-_]").str[-2:].str.join("-")  # e.g. B-A02
     var = var.join(pkc_df)
+    if var.isna().values.any():
+        print("[WARNING] The var DataFrame contains NaN values!")
 
 
     ###########################
