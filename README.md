@@ -170,9 +170,12 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset}
             ├── fastq_to_dcc
             │   └── ${fastq_to_dcc_task_version}
             │       └── <fastq_to_dcc output>
-            └── dcc_to_count_matrix
-                └── ${dcc_to_count_matrix_task_version}
-                    └── <dcc_to_count_matrix output>
+            ├── dcc_to_adata
+            │   └── ${dcc_to_adata_task_version}
+            │       └── <dcc_to_adata output>
+            └── qc
+                └── ${qc_task_version}
+                    └── <qc output>
 
 asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 └── workflow_execution
@@ -218,12 +221,14 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 	└── preprocess
 		├── ${sampleA_id}.DCC.zip
 		├── ${sampleA_id}.geomxngs_out_dir.tar.gz
-		├── ${sampleA_id}.count_matrix.h5ad
+		├── ${sampleA_id}.initial_adata_object.h5ad
+		├── ${sampleA_id}.qc.h5ad
 		├── MANIFEST.tsv
 		├── ...
 		├── ${sampleN_id}.DCC.zip
 		├── ${sampleN_id}.geomxngs_out_dir.tar.gz
-		├── ${sampleN_id}.count_matrix.h5ad
+		├── ${sampleN_id}.initial_adata_object.h5ad
+		├── ${sampleN_id}.qc.h5ad
 		└── MANIFEST.tsv
 
 asap-dev-{cohort,team-xxyy}-{source}-{dataset}
@@ -293,7 +298,8 @@ docker
 	├── Dockerfile
 	├── requirements.txt
 	└── scripts
-		├── merge_and_qc.py
+		├── qc.py
+		├── merge_and_plot_qc.py
 		├── filter_and_normalize.py
 		├── cluster.py
 		├── neighbors_enrichment_analysis.py
@@ -341,7 +347,7 @@ Docker images can be build using the [`build_docker_images`](https://github.com/
 
 [`wdl-ci`](https://github.com/DNAstack/wdl-ci) provides tools to validate and test workflows and tasks written in [Workflow Description Language (WDL)](https://github.com/openwdl/wdl). In addition to the tests packaged in `wdl-ci`, the [pmdbs-wdl-ci-custom-test-dir](./pmdbs-spatial-wdl-ci-custom-test-dir) is a directory containing custom WDL-based tests that are used to test workflow tasks. `wdl-ci` in this repository is set up to run on pull request.
 
-In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-ci.config.json) and compare current outputs and validated outputs based on changed tasks/workflows to ensure outputs are still valid by meeting the critera in the specified tests. For example, if the DCC to count matrix task in our workflow was changed, then this task would be submitted and that output would be considered the "current output". When inspecting the initial count matrix adata object, there is a test specified in the [wdl-ci.config.json](./wdl-ci.config.json) called, "check_hdf5". The test will compare the "current output" and "validated output" (provided in the [wdl-ci.config.json](./wdl-ci.config.json)) to make sure that the .h5ad file is still a valid HDF5 file.
+In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-ci.config.json) and compare current outputs and validated outputs based on changed tasks/workflows to ensure outputs are still valid by meeting the critera in the specified tests. For example, if the DCC to adata task in our workflow was changed, then this task would be submitted and that output would be considered the "current output". When inspecting the initial adata object, there is a test specified in the [wdl-ci.config.json](./wdl-ci.config.json) called, "check_hdf5". The test will compare the "current output" and "validated output" (provided in the [wdl-ci.config.json](./wdl-ci.config.json)) to make sure that the .h5ad file is still a valid HDF5 file.
 
 
 # Notes

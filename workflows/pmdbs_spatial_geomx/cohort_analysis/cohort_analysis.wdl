@@ -183,7 +183,7 @@ task merge_and_plot_qc_metrics {
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/merge_and_qc.py \
+		python3 /opt/scripts/merge_and_plot_qc.py \
 			--cohort-id ~{cohort_id} \
 			--adata-paths-input ~{sep=' ' preprocessed_adata_objects} \
 			--merged-adata-output ~{cohort_id}.merged_adata_object.h5ad \
