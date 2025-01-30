@@ -59,6 +59,7 @@ workflow preprocess {
 		String spaceranger_filtered_counts = "~{spaceranger_raw_data_path}/~{sample.sample_id}.filtered_feature_bc_matrix.h5"
 		String spaceranger_molecule_info = "~{spaceranger_raw_data_path}/~{sample.sample_id}.molecule_info.h5"
 		String spaceranger_metrics_summary_csv = "~{spaceranger_raw_data_path}/~{sample.sample_id}.metrics_summary.csv"
+		String spaceranger_spatial_outputs_tar_gz = "~{spaceranger_raw_data_path}/~{sample.sample_id}.spaceranger_spatial_outputs.tar.gz"
 		Array[String] spaceranger_spatial_images = [
 			"~{spaceranger_raw_data_path}/~{sample.sample_id}.aligned_fiducials.jpg",
 			"~{spaceranger_raw_data_path}/~{sample.sample_id}.detected_tissue_image.jpg",
@@ -91,6 +92,7 @@ workflow preprocess {
 		File filtered_counts_output = select_first([spaceranger_count.filtered_counts, spaceranger_filtered_counts]) #!FileCoercion
 		File molecule_info_output = select_first([spaceranger_count.molecule_info, spaceranger_molecule_info]) #!FileCoercion
 		File metrics_summary_csv_output = select_first([spaceranger_count.metrics_summary_csv, spaceranger_metrics_summary_csv]) #!FileCoercion
+		File spatial_outputs_tar_gz_output = select_first([spaceranger_count.spatial_outputs_tar_gz, spaceranger_spatial_outputs_tar_gz]) #!FileCoercion
 		Array[File] spatial_images_output = select_first([spaceranger_count.spatial_images, spaceranger_spatial_images]) #!FileCoercion
 		File scalefactors_json_output = select_first([spaceranger_count.scalefactors_json, spaceranger_scalefactors_json]) #!FileCoercion
 		File tissue_positions_csv_output = select_first([spaceranger_count.tissue_positions_csv, spaceranger_tissue_positions_csv]) #!FileCoercion
@@ -106,6 +108,7 @@ workflow preprocess {
 					sample_id = sample.sample_id,
 					batch = select_first([sample.batch]),
 					spaceranger_counts = filtered_counts_output,
+					spaceranger_spatial_tar_gz = spatial_outputs_tar_gz_output,
 					raw_data_path = adata_raw_data_path,
 					workflow_info = workflow_info,
 					billing_project = billing_project,
@@ -126,10 +129,11 @@ workflow preprocess {
 		Array[File] filtered_counts = filtered_counts_output #!FileCoercion
 		Array[File] molecule_info = molecule_info_output #!FileCoercion
 		Array[File] metrics_summary_csv = metrics_summary_csv_output #!FileCoercion
-		Array[String] spatial_images = spatial_images_output #!FileCoercion
-		String scalefactors_json = scalefactors_json_output #!FileCoercion
-		String tissue_positions_csv = tissue_positions_csv_output #!FileCoercion
-		String spatial_enrichment_csv = spatial_enrichment_csv_output #!FileCoercion
+		Array[File] spatial_outputs_tar_gz = spatial_outputs_tar_gz_output #!FileCoercion
+		Array[Array[File]] spatial_images = spatial_images_output #!FileCoercion
+		Array[File] scalefactors_json = scalefactors_json_output #!FileCoercion
+		Array[File] tissue_positions_csv = tissue_positions_csv_output #!FileCoercion
+		Array[File] spatial_enrichment_csv = spatial_enrichment_csv_output #!FileCoercion
 
 		# Initial adata object
 		Array[File] initial_adata_object = preprocessed_adata_object_output #!FileCoercion
@@ -250,6 +254,10 @@ task spaceranger_count {
 		mv ~{sample_id}/outs/filtered_feature_bc_matrix.h5 ~{sample_id}.filtered_feature_bc_matrix.h5
 		mv ~{sample_id}/outs/molecule_info.h5 ~{sample_id}.molecule_info.h5
 		mv ~{sample_id}/outs/metrics_summary.csv ~{sample_id}.metrics_summary.csv
+
+		cp -r ~{sample_id}/outs/spatial spatial
+		tar -czvf "~{sample_id}.spaceranger_spatial_outputs.tar.gz" spatial
+
 		mv ~{sample_id}/outs/spatial/aligned_fiducials.jpg ~{sample_id}.aligned_fiducials.jpg
 		mv ~{sample_id}/outs/spatial/detected_tissue_image.jpg ~{sample_id}.detected_tissue_image.jpg
 		mv ~{sample_id}/outs/spatial/scalefactors_json.json ~{sample_id}.scalefactors_json.json
@@ -266,6 +274,7 @@ task spaceranger_count {
 			-o "~{sample_id}.filtered_feature_bc_matrix.h5" \
 			-o "~{sample_id}.molecule_info.h5" \
 			-o "~{sample_id}.metrics_summary.csv" \
+			-o "~{sample_id}.spaceranger_spatial_outputs.tar.gz" \
 			-o "~{sample_id}.aligned_fiducials.jpg" \
 			-o "~{sample_id}.detected_tissue_image.jpg" \
 			-o "~{sample_id}.scalefactors_json.json" \
@@ -280,6 +289,7 @@ task spaceranger_count {
 		String filtered_counts = "~{raw_data_path}/~{sample_id}.filtered_feature_bc_matrix.h5"
 		String molecule_info = "~{raw_data_path}/~{sample_id}.molecule_info.h5"
 		String metrics_summary_csv = "~{raw_data_path}/~{sample_id}.metrics_summary.csv"
+		String spatial_outputs_tar_gz = "~{raw_data_path}/~{sample_id}.spaceranger_spatial_outputs.tar.gz"
 		Array[String] spatial_images = [
 			"~{raw_data_path}/~{sample_id}.aligned_fiducials.jpg",
 			"~{raw_data_path}/~{sample_id}.detected_tissue_image.jpg",
@@ -309,6 +319,7 @@ task counts_to_adata {
 		String batch
 
 		File spaceranger_counts
+		File spaceranger_spatial_tar_gz
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -317,17 +328,20 @@ task counts_to_adata {
 		String zones
 	}
 
-	Int disk_size = ceil(size(spaceranger_counts, "GB") * 2 + 20)
+	Int disk_size = ceil(size([spaceranger_counts, spaceranger_spatial_tar_gz], "GB") * 2 + 20)
 
 	command <<<
 		set -euo pipefail
+
+		tar -xzvf ~{spaceranger_spatial_tar_gz}
 
 		python3 /opt/scripts/counts_to_adata.py \
 			--team ~{team_id} \
 			--dataset ~{dataset_id} \
 			--sample-id ~{sample_id} \
 			--batch ~{batch} \
-			--counts-input ~{spaceranger_counts} \
+			--spaceranger-counts-input ~{spaceranger_counts} \
+			--spaceranger-spatial-dir spatial \
 			--adata-output ~{sample_id}.initial_adata_object.h5ad
 
 		upload_outputs \
