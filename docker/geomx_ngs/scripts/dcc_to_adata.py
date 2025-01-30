@@ -102,12 +102,12 @@ def main(args):
     adata.obs["batch_id"] = f"{args.team_id}_{args.dataset_id}_{args.batch}"
     
     # Save adata object
-    adata.write_h5ad(filename=args.counts_output)
+    adata.write_h5ad(filename=args.adata_output)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Convert GeoMxNGSPipeline DCC files to count matrices"
+        description="Convert GeoMxNGSPipeline DCC files to count matrices to adata objects"
     )
     parser.add_argument(
         "-t",
@@ -160,10 +160,10 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-o",
-        "--counts-output",
+        "--adata-output",
         type=str,
         required=True,
-        help="Output file name for the counts matrix AnnData object"
+        help="Output file name for the initial AnnData object"
     )
 
     args = parser.parse_args()

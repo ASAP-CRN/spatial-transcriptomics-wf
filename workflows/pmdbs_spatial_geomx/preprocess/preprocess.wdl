@@ -279,7 +279,7 @@ task dcc_to_adata {
 
 		unzip -d ./dcc_files_dir ~{geomxngs_dcc_zip}
 
-		python3 /opt/scripts/dcc_to_counts.py \
+		python3 /opt/scripts/dcc_to_adata.py \
 			--team ~{team_id} \
 			--dataset ~{dataset_id} \
 			--sample-id ~{sample_id} \
@@ -287,7 +287,7 @@ task dcc_to_adata {
 			--dcc-files-dir-input ./dcc_files_dir \
 			--ini ~{config_ini} \
 			--pkc ~{geomxngs_config_pkc} \
-			--counts-output ~{sample_id}.initial_adata_object.h5ad
+			--adata-output ~{sample_id}.initial_adata_object.h5ad
 
 		upload_outputs \
 			-b ~{billing_project} \
