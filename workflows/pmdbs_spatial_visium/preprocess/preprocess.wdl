@@ -103,7 +103,7 @@ workflow preprocess {
 		File tissue_positions_csv_output = select_first([spaceranger_count.tissue_positions_csv, spaceranger_tissue_positions_csv]) #!FileCoercion
 		File spatial_enrichment_csv_output = select_first([spaceranger_count.spatial_enrichment_csv, spaceranger_spatial_enrichment_csv]) #!FileCoercion
 
-		String initial_adata_object = "~{adata_raw_data_path}/~{sample.sample_id}.initial_adata_object.h5ad"
+		String counts_to_adata_object = "~{adata_raw_data_path}/~{sample.sample_id}.initial_adata_object.h5ad"
 
 		if (counts_to_adata_complete == "false") {
 			call counts_to_adata {
@@ -122,7 +122,7 @@ workflow preprocess {
 			}
 		}
 
-		File initial_adata_object_output = select_first([counts_to_adata.initial_adata_object, initial_adata_object]) #!FileCoercion
+		File initial_adata_object_output = select_first([counts_to_adata.initial_adata_object, counts_to_adata_object]) #!FileCoercion
 
 		String qc_metrics_adata_object = "~{qc_raw_data_path}/~{sample.sample_id}.qc.h5ad"
 
@@ -130,7 +130,7 @@ workflow preprocess {
 			call qc {
 				input:
 					sample_id = sample.sample_id,
-					initial_adata_object = initial_adata_object,
+					initial_adata_object = initial_adata_object_output,
 					raw_data_path = qc_raw_data_path,
 					workflow_info = workflow_info,
 					billing_project = billing_project,
@@ -159,6 +159,9 @@ workflow preprocess {
 
 		# Initial adata object
 		Array[File] initial_adata_object = initial_adata_object_output #!FileCoercion
+
+		# QC adata object
+		Array[File] qc_adata_object = qc_adata_object_output #!FileCoercion
 	}
 }
 

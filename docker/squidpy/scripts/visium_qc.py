@@ -11,17 +11,17 @@ def main(args):
     ## QC ##
     ########
     adata = sc.read_h5ad(args.adata_input)
-    adata.var["NegPrb"] = adata.var_names.str.startswith("NegProbe")
-    sc.pp.calculate_qc_metrics(adata, qc_vars=["NegPrb"], inplace=True)
-    pd.set_option("display.max_columns", None)
+    adata.var["mt"] = adata.var_names.str.startswith("MT-")
+    adata.var["ribo"] = adata.var_names.str.startswith(("RPS", "RPL"))
+    adata.var["hb"] = adata.var_names.str.contains("^HB[^(P)]")
 
-    # Calculate the percentage of unassigned "NegPrb" transcripts
-    unassigned_ctrl_probes_percentage = adata.obs["total_counts_NegPrb"].sum() / adata.obs["total_counts"].sum() * 100
+    sc.pp.calculate_qc_metrics(
+        adata, qc_vars=["mt", "ribo", "hb"], inplace=True, log1p=True
+    )
 
-    # Save outputs
-    with open("unassigned_ctrl_probes_percentage.txt", "w") as file:
-        file.write(f"{unassigned_ctrl_probes_percentage}")
-
+    # Add doublet_score and predicted_doublet to .obs
+    sc.pp.scrublet(adata)
+    
     adata.write_h5ad(filename=args.qc_adata_output)
 
 
