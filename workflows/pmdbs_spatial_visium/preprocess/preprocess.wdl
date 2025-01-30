@@ -26,23 +26,27 @@ workflow preprocess {
 	String sub_workflow_name = "preprocess"
 	String spaceranger_count_task_version = "1.0.0"
 	String counts_to_adata_task_version = "1.0.0"
+	String qc_task_version = "1.0.0"
 
 	Array[Array[String]] workflow_info = [[run_timestamp, workflow_name, workflow_version, workflow_release]]
 
 	String workflow_raw_data_path_prefix = "~{raw_data_path_prefix}/~{sub_workflow_name}"
 	String spaceranger_raw_data_path = "~{workflow_raw_data_path_prefix}/spaceranger_count/~{spaceranger_count_task_version}"
 	String adata_raw_data_path = "~{workflow_raw_data_path_prefix}/counts_to_adata/~{counts_to_adata_task_version}"
+	String qc_raw_data_path = "~{workflow_raw_data_path_prefix}/qc/~{qc_task_version}"
 
 	scatter (sample_object in samples) {
 		String spaceranger_count_output = "~{spaceranger_raw_data_path}/~{sample_object.sample_id}.raw_feature_bc_matrix.h5"
 		String counts_to_adata_output = "~{adata_raw_data_path}/~{sample_object.sample_id}.initial_adata_object.h5ad"
+		String qc_output = "~{qc_raw_data_path}/~{sample_object.sample_id}.qc.h5ad"
 	}
 
-	# For each sample, outputs an array of true/false: [spaceranger_count_complete, counts_to_adata_complete]
+	# For each sample, outputs an array of true/false: [spaceranger_count_complete, counts_to_adata_complete, qc_complete]
 	call check_output_files_exist {
 		input:
 			spaceranger_count_output_files = spaceranger_count_output,
 			counts_to_adata_output_files = counts_to_adata_output,
+			qc_output_files = qc_output,
 			billing_project = billing_project,
 			zones = zones
 	}
@@ -54,6 +58,7 @@ workflow preprocess {
 
 		String spaceranger_count_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][0]
 		String counts_to_adata_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][1]
+		String qc_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][2]
 
 		String spaceranger_raw_counts = "~{spaceranger_raw_data_path}/~{sample.sample_id}.raw_feature_bc_matrix.h5"
 		String spaceranger_filtered_counts = "~{spaceranger_raw_data_path}/~{sample.sample_id}.filtered_feature_bc_matrix.h5"
@@ -98,7 +103,7 @@ workflow preprocess {
 		File tissue_positions_csv_output = select_first([spaceranger_count.tissue_positions_csv, spaceranger_tissue_positions_csv]) #!FileCoercion
 		File spatial_enrichment_csv_output = select_first([spaceranger_count.spatial_enrichment_csv, spaceranger_spatial_enrichment_csv]) #!FileCoercion
 
-		String preprocessed_adata_object = "~{adata_raw_data_path}/~{sample.sample_id}.initial_adata_object.h5ad"
+		String initial_adata_object = "~{adata_raw_data_path}/~{sample.sample_id}.initial_adata_object.h5ad"
 
 		if (counts_to_adata_complete == "false") {
 			call counts_to_adata {
@@ -117,7 +122,24 @@ workflow preprocess {
 			}
 		}
 
-		File preprocessed_adata_object_output = select_first([counts_to_adata.initial_adata_object, preprocessed_adata_object]) #!FileCoercion
+		File initial_adata_object_output = select_first([counts_to_adata.initial_adata_object, initial_adata_object]) #!FileCoercion
+
+		String qc_metrics_adata_object = "~{qc_raw_data_path}/~{sample.sample_id}.qc.h5ad"
+
+		if (qc_complete == "false") {
+			call qc {
+				input:
+					sample_id = sample.sample_id,
+					initial_adata_object = initial_adata_object,
+					raw_data_path = qc_raw_data_path,
+					workflow_info = workflow_info,
+					billing_project = billing_project,
+					container_registry = container_registry,
+					zones = zones
+			}
+		}
+
+		File qc_adata_object_output = select_first([qc.qc_adata_object, qc_metrics_adata_object]) #!FileCoercion
 	}
 
 	output {
@@ -136,7 +158,7 @@ workflow preprocess {
 		Array[File] spatial_enrichment_csv = spatial_enrichment_csv_output #!FileCoercion
 
 		# Initial adata object
-		Array[File] initial_adata_object = preprocessed_adata_object_output #!FileCoercion
+		Array[File] initial_adata_object = initial_adata_object_output #!FileCoercion
 	}
 }
 
@@ -144,6 +166,7 @@ task check_output_files_exist {
 	input {
 		Array[String] spaceranger_count_output_files
 		Array[String] counts_to_adata_output_files
+		Array[String] qc_output_files
 
 		String billing_project
 		String zones
@@ -154,21 +177,27 @@ task check_output_files_exist {
 
 		while read -r output_files || [[ -n "${output_files}" ]]; do
 			spaceranger_counts_file=$(echo "${output_files}" | cut -f 1)
-			adata_object_file=$(echo "${output_files}" | cut -f 2)
+			adata_file=$(echo "${output_files}" | cut -f 2)
+			qc_adata_file=$(echo "${output_files}" | cut -f 3)
 
 			if gsutil -u ~{billing_project} ls "${spaceranger_counts_file}"; then
-				if gsutil -u ~{billing_project} ls "${adata_object_file}"; then
-					# If we find all outputs, don't rerun anything
-					echo -e "true\ttrue" >> sample_preprocessing_complete.tsv
+				if gsutil -u ~{billing_project} ls "${adata_file}"; then
+					if gsutil -u ~{billing_project} ls "${qc_adata_file}"; then
+						# If we find all outputs, don't rerun anything
+						echo -e "true\ttrue\ttrue" >> sample_preprocessing_complete.tsv
+					else
+						# If we find spaceranger_counts and counts_to_adata outputs, then run (or rerun) qc
+						echo -e "true\ttrue\tfalse" >> sample_preprocessing_complete.tsv
+					fi
 				else
-					# If we find all outputs except counts_to_adata outputs, then run (or rerun) counts_to_adata
-					echo -e "true\tfalse" >> sample_preprocessing_complete.tsv
+					# If we only find spaceranger_counts, then run (or rerun) counts_to_adata and qc
+					echo -e "true\tfalse\tfalse" >> sample_preprocessing_complete.tsv
 				fi
 			else
-				# If we can't find Space Ranger counts files, then run (or rerun) everything
-				echo -e "false\tfalse" >> sample_preprocessing_complete.tsv
+				# If we don't find spaceranger_counts output, we must need to run (or rerun) preprocessing
+				echo -e "false\tfalse\tfalse" >> sample_preprocessing_complete.tsv
 			fi
-		done < <(paste ~{write_lines(spaceranger_count_output_files)} ~{write_lines(counts_to_adata_output_files)})
+		done < <(paste ~{write_lines(spaceranger_count_output_files)} ~{write_lines(counts_to_adata_output_files)} ~{write_lines(qc_output_files)})
 	>>>
 
 	output {
@@ -362,6 +391,51 @@ task counts_to_adata {
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
 		bootDiskSizeGb: 40
+		zones: zones
+	}
+}
+
+task qc {
+	input {
+		String sample_id
+
+		File initial_adata_object
+
+		String raw_data_path
+		Array[Array[String]] workflow_info
+		String billing_project
+		String container_registry
+		String zones
+	}
+
+	Int threads = 4
+	Int mem_gb = ceil(threads * 2)
+	Int disk_size = ceil(size(initial_adata_object, "GB") * 2 + 30)
+
+	command <<<
+		set -euo pipefail
+
+		python3 /opt/scripts/visium_qc.py \
+			--adata-input ~{initial_adata_object} \
+			--qc-adata-output ~{sample_id}.qc.h5ad
+
+		upload_outputs \
+			-b ~{billing_project} \
+			-d ~{raw_data_path} \
+			-i ~{write_tsv(workflow_info)} \
+			-o "~{sample_id}.qc.h5ad"
+	>>>
+
+	output {
+		String qc_adata_object = "~{raw_data_path}/~{sample_id}.qc.h5ad"
+	}
+
+	runtime {
+		docker: "~{container_registry}/squidpy:1.6.2_1"
+		cpu: threads
+		memory: "~{mem_gb} GB"
+		disks: "local-disk ~{disk_size} HDD"
+		preemptible: 3
 		zones: zones
 	}
 }

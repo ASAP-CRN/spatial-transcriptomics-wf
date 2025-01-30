@@ -47,7 +47,7 @@ workflow preprocess {
 		input:
 			fastq_to_dcc_output_files = fastq_to_dcc_output,
 			dcc_to_adata_output_files = dcc_to_adata_output,
-			qcc_output_files = qc_output,
+			qc_output_files = qc_output,
 			billing_project = billing_project,
 			zones = zones
 	}
@@ -142,7 +142,7 @@ task check_output_files_exist {
 	input {
 		Array[String] fastq_to_dcc_output_files
 		Array[String] dcc_to_adata_output_files
-		Array[String] qcc_output_files
+		Array[String] qc_output_files
 
 		String billing_project
 		String zones
@@ -173,7 +173,7 @@ task check_output_files_exist {
 				# If we don't find fast_to_dcc output, we must need to run (or rerun) preprocessing
 				echo -e "false\tfalse\tfalse" >> sample_preprocessing_complete.tsv
 			fi
-		done < <(paste ~{write_lines(fastq_to_dcc_output_files)} ~{write_lines(dcc_to_adata_output_files)} ~{write_lines(qcc_output_files)})
+		done < <(paste ~{write_lines(fastq_to_dcc_output_files)} ~{write_lines(dcc_to_adata_output_files)} ~{write_lines(qc_output_files)})
 	>>>
 
 	output {
