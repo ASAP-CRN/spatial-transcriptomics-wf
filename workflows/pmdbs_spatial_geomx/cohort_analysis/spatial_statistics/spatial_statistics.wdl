@@ -99,7 +99,7 @@ task neighbors_enrichment_analysis {
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2"
+		docker: "~{container_registry}/squidpy:1.6.2_1"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -145,7 +145,7 @@ task co_occurrence_probability {
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2"
+		docker: "~{container_registry}/squidpy:1.6.2_1"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -191,7 +191,7 @@ task spatially_variable_gene_analysis {
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2"
+		docker: "~{container_registry}/squidpy:1.6.2_1"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"

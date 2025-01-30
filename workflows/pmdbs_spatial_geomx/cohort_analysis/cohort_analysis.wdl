@@ -204,7 +204,7 @@ task merge_and_plot_qc_metrics {
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2"
+		docker: "~{container_registry}/squidpy:1.6.2_1"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -253,7 +253,7 @@ task filter_and_normalize {
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2"
+		docker: "~{container_registry}/squidpy:1.6.2_1"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -305,7 +305,7 @@ task cluster {
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2"
+		docker: "~{container_registry}/squidpy:1.6.2_1"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
