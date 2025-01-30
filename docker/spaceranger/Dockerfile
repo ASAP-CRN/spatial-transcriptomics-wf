@@ -32,7 +32,5 @@ RUN curl -o spaceranger-${SPACERANGER_VERSION}.tar.gz \
 
 RUN ln -s /opt/spaceranger-${SPACERANGER_VERSION}/spaceranger /usr/local/bin/
 
-COPY ./scripts /opt/scripts
+COPY scripts /opt/scripts
 ENV PATH "${PATH}:/opt/scripts"
-
-COPY --from=scripts /opt/scripts /opt/scripts
