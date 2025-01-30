@@ -330,7 +330,7 @@ task qc {
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/qc.py \
+		python3 /opt/scripts/geomx_qc.py \
 			--adata-input ~{initial_adata_object} \
 			--qc-adata-output ~{sample_id}.qc.h5ad
 
