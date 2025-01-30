@@ -2,7 +2,7 @@ version 1.0
 
 # Generate a AnnData object by converting FASTQ files to DCC (digital count conversion) files to count matrices
 
-import "../../wf-common/wdl/structs.wdl"
+import "../../../wf-common/wdl/structs.wdl"
 
 workflow preprocess {
 	input {

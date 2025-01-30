@@ -2,9 +2,9 @@ version 1.0
 
 # Merge and process adata object with QC, filtering, normalization, and clustering
 
-import "../../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
+import "../../../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
 import "spatial_statistics/spatial_statistics.wdl" as SpatialStatistics
-import "../../wf-common/wdl/tasks/upload_final_outputs.wdl" as UploadFinalOutputs
+import "../../../wf-common/wdl/tasks/upload_final_outputs.wdl" as UploadFinalOutputs
 
 workflow cohort_analysis {
 	input {
