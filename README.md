@@ -75,7 +75,9 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | Int? | filter_cells_min_counts | Minimum number of counts required for a cell to pass filtering. [5000] |
 | Int? | filter_genes_min_cells | Minimum number of cells expressed required for a gene to pass filtering. [10] |
 | String? | batch_key | Key in AnnData object for batch information so that highly-variable genes are selected within each batch separately and merged. ['batch_id'] |
+| String? | scvi_latent_key | Latent key to save the scVI latent to. ['X_scvi'] |
 | Int? | n_top_genes | Number of highly-variable genes to keep. [3000] |
+| File? | cell_type_markers_list | CSV file containing a list of major cell type markers; used to annotate clusters. |
 | Boolean? | run_cross_team_cohort_analysis | Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps ( and generating the initial adata object(s)) will run for samples. [false] |
 | String | cohort_raw_data_bucket | Bucket to upload cross-team cohort analysis intermediate files to. |
 | Array[String] | cohort_staging_data_buckets | Buckets to upload cross-team cohort analysis outputs to. |

@@ -18,9 +18,11 @@ workflow pmdbs_spatial_visium_analysis {
 		Int filter_cells_min_counts = 5000
 		Int filter_genes_min_cells = 10
 
-		# Feature selection parameters
+		# Feature selection and clustering inputs and parameters
 		String batch_key = "batch_id"
+		String scvi_latent_key = "X_scvi"
 		Int n_top_genes = 3000
+		File cell_type_markers_list
 
 		# Cohort analysis
 		Boolean run_cross_team_cohort_analysis = false
@@ -199,7 +201,9 @@ workflow pmdbs_spatial_visium_analysis {
 		filter_cells_min_counts: {help: "Minimum number of counts required for a cell to pass filtering. [5000]"}
 		filter_genes_min_cells: {help: "Minimum number of cells expressed required for a gene to pass filtering. [10]"}
 		batch_key: {help: "Key in AnnData object for batch information so that highly-variable genes are selected within each batch separately and merged. ['batch_id']"}
+		scvi_latent_key: {help: "Latent key to save the scVI latent to. ['X_scvi']"}
 		n_top_genes: {help: "Number of highly-variable genes to keep. [3000]"}
+		cell_type_markers_list: {help: "CSV file containing a list of major cell type markers; used to annotate clusters."}
 		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (GeoMxNGSPipeline and generating the initial adata object(s)) will run for samples. [false]"}
 		cohort_raw_data_bucket: {help: "Bucket to upload cross-team downstream intermediate files to."}
 		cohort_staging_data_buckets: {help: "Set of buckets to stage cross-team downstream analysis outputs in."}

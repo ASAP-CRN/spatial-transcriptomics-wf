@@ -3,6 +3,7 @@ version 1.0
 # Merge and process adata object with QC, filtering, normalization, and clustering
 
 import "../../../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
+import "pmdbs-sc-rnaseq-wf/workflows/cohort_analysis/cluster_data/cluster_data.wdl" as ClusterData
 
 workflow cohort_analysis {
 	input {
@@ -17,9 +18,11 @@ workflow cohort_analysis {
 		Int filter_cells_min_counts
 		Int filter_genes_min_cells
 
-		# Feature selection parameters
+		# Feature selection and clustering inputs and parameters
 		String batch_key
+		String scvi_latent_key
 		Int n_top_genes
+		File cell_type_markers_list
 
 		String workflow_name
 		String workflow_version
@@ -87,6 +90,20 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
+	call ClusterData.cluster_data {
+		input:
+			cohort_id = cohort_id,
+			normalized_adata_object = feature_selection.feature_selection_adata_object, #!FileCoercion
+			scvi_latent_key = scvi_latent_key,
+			batch_key = batch_key,
+			cell_type_markers_list = cell_type_markers_list,
+			raw_data_path = raw_data_path,
+			workflow_info = workflow_info,
+			billing_project = billing_project,
+			container_registry = container_registry,
+			zones = zones
+	}
+
 	output {
 		File cohort_sample_list = write_cohort_sample_list.cohort_sample_list #!FileCoercion
 
@@ -100,6 +117,13 @@ workflow cohort_analysis {
 		# Feature selection
 		File feature_selection_adata_object = feature_selection.feature_selection_adata_object #!FileCoercion
 		File feature_dispersion_plot_png = feature_selection.feature_dispersion_plot_png #!FileCoercion
+
+		# Clustering output
+		File integrated_adata_object = cluster_data.integrated_adata_object
+		File scvi_model_tar_gz = cluster_data.scvi_model_tar_gz
+		File umap_cluster_adata_object = cluster_data.umap_cluster_adata_object
+		File cell_annotated_adata_object = cluster_data.cell_annotated_adata_object
+		File cell_types_csv = cluster_data.cell_types_csv
 	}
 }
 
