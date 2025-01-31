@@ -87,17 +87,6 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call cluster {
-		input:
-			cohort_id = cohort_id,
-			filtered_normalized_adata_object = filter_and_normalize.filtered_normalized_adata_object, #!FileCoercion
-			raw_data_path = raw_data_path,
-			workflow_info = workflow_info,
-			billing_project = billing_project,
-			container_registry = container_registry,
-			zones = zones
-	}
-
 	output {
 		File cohort_sample_list = write_cohort_sample_list.cohort_sample_list #!FileCoercion
 
@@ -109,10 +98,8 @@ workflow cohort_analysis {
 		File filtered_normalized_adata_object = filter_and_normalize.filtered_normalized_adata_object #!FileCoercion
 
 		# Feature selection
-
-		# Leiden clustered adata object and UMAP and spatial coordinates plots
-		File umap_cluster_adata_object = cluster.umap_cluster_adata_object #!FileCoercion
-		Array[File] umap_and_spatial_coord_plots_png = cluster.umap_and_spatial_coord_plots_png #!FileCoercion
+		File feature_selection_adata_object = feature_selection.feature_selection_adata_object #!FileCoercion
+		File feature_dispersion_plot_png = feature_selection.feature_dispersion_plot_png #!FileCoercion
 	}
 }
 
@@ -240,77 +227,19 @@ task feature_selection {
 			--batch-key ~{batch_key} \
 			--n-top-genes ~{n_top_genes} \
 			--plots-prefix ~{cohort_id} \
-			--adata-output ~{cohort_id}..h5ad
+			--adata-output ~{cohort_id}.hvg_pca_neighbors_umap.h5ad
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.umap_cluster.h5ad" \
-			-o "~{cohort_id}.umap.png" \
-			-o "~{cohort_id}.spatial_coord_by_counts.png" \
-			-o "~{cohort_id}.spatial_coord_by_clusters.png"
+			-o "~{cohort_id}.hvg_pca_neighbors_umap.h5ad" \
+			-o "~{cohort_id}.feature_dispersion.png"
 	>>>
 
 	output {
-		String umap_cluster_adata_object = "~{raw_data_path}/~{cohort_id}.umap_cluster.h5ad"
-		Array[String] umap_and_spatial_coord_plots_png = [
-			"~{raw_data_path}/~{cohort_id}.umap.png",
-			"~{raw_data_path}/~{cohort_id}.spatial_coord_by_counts.png",
-			"~{raw_data_path}/~{cohort_id}.spatial_coord_by_clusters.png"
-		]
-	}
-
-	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
-		cpu: 2
-		memory: "~{mem_gb} GB"
-		disks: "local-disk ~{disk_size} HDD"
-		preemptible: 3
-		zones: zones
-	}
-}
-
-task cluster {
-	input {
-		String cohort_id
-		File filtered_normalized_adata_object
-
-		String raw_data_path
-		Array[Array[String]] workflow_info
-		String billing_project
-		String container_registry
-		String zones
-	}
-
-	Int mem_gb = ceil(size(filtered_normalized_adata_object, "GB") * 2 + 20)
-	Int disk_size = ceil(size(filtered_normalized_adata_object, "GB") * 2 + 50)
-
-	command <<<
-		set -euo pipefail
-
-		python3 /opt/scripts/cluster.py \
-			--cohort-id ~{cohort_id} \
-			--adata-input ~{filtered_normalized_adata_object} \
-			--adata-output ~{cohort_id}.umap_cluster.h5ad
-
-		upload_outputs \
-			-b ~{billing_project} \
-			-d ~{raw_data_path} \
-			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.umap_cluster.h5ad" \
-			-o "~{cohort_id}.umap.png" \
-			-o "~{cohort_id}.spatial_coord_by_counts.png" \
-			-o "~{cohort_id}.spatial_coord_by_clusters.png"
-	>>>
-
-	output {
-		String umap_cluster_adata_object = "~{raw_data_path}/~{cohort_id}.umap_cluster.h5ad"
-		Array[String] umap_and_spatial_coord_plots_png = [
-			"~{raw_data_path}/~{cohort_id}.umap.png",
-			"~{raw_data_path}/~{cohort_id}.spatial_coord_by_counts.png",
-			"~{raw_data_path}/~{cohort_id}.spatial_coord_by_clusters.png"
-		]
+		String feature_selection_adata_object = "~{raw_data_path}/~{cohort_id}.hvg_pca_neighbors_umap.h5ad"
+		String feature_dispersion_plot_png = "~{raw_data_path}/~{cohort_id}.umap.png"
 	}
 
 	runtime {

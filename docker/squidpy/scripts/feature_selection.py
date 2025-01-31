@@ -28,7 +28,6 @@ def main(args):
     ## DIMENSIONALITY REDUCTION ##
     ##############################
     sc.tl.pca(adata)
-    
 
     # Save outputs
     adata.write_h5ad(filename=args.adata_output)
