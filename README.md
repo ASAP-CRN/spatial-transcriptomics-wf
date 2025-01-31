@@ -72,8 +72,10 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | Array[[Project](#project)] | projects | The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis. |
 |  |  |  |
 |  |  |  |
-|  |  |  |
-|  |  |  |
+| Int? | filter_cells_min_counts | Minimum number of counts required for a cell to pass filtering. [5000] |
+| Int? | filter_genes_min_cells | Minimum number of cells expressed required for a gene to pass filtering. [10] |
+| String? | batch_key | Key in AnnData object for batch information so that highly-variable genes are selected within each batch separately and merged. ['batch_id'] |
+| Int? | n_top_genes | Number of highly-variable genes to keep. [3000] |
 | Boolean? | run_cross_team_cohort_analysis | Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps ( and generating the initial adata object(s)) will run for samples. [false] |
 | String | cohort_raw_data_bucket | Bucket to upload cross-team cohort analysis intermediate files to. |
 | Array[String] | cohort_staging_data_buckets | Buckets to upload cross-team cohort analysis outputs to. |
@@ -298,8 +300,8 @@ docker
 	├── Dockerfile
 	├── requirements.txt
 	└── scripts
-		├── qc.py
-		├── merge_and_plot_qc.py
+		├── geomx_qc.py
+		├── merge_and_plot_geomx_qc.py
 		├── filter_and_normalize.py
 		├── cluster.py
 		├── neighbors_enrichment_analysis.py

@@ -32,13 +32,6 @@ if __name__ == "__main__":
         description="Filter and normalize adata objects"
     )
     parser.add_argument(
-        "-c",
-        "--cohort-id",
-        type=str,
-        required=True,
-        help="Cohort ID"
-    )
-    parser.add_argument(
         "-i",
         "--adata-input",
         type=str,

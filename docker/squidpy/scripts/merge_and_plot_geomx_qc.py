@@ -56,13 +56,6 @@ if __name__ == "__main__":
         description="Merge adata objects and plot quality control metrics"
     )
     parser.add_argument(
-        "-c",
-        "--cohort-id",
-        type=str,
-        required=True,
-        help="Cohort ID"
-    )
-    parser.add_argument(
         "-i",
         "--adata-paths-input",
         nargs="+",

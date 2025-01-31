@@ -12,12 +12,15 @@ workflow pmdbs_spatial_visium_analysis {
 		String cohort_id
 		Array[Project] projects
 
-		File config_ini
-		File geomxngs_config_pkc
+		File spaceranger_reference_data
 
 		# Filter parameters
 		Int filter_cells_min_counts = 5000
 		Int filter_genes_min_cells = 10
+
+		# Feature selection parameters
+		String batch_key = "batch_id"
+		Int n_top_genes = 3000
 
 		# Cohort analysis
 		Boolean run_cross_team_cohort_analysis = false
@@ -46,8 +49,7 @@ workflow pmdbs_spatial_visium_analysis {
 				team_id = project.team_id,
 				dataset_id = project.dataset_id,
 				samples = project.samples,
-				config_ini = config_ini,
-				geomxngs_config_pkc = geomxngs_config_pkc,
+				spaceranger_reference_data = spaceranger_reference_data,
 				workflow_name = workflow_name,
 				workflow_version = workflow_version,
 				workflow_release = workflow_release,
@@ -59,9 +61,17 @@ workflow pmdbs_spatial_visium_analysis {
 		}
 
 		Array[String] preprocessing_output_file_paths = flatten([
-			preprocess.geomxngs_dcc_zip,
-			preprocess.geomxngs_output_tar_gz,
-			preprocess.count_matrix_adata_object
+			preprocess.raw_counts,
+			preprocess.filtered_counts,
+			preprocess.molecule_info,
+			preprocess.metrics_summary_csv,
+			preprocess.spatial_outputs_tar_gz,
+			flatten(preprocess.spatial_images),
+			preprocess.scalefactors_json,
+			preprocess.tissue_positions_csv,
+			preprocess.spatial_enrichment_csv,
+			preprocess.initial_adata_object,
+			preprocess.qc_adata_object
 		]) #!StringCoercion
 
 		if (project.run_project_cohort_analysis) {
@@ -69,10 +79,12 @@ workflow pmdbs_spatial_visium_analysis {
 				input:
 					cohort_id = project.team_id,
 					project_sample_ids = preprocess.project_sample_ids,
-					preprocessed_adata_objects = preprocess.count_matrix_adata_object,
+					preprocessed_adata_objects = preprocess.qc_adata_object,
 					preprocessing_output_file_paths = preprocessing_output_file_paths,
 					filter_cells_min_counts = filter_cells_min_counts,
 					filter_genes_min_cells = filter_genes_min_cells,
+					batch_key = batch_key,
+					n_top_genes = n_top_genes,
 					workflow_name = workflow_name,
 					workflow_version = workflow_version,
 					workflow_release = workflow_release,
@@ -93,10 +105,12 @@ workflow pmdbs_spatial_visium_analysis {
 			input:
 				cohort_id = cohort_id,
 				project_sample_ids = flatten(preprocess.project_sample_ids),
-				preprocessed_adata_objects = flatten(preprocess.count_matrix_adata_object),
+				preprocessed_adata_objects = flatten(preprocess.qc_adata_object),
 				preprocessing_output_file_paths = flatten(preprocessing_output_file_paths),
 				filter_cells_min_counts = filter_cells_min_counts,
 				filter_genes_min_cells = filter_genes_min_cells,
+				batch_key = batch_key,
+				n_top_genes = n_top_genes,
 				workflow_name = workflow_name,
 				workflow_version = workflow_version,
 				workflow_release = workflow_release,
@@ -115,9 +129,17 @@ workflow pmdbs_spatial_visium_analysis {
 		Array[Array[Array[String]]] project_sample_ids = preprocess.project_sample_ids
 
 		## Preprocess
-		Array[Array[File]] geomxngs_dcc_zip = preprocess.geomxngs_dcc_zip
-		Array[Array[File]] geomxngs_output_tar_gz = preprocess.geomxngs_output_tar_gz
-		Array[Array[File]] count_matrix_adata_object = preprocess.count_matrix_adata_object
+		Array[Array[File]] raw_counts = preprocess.raw_counts
+		Array[Array[File]] filtered_counts = preprocess.filtered_counts
+		Array[Array[File]] molecule_info = preprocess.molecule_info
+		Array[Array[File]] metrics_summary_csv = preprocess.metrics_summary_csv
+		Array[Array[Array[File]]] spatial_outputs_tar_gz = preprocess.spatial_outputs_tar_gz
+		Array[Array[File]] spatial_images = preprocess.spatial_images
+		Array[Array[File]] scalefactors_json = preprocess.scalefactors_json
+		Array[Array[File]] tissue_positions_csv = preprocess.tissue_positions_csv
+		Array[Array[File]] spatial_enrichment_csv = preprocess.spatial_enrichment_csv
+		Array[Array[File]] initial_adata_object = preprocess.initial_adata_object
+		Array[Array[File]] qc_adata_object = preprocess.qc_adata_object
 
 		# Project cohort analysis outputs
 		## List of samples included in the cohort
@@ -176,6 +198,8 @@ workflow pmdbs_spatial_visium_analysis {
 		geomxngs_config_pkc: {help: "The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers."}
 		filter_cells_min_counts: {help: "Minimum number of counts required for a cell to pass filtering. [5000]"}
 		filter_genes_min_cells: {help: "Minimum number of cells expressed required for a gene to pass filtering. [10]"}
+		batch_key: {help: "Key in AnnData object for batch information so that highly-variable genes are selected within each batch separately and merged. ['batch_id']"}
+		n_top_genes: {help: "Number of highly-variable genes to keep. [3000]"}
 		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (GeoMxNGSPipeline and generating the initial adata object(s)) will run for samples. [false]"}
 		cohort_raw_data_bucket: {help: "Bucket to upload cross-team downstream intermediate files to."}
 		cohort_staging_data_buckets: {help: "Set of buckets to stage cross-team downstream analysis outputs in."}
