@@ -72,9 +72,6 @@ workflow cohort_analysis {
 			merged_adata_object = merge_and_plot_qc_metrics.merged_adata_object, #!FileCoercion
 			filter_cells_min_counts = filter_cells_min_counts,
 			filter_genes_min_cells = filter_genes_min_cells,
-			raw_data_path = raw_data_path,
-			workflow_info = workflow_info,
-			billing_project = billing_project,
 			container_registry = container_registry,
 			zones = zones
 	}
@@ -146,27 +143,17 @@ workflow cohort_analysis {
 		],
 		merge_and_plot_qc_metrics.qc_plots_png,
 		[
-			filter_and_normalize.filtered_normalized_adata_object
-		],
-		[
-			feature_selection.feature_selection_adata_object,
 			feature_selection.feature_dispersion_plot_png
 		],
 		[
-			cluster_data.integrated_adata_object,
 			cluster_data.scvi_model_tar_gz,
-			cluster_data.umap_cluster_adata_object,
-			cluster_data.cell_annotated_adata_object,
 			cluster_data.cell_types_csv
 		],
 		[
-			image_features.image_features_adata_object,
 			image_features.image_features_spatial_scatter_plot_png
 		],
 		[
-			spatial_statistics.nhood_enrichment_adata_object,
 			spatial_statistics.nhood_enrichment_plot_png,
-			spatial_statistics.co_occurrence_adata_object,
 			spatial_statistics.co_occurrence_plot_png,
 			spatial_statistics.final_adata_object,
 			spatial_statistics.moran_top_10_variable_genes_csv
@@ -278,9 +265,6 @@ task filter_and_normalize {
 		Int filter_cells_min_counts
 		Int filter_genes_min_cells
 
-		String raw_data_path
-		Array[Array[String]] workflow_info
-		String billing_project
 		String container_registry
 		String zones
 	}
@@ -296,16 +280,10 @@ task filter_and_normalize {
 			--min-counts ~{filter_cells_min_counts} \
 			--min-cells ~{filter_genes_min_cells} \
 			--adata-output ~{cohort_id}.filtered_normalized.h5ad
-
-		upload_outputs \
-			-b ~{billing_project} \
-			-d ~{raw_data_path} \
-			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.filtered_normalized.h5ad"
 	>>>
 
 	output {
-		String filtered_normalized_adata_object = "~{raw_data_path}/~{cohort_id}.filtered_normalized.h5ad"
+		File filtered_normalized_adata_object = "~{cohort_id}.filtered_normalized.h5ad"
 	}
 
 	runtime {
@@ -350,12 +328,11 @@ task feature_selection {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.hvg_pca_neighbors_umap.h5ad" \
 			-o "~{cohort_id}.feature_dispersion.png"
 	>>>
 
 	output {
-		String feature_selection_adata_object = "~{raw_data_path}/~{cohort_id}.hvg_pca_neighbors_umap.h5ad"
+		File feature_selection_adata_object = "~{cohort_id}.hvg_pca_neighbors_umap.h5ad"
 		String feature_dispersion_plot_png = "~{raw_data_path}/~{cohort_id}.umap.png"
 	}
 
@@ -398,12 +375,11 @@ task image_features {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.image_features.h5ad" \
 			-o "~{cohort_id}.image_features_spatial_scatter.png"
 	>>>
 
 	output {
-		String image_features_adata_object = "~{raw_data_path}/~{cohort_id}.image_features.h5ad"
+		File image_features_adata_object = "~{cohort_id}.image_features.h5ad"
 		String image_features_spatial_scatter_plot_png = "~{raw_data_path}/~{cohort_id}.image_features_spatial_scatter.png"
 	}
 
