@@ -5,6 +5,7 @@ version 1.0
 import "../../../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
 import "pmdbs-sc-rnaseq-wf/workflows/cohort_analysis/cluster_data/cluster_data.wdl" as ClusterData
 import "../../spatial_statistics/spatial_statistics.wdl" as SpatialStatistics
+import "../../../wf-common/wdl/tasks/upload_final_outputs.wdl" as UploadFinalOutputs
 
 workflow cohort_analysis {
 	input {
@@ -127,6 +128,60 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
+	call UploadFinalOutputs.upload_final_outputs as upload_preprocess_files {
+		input:
+			output_file_paths = preprocessing_output_file_paths,
+			staging_data_buckets = staging_data_buckets,
+			staging_data_path = "~{workflow_name}/preprocess",
+			billing_project = billing_project,
+			zones = zones
+	}
+
+	Array[String] cohort_analysis_final_output_paths = flatten([
+		[
+			write_cohort_sample_list.cohort_sample_list
+		],
+		[
+			merge_and_plot_qc_metrics.merged_adata_object
+		],
+		merge_and_plot_qc_metrics.qc_plots_png,
+		[
+			filter_and_normalize.filtered_normalized_adata_object
+		],
+		[
+			feature_selection.feature_selection_adata_object,
+			feature_selection.feature_dispersion_plot_png
+		],
+		[
+			cluster_data.integrated_adata_object,
+			cluster_data.scvi_model_tar_gz,
+			cluster_data.umap_cluster_adata_object,
+			cluster_data.cell_annotated_adata_object,
+			cluster_data.cell_types_csv
+		],
+		[
+			image_features.image_features_adata_object,
+			image_features.image_features_spatial_scatter_plot_png
+		],
+		[
+			spatial_statistics.nhood_enrichment_adata_object,
+			spatial_statistics.nhood_enrichment_plot_png,
+			spatial_statistics.co_occurrence_adata_object,
+			spatial_statistics.co_occurrence_plot_png,
+			spatial_statistics.final_adata_object,
+			spatial_statistics.moran_top_10_variable_genes_csv
+		]
+	]) #!StringCoercion
+
+	call UploadFinalOutputs.upload_final_outputs as upload_cohort_analysis_files {
+		input:
+			output_file_paths = cohort_analysis_final_output_paths,
+			staging_data_buckets = staging_data_buckets,
+			staging_data_path = "~{workflow_name}/~{sub_workflow_name}",
+			billing_project = billing_project,
+			zones = zones
+	}
+
 	output {
 		File cohort_sample_list = write_cohort_sample_list.cohort_sample_list #!FileCoercion
 
@@ -159,6 +214,9 @@ workflow cohort_analysis {
 		File co_occurrence_plot_png = spatial_statistics.co_occurrence_plot_png
 		File final_adata_object = spatial_statistics.final_adata_object
 		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
+
+		Array[File] preprocess_manifest_tsvs = upload_preprocess_files.manifests #!FileCoercion
+		Array[File] cohort_analysis_manifest_tsvs = upload_cohort_analysis_files.manifests #!FileCoercion
 	}
 }
 
