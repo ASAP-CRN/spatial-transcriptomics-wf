@@ -83,7 +83,7 @@ workflow preprocess {
 					fastq_R2s = sample.fastq_R2s,
 					fastq_I1s = sample.fastq_I1s,
 					fastq_I2s = sample.fastq_I2s,
-					visium_brightfield_image = sample.visium_brightfield_image,
+					visium_brightfield_image = select_first([sample.visium_brightfield_image]),
 					spaceranger_reference_data = spaceranger_reference_data,
 					raw_data_path = spaceranger_raw_data_path,
 					workflow_info = workflow_info,
@@ -349,7 +349,7 @@ task counts_to_adata {
 		String dataset_id
 		String sample_id
 		String batch
-		
+
 		File spaceranger_counts
 		File spaceranger_spatial_tar_gz
 

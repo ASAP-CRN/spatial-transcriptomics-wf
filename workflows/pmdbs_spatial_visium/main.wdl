@@ -86,7 +86,9 @@ workflow pmdbs_spatial_visium_analysis {
 					filter_cells_min_counts = filter_cells_min_counts,
 					filter_genes_min_cells = filter_genes_min_cells,
 					batch_key = batch_key,
+					scvi_latent_key = scvi_latent_key,
 					n_top_genes = n_top_genes,
+					cell_type_markers_list = cell_type_markers_list,
 					workflow_name = workflow_name,
 					workflow_version = workflow_version,
 					workflow_release = workflow_release,
@@ -112,7 +114,9 @@ workflow pmdbs_spatial_visium_analysis {
 				filter_cells_min_counts = filter_cells_min_counts,
 				filter_genes_min_cells = filter_genes_min_cells,
 				batch_key = batch_key,
+				scvi_latent_key = scvi_latent_key,
 				n_top_genes = n_top_genes,
+				cell_type_markers_list = cell_type_markers_list,
 				workflow_name = workflow_name,
 				workflow_version = workflow_version,
 				workflow_release = workflow_release,
@@ -135,8 +139,8 @@ workflow pmdbs_spatial_visium_analysis {
 		Array[Array[File]] filtered_counts = preprocess.filtered_counts
 		Array[Array[File]] molecule_info = preprocess.molecule_info
 		Array[Array[File]] metrics_summary_csv = preprocess.metrics_summary_csv
-		Array[Array[Array[File]]] spatial_outputs_tar_gz = preprocess.spatial_outputs_tar_gz
-		Array[Array[File]] spatial_images = preprocess.spatial_images
+		Array[Array[File]] spatial_outputs_tar_gz = preprocess.spatial_outputs_tar_gz
+		Array[Array[Array[File]]] spatial_images = preprocess.spatial_images
 		Array[Array[File]] scalefactors_json = preprocess.scalefactors_json
 		Array[Array[File]] tissue_positions_csv = preprocess.tissue_positions_csv
 		Array[Array[File]] spatial_enrichment_csv = preprocess.spatial_enrichment_csv
@@ -149,7 +153,7 @@ workflow pmdbs_spatial_visium_analysis {
 
 		# Merged adata objects, filtered and normalized adata objects, clustered adata objects, and plots
 		Array[File?] project_merged_adata_object = project_cohort_analysis.merged_adata_object
-		Array[File?] project_qc_plots_png = project_cohort_analysis.qc_plots_png
+		Array[Array[File]?] project_qc_plots_png = project_cohort_analysis.qc_plots_png
 		Array[File?] project_filtered_normalized_adata_object = project_cohort_analysis.filtered_normalized_adata_object
 		Array[File?] project_feature_selection_adata_object = project_cohort_analysis.feature_selection_adata_object
 		Array[File?] project_feature_dispersion_plot_png = project_cohort_analysis.feature_dispersion_plot_png
@@ -182,7 +186,7 @@ workflow pmdbs_spatial_visium_analysis {
 
 		# Merged adata objects, filtered and normalized adata objects, clustered adata objects, and plots
 		File? cohort_merged_adata_object = cross_team_cohort_analysis.merged_adata_object
-		File? cohort_qc_plots_png = cross_team_cohort_analysis.qc_plots_png
+		Array[File]? cohort_qc_plots_png = cross_team_cohort_analysis.qc_plots_png
 		File? cohort_filtered_normalized_adata_object = cross_team_cohort_analysis.filtered_normalized_adata_object
 		File? cohort_feature_selection_adata_object = cross_team_cohort_analysis.feature_selection_adata_object
 		File? cohort_feature_dispersion_plot_png = cross_team_cohort_analysis.feature_dispersion_plot_png
@@ -195,8 +199,8 @@ workflow pmdbs_spatial_visium_analysis {
 		File? cohort_cell_types_csv = cross_team_cohort_analysis.cell_types_csv
 
 		# Image features outputs
-		File? project_image_features_adata_object = project_cohort_analysis.image_features_adata_object
-		File? project_image_features_spatial_scatter_plot_png = project_cohort_analysis.image_features_spatial_scatter_plot_png
+		File? cohort_image_features_adata_object = cross_team_cohort_analysis.image_features_adata_object
+		File? cohort_image_features_spatial_scatter_plot_png = cross_team_cohort_analysis.image_features_spatial_scatter_plot_png
 
 		# Spatial statistics outputs
 		File? cohort_nhood_enrichment_adata_object = cross_team_cohort_analysis.nhood_enrichment_adata_object
