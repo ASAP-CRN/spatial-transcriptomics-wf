@@ -19,13 +19,18 @@ Worfklows are defined in [the `workflows` directory](workflows). There is the [p
 
 These workflows are set up to analyze spatial transcriptomics data: Nanostring GeoMx and 10x Visium in WDL using mainly command line and a Python script.
 
+Nanostring GeoMx workflow diagram:
 ![Nanostring GeoMx workflow diagram](workflows/pmdbs_spatial_geomx/workflow_diagram.svg "Workflow diagram")
-![10x Visium workflow diagram](workflows/pmdbs_spatial_visium/workflow_diagram.svg "Workflow diagram")
 
 **Nanostring GeoMx entrypoint**: [workflows/pmdbs_spatial_geomx/main.wdl](workflows/pmdbs_spatial_geomx/main.wdl)
-**10x Visium entrypoint**: [workflows/pmdbs_spatial_visium/main.wdl](workflows/pmdbs_spatial_visium/main.wdl)
 
 **Nanostring GeoMx input template**: [workflows/pmdbs_spatial_geomx/inputs.json](workflows/pmdbs_spatial_geomx/inputs.json)
+
+10x Visium workflow diagram:
+![10x Visium workflow diagram](workflows/pmdbs_spatial_visium/workflow_diagram.svg "Workflow diagram")
+
+**10x Visium entrypoint**: [workflows/pmdbs_spatial_visium/main.wdl](workflows/pmdbs_spatial_visium/main.wdl)
+
 **10x Visium input template**: [workflows/pmdbs_spatial_visium/inputs.json](workflows/pmdbs_spatial_visium/inputs.json)
 
 Both workflows follow the same structure, it is broken up into two main chunks:
