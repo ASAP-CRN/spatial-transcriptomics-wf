@@ -5,7 +5,7 @@ version 1.0
 workflow spatial_statistics {
 	input {
 		String cohort_id
-		File umap_cluster_adata_object
+		File clustered_adata_object
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -17,7 +17,7 @@ workflow spatial_statistics {
 	call neighbors_enrichment_analysis {
 		input:
 			cohort_id = cohort_id,
-			umap_cluster_adata_object = umap_cluster_adata_object,
+			clustered_adata_object = clustered_adata_object,
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -65,7 +65,7 @@ workflow spatial_statistics {
 task neighbors_enrichment_analysis {
 	input {
 		String cohort_id
-		File umap_cluster_adata_object
+		File clustered_adata_object
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -74,15 +74,15 @@ task neighbors_enrichment_analysis {
 		String zones
 	}
 
-	Int mem_gb = ceil(size(umap_cluster_adata_object, "GB") * 2 + 20)
-	Int disk_size = ceil(size(umap_cluster_adata_object, "GB") * 2 + 50)
+	Int mem_gb = ceil(size(clustered_adata_object, "GB") * 2 + 20)
+	Int disk_size = ceil(size(clustered_adata_object, "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail
 
 		python3 /opt/scripts/neighbors_enrichment_analysis.py \
 			--cohort-id ~{cohort_id} \
-			--adata-input ~{umap_cluster_adata_object} \
+			--adata-input ~{clustered_adata_object} \
 			--adata-output ~{cohort_id}.nhood_enrichment_adata_object.h5ad
 
 		upload_outputs \

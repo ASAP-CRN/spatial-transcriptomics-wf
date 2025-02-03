@@ -15,6 +15,7 @@ def main(args):
     adata = sc.read_visium(
         path=args.spaceranger_spatial_dir,
         count_file=args.spaceranger_counts_input,
+        library_id=args.sample_id, # TODO
     )
 
     # Add metadata

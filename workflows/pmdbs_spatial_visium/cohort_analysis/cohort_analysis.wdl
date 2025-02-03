@@ -4,6 +4,7 @@ version 1.0
 
 import "../../../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
 import "pmdbs-sc-rnaseq-wf/workflows/cohort_analysis/cluster_data/cluster_data.wdl" as ClusterData
+import "../../spatial_statistics/spatial_statistics.wdl" as SpatialStatistics
 
 workflow cohort_analysis {
 	input {
@@ -104,6 +105,28 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
+	call image_features {
+		input:
+			cohort_id = cohort_id,
+			cell_annotated_adata_object = cluster_data.cell_annotated_adata_object, #!FileCoercion
+			raw_data_path = raw_data_path,
+			workflow_info = workflow_info,
+			billing_project = billing_project,
+			container_registry = container_registry,
+			zones = zones
+	}
+
+	call SpatialStatistics.spatial_statistics {
+		input:
+			cohort_id = cohort_id,
+			clustered_adata_object = image_features.image_features_adata_object, #!FileCoercion
+			raw_data_path = raw_data_path,
+			workflow_info = workflow_info,
+			billing_project = billing_project,
+			container_registry = container_registry,
+			zones = zones
+	}
+
 	output {
 		File cohort_sample_list = write_cohort_sample_list.cohort_sample_list #!FileCoercion
 
@@ -124,6 +147,18 @@ workflow cohort_analysis {
 		File umap_cluster_adata_object = cluster_data.umap_cluster_adata_object
 		File cell_annotated_adata_object = cluster_data.cell_annotated_adata_object
 		File cell_types_csv = cluster_data.cell_types_csv
+
+		# Image features output
+		File image_features_adata_object = image_features.image_features_adata_object #!FileCoercion
+		File image_features_spatial_scatter_plot_png = image_features.image_features_spatial_scatter_plot_png #!FileCoercion
+
+		# Spatial statistics output
+		File nhood_enrichment_adata_object = spatial_statistics.nhood_enrichment_adata_object
+		File nhood_enrichment_plot_png = spatial_statistics.nhood_enrichment_plot_png
+		File co_occurrence_adata_object = spatial_statistics.co_occurrence_adata_object
+		File co_occurrence_plot_png = spatial_statistics.co_occurrence_plot_png
+		File final_adata_object = spatial_statistics.final_adata_object
+		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
 	}
 }
 
@@ -269,6 +304,54 @@ task feature_selection {
 	runtime {
 		docker: "~{container_registry}/squidpy:1.6.2_1"
 		cpu: 2
+		memory: "~{mem_gb} GB"
+		disks: "local-disk ~{disk_size} HDD"
+		preemptible: 3
+		zones: zones
+	}
+}
+
+task image_features {
+	input {
+		String cohort_id
+		File cell_annotated_adata_object
+
+		String raw_data_path
+		Array[Array[String]] workflow_info
+		String billing_project
+		String container_registry
+		String zones
+	}
+
+	Int threads = 4
+	Int mem_gb = ceil(size(cell_annotated_adata_object, "GB") * 2 + 20)
+	Int disk_size = ceil(size(cell_annotated_adata_object, "GB") * 2 + 50)
+
+	command <<<
+		set -euo pipefail
+
+		python3 /opt/scripts/image_features.py \
+			--adata-input ~{cell_annotated_adata_object} \
+			--n-jobs ~{threads} \
+			--plots-prefix ~{cohort_id} \
+			--adata-output ~{cohort_id}.image_features.h5ad
+
+		upload_outputs \
+			-b ~{billing_project} \
+			-d ~{raw_data_path} \
+			-i ~{write_tsv(workflow_info)} \
+			-o "~{cohort_id}.image_features.h5ad" \
+			-o "~{cohort_id}.image_features_spatial_scatter.png"
+	>>>
+
+	output {
+		String image_features_adata_object = "~{raw_data_path}/~{cohort_id}.image_features.h5ad"
+		String image_features_spatial_scatter_plot_png = "~{raw_data_path}/~{cohort_id}.image_features_spatial_scatter.png"
+	}
+
+	runtime {
+		docker: "~{container_registry}/squidpy:1.6.2_1"
+		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3

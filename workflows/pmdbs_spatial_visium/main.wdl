@@ -150,10 +150,20 @@ workflow pmdbs_spatial_visium_analysis {
 		# Merged adata objects, filtered and normalized adata objects, clustered adata objects, and plots
 		Array[File?] project_merged_adata_object = project_cohort_analysis.merged_adata_object
 		Array[File?] project_qc_plots_png = project_cohort_analysis.qc_plots_png
-		Array[Float?] project_qc_unassigned_ctrl_probes_percentage = project_cohort_analysis.qc_unassigned_ctrl_probes_percentage
 		Array[File?] project_filtered_normalized_adata_object = project_cohort_analysis.filtered_normalized_adata_object
+		Array[File?] project_feature_selection_adata_object = project_cohort_analysis.feature_selection_adata_object
+		Array[File?] project_feature_dispersion_plot_png = project_cohort_analysis.feature_dispersion_plot_png
+
+		# Clustering outputs
+		Array[File?] project_integrated_adata_object = project_cohort_analysis.integrated_adata_object
+		Array[File?] project_scvi_model_tar_gz = project_cohort_analysis.scvi_model_tar_gz
 		Array[File?] project_umap_cluster_adata_object = project_cohort_analysis.umap_cluster_adata_object
-		Array[Array[File]?] project_umap_and_spatial_coord_plots_png = project_cohort_analysis.umap_and_spatial_coord_plots_png
+		Array[File?] project_cell_annotated_adata_object = project_cohort_analysis.cell_annotated_adata_object
+		Array[File?] project_cell_types_csv = project_cohort_analysis.cell_types_csv
+
+		# Image features outputs
+		Array[File?] project_image_features_adata_object = project_cohort_analysis.image_features_adata_object
+		Array[File?] project_image_features_spatial_scatter_plot_png = project_cohort_analysis.image_features_spatial_scatter_plot_png
 
 		# Spatial statistics outputs
 		Array[File?] project_nhood_enrichment_adata_object = project_cohort_analysis.nhood_enrichment_adata_object
@@ -173,10 +183,20 @@ workflow pmdbs_spatial_visium_analysis {
 		# Merged adata objects, filtered and normalized adata objects, clustered adata objects, and plots
 		File? cohort_merged_adata_object = cross_team_cohort_analysis.merged_adata_object
 		File? cohort_qc_plots_png = cross_team_cohort_analysis.qc_plots_png
-		Float? cohort_qc_unassigned_ctrl_probes_percentage = cross_team_cohort_analysis.qc_unassigned_ctrl_probes_percentage
 		File? cohort_filtered_normalized_adata_object = cross_team_cohort_analysis.filtered_normalized_adata_object
+		File? cohort_feature_selection_adata_object = cross_team_cohort_analysis.feature_selection_adata_object
+		File? cohort_feature_dispersion_plot_png = cross_team_cohort_analysis.feature_dispersion_plot_png
+
+		# Clustering outputs
+		File? cohort_integrated_adata_object = cross_team_cohort_analysis.integrated_adata_object
+		File? cohort_scvi_model_tar_gz = cross_team_cohort_analysis.scvi_model_tar_gz
 		File? cohort_umap_cluster_adata_object = cross_team_cohort_analysis.umap_cluster_adata_object
-		Array[File]? cohort_umap_and_spatial_coord_plots_png = cross_team_cohort_analysis.umap_and_spatial_coord_plots_png
+		File? cohort_cell_annotated_adata_object = cross_team_cohort_analysis.cell_annotated_adata_object
+		File? cohort_cell_types_csv = cross_team_cohort_analysis.cell_types_csv
+
+		# Image features outputs
+		File? project_image_features_adata_object = project_cohort_analysis.image_features_adata_object
+		File? project_image_features_spatial_scatter_plot_png = project_cohort_analysis.image_features_spatial_scatter_plot_png
 
 		# Spatial statistics outputs
 		File? cohort_nhood_enrichment_adata_object = cross_team_cohort_analysis.nhood_enrichment_adata_object

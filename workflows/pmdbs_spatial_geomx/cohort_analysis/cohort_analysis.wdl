@@ -86,7 +86,7 @@ workflow cohort_analysis {
 	call SpatialStatistics.spatial_statistics {
 		input:
 			cohort_id = cohort_id,
-			umap_cluster_adata_object = cluster.umap_cluster_adata_object, #!FileCoercion
+			clustered_adata_object = cluster.umap_cluster_adata_object, #!FileCoercion
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,

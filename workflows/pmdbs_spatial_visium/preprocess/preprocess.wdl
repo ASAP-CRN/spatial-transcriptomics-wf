@@ -349,7 +349,7 @@ task counts_to_adata {
 		String dataset_id
 		String sample_id
 		String batch
-
+		
 		File spaceranger_counts
 		File spaceranger_spatial_tar_gz
 
