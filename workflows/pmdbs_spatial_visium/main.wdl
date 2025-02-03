@@ -220,8 +220,7 @@ workflow pmdbs_spatial_visium_analysis {
 	parameter_meta {
 		cohort_id: {help: "Name of the cohort; used to name output files during cross-team downstream analysis."}
 		projects: {help: "The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis."}
-		config_ini: {help: "The configuration (.ini) file, containing pipeline processing parameters."}
-		geomxngs_config_pkc: {help: "The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers."}
+		spaceranger_reference_data: {help: "Spaceranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads."}
 		filter_cells_min_counts: {help: "Minimum number of counts required for a cell to pass filtering. [5000]"}
 		filter_genes_min_cells: {help: "Minimum number of cells expressed required for a gene to pass filtering. [10]"}
 		batch_key: {help: "Key in AnnData object for batch information so that highly-variable genes are selected within each batch separately and merged. ['batch_id']"}

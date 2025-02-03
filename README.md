@@ -70,8 +70,7 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | :- | :- | :- |
 | String | cohort_id | Name of the cohort; used to name output files during cross-team cohort analysis. |
 | Array[[Project](#project)] | projects | The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis. |
-|  |  |  |
-|  |  |  |
+| File | spaceranger_reference_data | Spaceranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads. |
 | Int? | filter_cells_min_counts | Minimum number of counts required for a cell to pass filtering. [5000] |
 | Int? | filter_genes_min_cells | Minimum number of cells expressed required for a gene to pass filtering. [10] |
 | String? | batch_key | Key in AnnData object for batch information so that highly-variable genes are selected within each batch separately and merged. ['batch_id'] |
@@ -109,6 +108,7 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | File | fastq_R2 | Path to the sample's read 2 FASTQ file. |
 | File? | fastq_I1 | Optional fastq index 1. |
 | File? | fastq_I2 | Optional fastq index 2. |
+| File? | visium_brightfield_image | Optional 10x Visium brightfield image. This is required for the spatial transcriptomics 10x Visium pipeline. |
 
 ## Generating the inputs JSON
 
@@ -189,12 +189,15 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 		│		└── ${workflow_run_timestamp}
 		│				└── <cohort_analysis outputs>
         └── preprocess
-            ├── 
-            │   └── ${_task_version}
-            │       └── < output>
-            └── 
-                └── ${_task_version}
-                    └── < output>
+            ├── spaceranger_count
+            │   └── ${spaceranger_count_task_version}
+            │       └── <spaceranger_count output>
+            ├── counts_to_adata
+            │   └── ${counts_to_adata_task_version}
+            │       └── <counts_to_adata output>
+            └── qc
+                └── ${qc_task_version}
+                    └── <qc output>
 ```
 
 ### Staging data (intermediate workflow objects and final workflow outputs for the latest run of the workflow)
@@ -210,14 +213,10 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 	│   ├── ${cohort_id}.sample_list.tsv
 	│   ├──	${cohort_id}.merged_adata_object.h5ad
 	│   ├── ${cohort_id}.qc_hist.png
-	│   ├── ${cohort_id}.filtered_normalized.h5ad
-	│   ├── ${cohort_id}.umap_cluster.h5ad
 	│   ├── ${cohort_id}.umap.png
 	│   ├── ${cohort_id}.spatial_coord_by_counts.png
 	│   ├── ${cohort_id}.spatial_coord_by_clusters.png
-	│   ├── ${cohort_id}.nhood_enrichment_adata_object.h5ad
 	│   ├── ${cohort_id}.nhood_enrichment.png
-	│   ├── ${cohort_id}.co_occurrence.h5ad
 	│   ├── ${cohort_id}.co_occurrence.png
 	│   ├── ${cohort_id}.final_adata_object.h5ad
 	│   ├── ${cohort_id}.moran_top_10_variable_genes.csv
@@ -239,13 +238,51 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 └── pmdbs_spatial_visium
 	├── cohort_analysis
 	│   ├── ${cohort_id}.sample_list.tsv
-	│   ├──	${cohort_id}.
+	│   ├──	${cohort_id}.merged_adata_object.h5ad
+	│   ├── ${cohort_id}.qc_violin.png
+	│   ├── ${cohort_id}.qc_scatter.png
+	│   ├── ${cohort_id}.umap.png
+	│   ├── ${cohort_id}_scvi_model.tar.gz
+	│   ├── ${cohort_id}.cell_types.csv
+	│   ├── ${cohort_id}.image_features_spatial_scatter.png
+	│   ├── ${cohort_id}.nhood_enrichment.png
+	│   ├── ${cohort_id}.co_occurrence.png
+	│   ├── ${cohort_id}.final_adata_object.h5ad
+	│   ├── ${cohort_id}.moran_top_10_variable_genes.csv
 	│   └── MANIFEST.tsv
 	└── preprocess
-		├── ${sampleA_id}.
+		├── ${sampleA_id}.raw_feature_bc_matrix.h5
+		├── ${sampleA_id}.filtered_feature_bc_matrix.h5
+		├── ${sampleA_id}.initial_adata_object.h5ad
+		├── ${sampleA_id}.molecule_info.h5
+		├── ${sampleA_id}.metrics_summary.csv
+		├── ${sampleA_id}.spaceranger_spatial_outputs.tar.gz
+		├── ${sampleA_id}.aligned_fiducials.jpg
+		├── ${sampleA_id}.detected_tissue_image.jpg
+		├── ${sampleA_id}.tissue_hires_image.png
+		├── ${sampleA_id}.tissue_lowres_image.png
+		├── ${sampleA_id}.scalefactors_json.json
+		├── ${sampleA_id}.tissue_positions.csv
+		├── ${sampleA_id}.spatial_enrichment.csv
+		├── ${sampleA_id}.initial_adata_object.h5ad
+		├── ${sampleA_id}.qc.h5ad
 		├── MANIFEST.tsv
 		├── ...
-		├── ${sampleN_id}.
+		├── ${sampleN_id}.raw_feature_bc_matrix.h5
+		├── ${sampleN_id}.filtered_feature_bc_matrix.h5
+		├── ${sampleN_id}.initial_adata_object.h5ad
+		├── ${sampleN_id}.molecule_info.h5
+		├── ${sampleN_id}.metrics_summary.csv
+		├── ${sampleN_id}.spaceranger_spatial_outputs.tar.gz
+		├── ${sampleN_id}.aligned_fiducials.jpg
+		├── ${sampleN_id}.detected_tissue_image.jpg
+		├── ${sampleN_id}.tissue_hires_image.png
+		├── ${sampleN_id}.tissue_lowres_image.png
+		├── ${sampleN_id}.scalefactors_json.json
+		├── ${sampleN_id}.tissue_positions.csv
+		├── ${sampleN_id}.spatial_enrichment.csv
+		├── ${sampleN_id}.initial_adata_object.h5ad
+		├── ${sampleN_id}.qc.h5ad
 		└── MANIFEST.tsv
 ```
 
@@ -279,6 +316,7 @@ The script defaults to a dry run, printing out the files that would be copied or
 ```bash
 # List available teams
 ./wf-common/util/promote_staging_data -t cohort -l -s pmdbs -d spatial-geomx -w pmdbs_spatial_geomx
+./wf-common/util/promote_staging_data -t cohort -l -s pmdbs -d spatial-visium -w pmdbs_spatial_visium
 
 # Print out the files that would be copied or deleted from the staging bucket to the curated bucket for teams team-hardy and team-biederer
 ./wf-common/util/promote_staging_data -t team-hardy team-biederer -s pmdbs -d spatial-geomx -w pmdbs_spatial_geomx
@@ -308,7 +346,8 @@ docker
 		├── cluster.py
 		├── neighbors_enrichment_analysis.py
 		├── co_occurrence_probability.py
-		└── moran_i_score.py
+		├── moran_i_score.py
+		└── ...
 ```
 
 ## The `build.env` file
