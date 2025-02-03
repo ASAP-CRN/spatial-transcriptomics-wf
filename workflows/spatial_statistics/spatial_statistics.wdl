@@ -28,7 +28,7 @@ workflow spatial_statistics {
 	call co_occurrence_probability {
 		input:
 			cohort_id = cohort_id,
-			nhood_enrichment_adata_object = neighbors_enrichment_analysis.nhood_enrichment_adata_object, #!FileCoercion
+			nhood_enrichment_adata_object = neighbors_enrichment_analysis.nhood_enrichment_adata_object,
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -39,7 +39,7 @@ workflow spatial_statistics {
 	call spatially_variable_gene_analysis {
 		input:
 			cohort_id = cohort_id,
-			co_occurrence_adata_object = co_occurrence_probability.co_occurrence_adata_object, #!FileCoercion
+			co_occurrence_adata_object = co_occurrence_probability.co_occurrence_adata_object,
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -89,12 +89,11 @@ task neighbors_enrichment_analysis {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.nhood_enrichment_adata_object.h5ad" \
 			-o "~{cohort_id}.nhood_enrichment.png"
 	>>>
 
 	output {
-		String nhood_enrichment_adata_object = "~{raw_data_path}/~{cohort_id}.nhood_enrichment_adata_object.h5ad"
+		File nhood_enrichment_adata_object = "~{cohort_id}.nhood_enrichment_adata_object.h5ad"
 		String nhood_enrichment_plot_png = "~{raw_data_path}/~{cohort_id}.nhood_enrichment.png"
 	}
 
@@ -135,12 +134,11 @@ task co_occurrence_probability {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.co_occurrence.h5ad" \
 			-o "~{cohort_id}.co_occurrence.png"
 	>>>
 
 	output {
-		String co_occurrence_adata_object = "~{raw_data_path}/~{cohort_id}.co_occurrence.h5ad"
+		File co_occurrence_adata_object = "~{cohort_id}.co_occurrence.h5ad"
 		String co_occurrence_plot_png = "~{raw_data_path}/~{cohort_id}.co_occurrence.png"
 	}
 

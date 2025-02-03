@@ -111,17 +111,9 @@ workflow cohort_analysis {
 			merge_and_plot_qc_metrics.merged_adata_object,
 			merge_and_plot_qc_metrics.qc_plots_png
 		],
-		[
-			filter_and_normalize.filtered_normalized_adata_object
-		],
-		[
-			cluster.umap_cluster_adata_object
-		],
 		cluster.umap_and_spatial_coord_plots_png,
 		[
-			spatial_statistics.nhood_enrichment_adata_object,
 			spatial_statistics.nhood_enrichment_plot_png,
-			spatial_statistics.co_occurrence_adata_object,
 			spatial_statistics.co_occurrence_plot_png,
 			spatial_statistics.final_adata_object,
 			spatial_statistics.moran_top_10_variable_genes_csv
