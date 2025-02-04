@@ -20,16 +20,9 @@ def main(args):
     merged_adata = anndata.concat(adatas, index_unique="_", merge="same", uns_merge="same")
 
 
-    ########
-    ## QC ##
-    ########
-    merged_adata.var["NegPrb"] = merged_adata.var_names.str.startswith("NegProbe")
-    sc.pp.calculate_qc_metrics(merged_adata, qc_vars=["NegPrb"], inplace=True)
-    pd.set_option("display.max_columns", None)
-
-    # Calculate the percentage of unassigned "NegPrb" transcripts
-    unassigned_ctrl_probes_percentage = merged_adata.obs["total_counts_NegPrb"].sum() / merged_adata.obs["total_counts"].sum() * 100
-
+    #####################
+    ## PLOT QC METRICS ##
+    #####################
     # QC distribution plots
     fig, axs = plt.subplots(1, 3, figsize=(15, 4))
     axs[0].set_title("Total transcripts per cell")
@@ -52,9 +45,6 @@ def main(args):
     )
 
     # Save outputs
-    with open("unassigned_ctrl_probes_percentage.txt", "w") as file:
-        file.write(f"{unassigned_ctrl_probes_percentage}")
-
     plt.tight_layout()
     fig.savefig(args.qc_plots_output, dpi=300)
 
@@ -63,21 +53,14 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Merge adata objects and calculate quality control metrics"
-    )
-    parser.add_argument(
-        "-c",
-        "--cohort-id",
-        type=str,
-        required=True,
-        help="Cohort ID"
+        description="Merge adata objects and plot quality control metrics"
     )
     parser.add_argument(
         "-i",
         "--adata-paths-input",
         nargs="+",
         required=True,
-        help="List of preprocessed adata objects to merge and run QC on"
+        help="List of preprocessed adata objects to merge"
     )
     parser.add_argument(
         "-o",

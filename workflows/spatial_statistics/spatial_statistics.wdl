@@ -5,7 +5,7 @@ version 1.0
 workflow spatial_statistics {
 	input {
 		String cohort_id
-		File umap_cluster_adata_object
+		File clustered_adata_object
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -17,7 +17,7 @@ workflow spatial_statistics {
 	call neighbors_enrichment_analysis {
 		input:
 			cohort_id = cohort_id,
-			umap_cluster_adata_object = umap_cluster_adata_object,
+			clustered_adata_object = clustered_adata_object,
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -28,7 +28,7 @@ workflow spatial_statistics {
 	call co_occurrence_probability {
 		input:
 			cohort_id = cohort_id,
-			nhood_enrichment_adata_object = neighbors_enrichment_analysis.nhood_enrichment_adata_object, #!FileCoercion
+			nhood_enrichment_adata_object = neighbors_enrichment_analysis.nhood_enrichment_adata_object,
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -39,7 +39,7 @@ workflow spatial_statistics {
 	call spatially_variable_gene_analysis {
 		input:
 			cohort_id = cohort_id,
-			co_occurrence_adata_object = co_occurrence_probability.co_occurrence_adata_object, #!FileCoercion
+			co_occurrence_adata_object = co_occurrence_probability.co_occurrence_adata_object,
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -65,7 +65,7 @@ workflow spatial_statistics {
 task neighbors_enrichment_analysis {
 	input {
 		String cohort_id
-		File umap_cluster_adata_object
+		File clustered_adata_object
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -74,32 +74,31 @@ task neighbors_enrichment_analysis {
 		String zones
 	}
 
-	Int mem_gb = ceil(size(umap_cluster_adata_object, "GB") * 2 + 20)
-	Int disk_size = ceil(size(umap_cluster_adata_object, "GB") * 2 + 50)
+	Int mem_gb = ceil(size(clustered_adata_object, "GB") * 2 + 20)
+	Int disk_size = ceil(size(clustered_adata_object, "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail
 
 		python3 /opt/scripts/neighbors_enrichment_analysis.py \
 			--cohort-id ~{cohort_id} \
-			--adata-input ~{umap_cluster_adata_object} \
+			--adata-input ~{clustered_adata_object} \
 			--adata-output ~{cohort_id}.nhood_enrichment_adata_object.h5ad
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.nhood_enrichment_adata_object.h5ad" \
 			-o "~{cohort_id}.nhood_enrichment.png"
 	>>>
 
 	output {
-		String nhood_enrichment_adata_object = "~{raw_data_path}/~{cohort_id}.nhood_enrichment_adata_object.h5ad"
+		File nhood_enrichment_adata_object = "~{cohort_id}.nhood_enrichment_adata_object.h5ad"
 		String nhood_enrichment_plot_png = "~{raw_data_path}/~{cohort_id}.nhood_enrichment.png"
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2"
+		docker: "~{container_registry}/squidpy:1.6.2_1"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -135,17 +134,16 @@ task co_occurrence_probability {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.co_occurrence.h5ad" \
 			-o "~{cohort_id}.co_occurrence.png"
 	>>>
 
 	output {
-		String co_occurrence_adata_object = "~{raw_data_path}/~{cohort_id}.co_occurrence.h5ad"
+		File co_occurrence_adata_object = "~{cohort_id}.co_occurrence.h5ad"
 		String co_occurrence_plot_png = "~{raw_data_path}/~{cohort_id}.co_occurrence.png"
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2"
+		docker: "~{container_registry}/squidpy:1.6.2_1"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -191,7 +189,7 @@ task spatially_variable_gene_analysis {
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2"
+		docker: "~{container_registry}/squidpy:1.6.2_1"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"

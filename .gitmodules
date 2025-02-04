@@ -1,3 +1,6 @@
 [submodule "wf-common"]
 	path = wf-common
 	url = https://github.com/ASAP-CRN/wf-common.git
+[submodule "workflows/pmdbs_spatial_visium/cohort_analysis/pmdbs-sc-rnaseq-wf"]
+	path = workflows/pmdbs_spatial_visium/cohort_analysis/pmdbs-sc-rnaseq-wf
+	url = https://github.com/ASAP-CRN/pmdbs-sc-rnaseq-wf.git

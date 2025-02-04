@@ -1,13 +1,13 @@
 version 1.0
 
-# Harmonized human and non-human PMDBS spatial transcriptomics workflow entrypoint
+# Harmonized human and non-human PMDBS spatial transcriptomics workflow entrypoint for Nanostring GeoMx data
 
-import "../wf-common/wdl/structs.wdl"
-import "../wf-common/wdl/tasks/get_workflow_metadata.wdl" as GetWorkflowMetadata
+import "../../wf-common/wdl/structs.wdl"
+import "../../wf-common/wdl/tasks/get_workflow_metadata.wdl" as GetWorkflowMetadata
 import "preprocess/preprocess.wdl" as Preprocess
 import "cohort_analysis/cohort_analysis.wdl" as CohortAnalysis
 
-workflow pmdbs_spatial_transcriptomics_analysis {
+workflow pmdbs_spatial_geomx_analysis {
 	input {
 		String cohort_id
 		Array[Project] projects
@@ -29,9 +29,9 @@ workflow pmdbs_spatial_transcriptomics_analysis {
 	}
 
 	String workflow_execution_path = "workflow_execution"
-	String workflow_name = "pmdbs_spatial_transcriptomics"
+	String workflow_name = "pmdbs_spatial_geomx"
 	String workflow_version = "v1.0.0"
-	String workflow_release = "https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/releases/tag/pmdbs_spatial_transcriptomics_analysis-~{workflow_version}"
+	String workflow_release = "https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/releases/tag/pmdbs_spatial_geomx_analysis-~{workflow_version}"
 
 	call GetWorkflowMetadata.get_workflow_metadata {
 		input:
@@ -61,7 +61,8 @@ workflow pmdbs_spatial_transcriptomics_analysis {
 		Array[String] preprocessing_output_file_paths = flatten([
 			preprocess.geomxngs_dcc_zip,
 			preprocess.geomxngs_output_tar_gz,
-			preprocess.count_matrix_adata_object
+			preprocess.initial_adata_object,
+			preprocess.qc_adata_object
 		]) #!StringCoercion
 
 		if (project.run_project_cohort_analysis) {
@@ -69,7 +70,7 @@ workflow pmdbs_spatial_transcriptomics_analysis {
 				input:
 					cohort_id = project.team_id,
 					project_sample_ids = preprocess.project_sample_ids,
-					preprocessed_adata_objects = preprocess.count_matrix_adata_object,
+					preprocessed_adata_objects = preprocess.qc_adata_object,
 					preprocessing_output_file_paths = preprocessing_output_file_paths,
 					filter_cells_min_counts = filter_cells_min_counts,
 					filter_genes_min_cells = filter_genes_min_cells,
@@ -93,7 +94,7 @@ workflow pmdbs_spatial_transcriptomics_analysis {
 			input:
 				cohort_id = cohort_id,
 				project_sample_ids = flatten(preprocess.project_sample_ids),
-				preprocessed_adata_objects = flatten(preprocess.count_matrix_adata_object),
+				preprocessed_adata_objects = flatten(preprocess.qc_adata_object),
 				preprocessing_output_file_paths = flatten(preprocessing_output_file_paths),
 				filter_cells_min_counts = filter_cells_min_counts,
 				filter_genes_min_cells = filter_genes_min_cells,
@@ -117,7 +118,8 @@ workflow pmdbs_spatial_transcriptomics_analysis {
 		## Preprocess
 		Array[Array[File]] geomxngs_dcc_zip = preprocess.geomxngs_dcc_zip
 		Array[Array[File]] geomxngs_output_tar_gz = preprocess.geomxngs_output_tar_gz
-		Array[Array[File]] count_matrix_adata_object = preprocess.count_matrix_adata_object
+		Array[Array[File]] initial_adata_object = preprocess.initial_adata_object
+		Array[Array[File]] qc_adata_object = preprocess.qc_adata_object
 
 		# Project cohort analysis outputs
 		## List of samples included in the cohort
@@ -166,7 +168,7 @@ workflow pmdbs_spatial_transcriptomics_analysis {
 	}
 
 	meta {
-		description: "Harmonized human and non-human postmortem-derived brain sequencing (PMDBS) spatial transcriptomics workflow"
+		description: "Harmonized human and non-human postmortem-derived brain sequencing (PMDBS) spatial transcriptomics workflow for Nanostring GeoMx data"
 	}
 
 	parameter_meta {

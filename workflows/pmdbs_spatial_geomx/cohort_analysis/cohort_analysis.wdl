@@ -2,9 +2,9 @@ version 1.0
 
 # Merge and process adata object with QC, filtering, normalization, and clustering
 
-import "../../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
-import "spatial_statistics/spatial_statistics.wdl" as SpatialStatistics
-import "../../wf-common/wdl/tasks/upload_final_outputs.wdl" as UploadFinalOutputs
+import "../../../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
+import "../../spatial_statistics/spatial_statistics.wdl" as SpatialStatistics
+import "../../../wf-common/wdl/tasks/upload_final_outputs.wdl" as UploadFinalOutputs
 
 workflow cohort_analysis {
 	input {
@@ -86,7 +86,7 @@ workflow cohort_analysis {
 	call SpatialStatistics.spatial_statistics {
 		input:
 			cohort_id = cohort_id,
-			umap_cluster_adata_object = cluster.umap_cluster_adata_object, #!FileCoercion
+			clustered_adata_object = cluster.umap_cluster_adata_object, #!FileCoercion
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -111,17 +111,9 @@ workflow cohort_analysis {
 			merge_and_plot_qc_metrics.merged_adata_object,
 			merge_and_plot_qc_metrics.qc_plots_png
 		],
-		[
-			filter_and_normalize.filtered_normalized_adata_object
-		],
-		[
-			cluster.umap_cluster_adata_object
-		],
 		cluster.umap_and_spatial_coord_plots_png,
 		[
-			spatial_statistics.nhood_enrichment_adata_object,
 			spatial_statistics.nhood_enrichment_plot_png,
-			spatial_statistics.co_occurrence_adata_object,
 			spatial_statistics.co_occurrence_plot_png,
 			spatial_statistics.final_adata_object,
 			spatial_statistics.moran_top_10_variable_genes_csv
@@ -183,8 +175,7 @@ task merge_and_plot_qc_metrics {
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/merge_and_qc.py \
-			--cohort-id ~{cohort_id} \
+		python3 /opt/scripts/merge_and_plot_geomx_qc.py \
 			--adata-paths-input ~{sep=' ' preprocessed_adata_objects} \
 			--merged-adata-output ~{cohort_id}.merged_adata_object.h5ad \
 			--qc-plots-output ~{cohort_id}.qc_hist.png
@@ -204,7 +195,7 @@ task merge_and_plot_qc_metrics {
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2"
+		docker: "~{container_registry}/squidpy:1.6.2_1"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -235,7 +226,6 @@ task filter_and_normalize {
 		set -euo pipefail
 
 		python3 /opt/scripts/filter_and_normalize.py \
-			--cohort-id ~{cohort_id} \
 			--adata-input ~{merged_adata_object} \
 			--min-counts ~{filter_cells_min_counts} \
 			--min-cells ~{filter_genes_min_cells} \
@@ -253,7 +243,7 @@ task filter_and_normalize {
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2"
+		docker: "~{container_registry}/squidpy:1.6.2_1"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -305,7 +295,7 @@ task cluster {
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2"
+		docker: "~{container_registry}/squidpy:1.6.2_1"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"

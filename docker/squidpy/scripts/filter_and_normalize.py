@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import scanpy as sc
-import squidpy as sq
 
 
 def main(args):
@@ -31,13 +30,6 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Filter and normalize adata objects"
-    )
-    parser.add_argument(
-        "-c",
-        "--cohort-id",
-        type=str,
-        required=True,
-        help="Cohort ID"
     )
     parser.add_argument(
         "-i",

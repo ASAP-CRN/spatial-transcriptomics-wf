@@ -1,5 +1,5 @@
 # pmdbs-spatial-transcriptomics-wf
-Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) workflow harmonized across ASAP with human and mouse spatial transcriptomics data.
+Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) workflow harmonized across ASAP with human and mouse spatial transcriptomics data for both Nanostring GeoMx and 10x Visium platforms.
 
 Common workflows, tasks, utility scripts, and docker images reused across harmonized ASAP workflows are defined in [the wf-common repository](wf-common).
 
@@ -15,17 +15,25 @@ Common workflows, tasks, utility scripts, and docker images reused across harmon
 
 # Workflows
 
-Worfklows are defined in [the `workflows` directory](workflows).
+Worfklows are defined in [the `workflows` directory](workflows). There is [the `pmdbs_spatial_geomx` workflow directory](workflows/pmdbs_spatial_geomx) and [the `pmdbs_spatial_visium` workflow directory](workflows/pmdbs_spatial_visium).
 
-This workflow is set up to analyze spatial transcriptomics data: Nanostring GeoMx and 10x Visium in WDL using mainly command line and a Python script.
+These workflows are set up to analyze spatial transcriptomics data: Nanostring GeoMx and 10x Visium in WDL using mainly command line and a Python script.
 
-![Workflow diagram](workflows/workflow_diagram.svg "Workflow diagram")
+**Nanostring GeoMx workflow diagram:**
+![Nanostring GeoMx workflow diagram](workflows/pmdbs_spatial_geomx/workflow_diagram.svg "Workflow diagram")
 
-**Entrypoint**: [workflows/main.wdl](workflows/main.wdl)
+**Nanostring GeoMx entrypoint**: [workflows/pmdbs_spatial_geomx/main.wdl](workflows/pmdbs_spatial_geomx/main.wdl)
 
-**Input template**: [workflows/inputs.json](workflows/inputs.json)
+**Nanostring GeoMx input template**: [workflows/pmdbs_spatial_geomx/inputs.json](workflows/pmdbs_spatial_geomx/inputs.json)
 
-The workflow is broken up into two main chunks:
+**10x Visium workflow diagram:**
+![10x Visium workflow diagram](workflows/pmdbs_spatial_visium/workflow_diagram.svg "Workflow diagram")
+
+**10x Visium entrypoint**: [workflows/pmdbs_spatial_visium/main.wdl](workflows/pmdbs_spatial_visium/main.wdl)
+
+**10x Visium input template**: [workflows/pmdbs_spatial_visium/inputs.json](workflows/pmdbs_spatial_visium/inputs.json)
+
+Both workflows follow the same structure, it is broken up into two main chunks:
 
 1. [Preprocessing](#preprocessing)
 2. [Cohort analysis](#cohort-analysis)
@@ -41,7 +49,9 @@ Run once per team (all samples from a single team) if `project.run_project_cohor
 
 # Inputs
 
-An input template file can be found at [workflows/inputs.json](workflows/inputs.json).
+## Nanostring GeoMx inputs
+
+An input template file can be found at [workflows/pmdbs_spatial_geomx/inputs.json](workflows/pmdbs_spatial_geomx/inputs.json).
 
 | Type | Name | Description |
 | :- | :- | :- |
@@ -52,6 +62,27 @@ An input template file can be found at [workflows/inputs.json](workflows/inputs.
 | Int? | filter_cells_min_counts | Minimum number of counts required for a cell to pass filtering. [5000] |
 | Int? | filter_genes_min_cells | Minimum number of cells expressed required for a gene to pass filtering. [10] |
 | Boolean? | run_cross_team_cohort_analysis | Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (GeoMxNGSPipeline and generating the initial adata object(s)) will run for samples. [false] |
+| String | cohort_raw_data_bucket | Bucket to upload cross-team cohort analysis intermediate files to. |
+| Array[String] | cohort_staging_data_buckets | Buckets to upload cross-team cohort analysis outputs to. |
+| String | container_registry | Container registry where workflow Docker images are hosted. |
+| String? | zones | Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f'] |
+
+## 10x Visium inputs
+
+An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.json](workflows/pmdbs_spatial_visium/inputs.json).
+
+| Type | Name | Description |
+| :- | :- | :- |
+| String | cohort_id | Name of the cohort; used to name output files during cross-team cohort analysis. |
+| Array[[Project](#project)] | projects | The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis. |
+| File | spaceranger_reference_data | Spaceranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads. |
+| Int? | filter_cells_min_counts | Minimum number of counts required for a cell to pass filtering. [5000] |
+| Int? | filter_genes_min_cells | Minimum number of cells expressed required for a gene to pass filtering. [10] |
+| String? | batch_key | Key in AnnData object for batch information so that highly-variable genes are selected within each batch separately and merged. ['batch_id'] |
+| String? | scvi_latent_key | Latent key to save the scVI latent to. ['X_scvi'] |
+| Int? | n_top_genes | Number of highly-variable genes to keep. [3000] |
+| File? | cell_type_markers_list | CSV file containing a list of major cell type markers; used to annotate clusters. |
+| Boolean? | run_cross_team_cohort_analysis | Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps ( and generating the initial adata object(s)) will run for samples. [false] |
 | String | cohort_raw_data_bucket | Bucket to upload cross-team cohort analysis intermediate files to. |
 | Array[String] | cohort_staging_data_buckets | Buckets to upload cross-team cohort analysis outputs to. |
 | String | container_registry | Container registry where workflow Docker images are hosted. |
@@ -82,6 +113,7 @@ An input template file can be found at [workflows/inputs.json](workflows/inputs.
 | File | fastq_R2 | Path to the sample's read 2 FASTQ file. |
 | File? | fastq_I1 | Optional fastq index 1. |
 | File? | fastq_I2 | Optional fastq index 2. |
+| File? | visium_brightfield_image | Optional 10x Visium brightfield image. This is required for the spatial transcriptomics 10x Visium pipeline. |
 
 ## Generating the inputs JSON
 
@@ -107,9 +139,17 @@ Example usage:
 	--project-tsv metadata.tsv \
 	--inputs-template workflows/inputs.json \
 	--run-project-cohort-analysis \
-	--workflow-name pmdbs_spatial_transcriptomics_analysis \
-	--cohort-dataset spatial-transcriptomics \
-	--output-file inputs.harmonized_spatial_transcriptomics_workflow.json
+	--workflow-name pmdbs_spatial_geomx_analysis \
+	--cohort-dataset spatial-geomx \
+	--output-file inputs.harmonized_spatial_geomx_workflow.json
+
+./wf-common/util/generate_inputs \
+	--project-tsv metadata.tsv \
+	--inputs-template workflows/inputs.json \
+	--run-project-cohort-analysis \
+	--workflow-name pmdbs_spatial_visium_analysis \
+	--cohort-dataset spatial-visium \
+	--output-file inputs.harmonized_spatial_visium_workflow.json
 ```
 
 # Outputs
@@ -125,12 +165,12 @@ Example usage:
 
 The raw data bucket will contain *some* artifacts generated as part of workflow execution. Following successful workflow execution, the artifacts will also be copied into the staging bucket as final outputs.
 
-In the workflow, task outputs are either specified as `String` (final outputs, which will be copied in order to live in raw data buckets and staging buckets) or `File` (intermediate outputs that are periodically cleaned up, which will live in the cromwell-output bucket). This was implemented to reduce storage costs. Preprocess final outputs are defined in the workflow at [main.wdl](workflows/main.wdl#L61-L65) and cohort analysis final outputs are defined at [cohort_analysis.wdl](workflows/cohort_analysis/cohort_analysis.wdl#L106-L129).
+In the workflow, task outputs are either specified as `String` (final outputs, which will be copied in order to live in raw data buckets and staging buckets) or `File` (intermediate outputs that are periodically cleaned up, which will live in the cromwell-output bucket). This was implemented to reduce storage costs.
 
 ```bash
 asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 └── workflow_execution
-	└── pmdbs_spatial_transcriptomics
+	└── pmdbs_spatial_geomx
 		├── cohort_analysis
 		│	└──${cohort_analysis_workflow_version}
 		│		└── ${workflow_run_timestamp}
@@ -139,9 +179,30 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset}
             ├── fastq_to_dcc
             │   └── ${fastq_to_dcc_task_version}
             │       └── <fastq_to_dcc output>
-            └── dcc_to_count_matrix
-                └── ${dcc_to_count_matrix_task_version}
-                    └── <dcc_to_count_matrix output>
+            ├── dcc_to_adata
+            │   └── ${dcc_to_adata_task_version}
+            │       └── <dcc_to_adata output>
+            └── qc
+                └── ${qc_task_version}
+                    └── <qc output>
+
+asap-raw-{cohort,team-xxyy}-{source}-{dataset}
+└── workflow_execution
+	└── pmdbs_spatial_visium
+		├── cohort_analysis
+		│	└──${cohort_analysis_workflow_version}
+		│		└── ${workflow_run_timestamp}
+		│				└── <cohort_analysis outputs>
+        └── preprocess
+            ├── spaceranger_count
+            │   └── ${spaceranger_count_task_version}
+            │       └── <spaceranger_count output>
+            ├── counts_to_adata
+            │   └── ${counts_to_adata_task_version}
+            │       └── <counts_to_adata output>
+            └── qc
+                └── ${qc_task_version}
+                    └── <qc output>
 ```
 
 ### Staging data (intermediate workflow objects and final workflow outputs for the latest run of the workflow)
@@ -152,19 +213,15 @@ Data may be synced using [the `promote_staging_data` script](#promoting-staging-
 
 ```bash
 asap-dev-{cohort,team-xxyy}-{source}-{dataset}
-└── pmdbs_spatial_transcriptomics
+└── pmdbs_spatial_geomx
 	├── cohort_analysis
 	│   ├── ${cohort_id}.sample_list.tsv
 	│   ├──	${cohort_id}.merged_adata_object.h5ad
 	│   ├── ${cohort_id}.qc_hist.png
-	│   ├── ${cohort_id}.filtered_normalized.h5ad
-	│   ├── ${cohort_id}.umap_cluster.h5ad
 	│   ├── ${cohort_id}.umap.png
 	│   ├── ${cohort_id}.spatial_coord_by_counts.png
 	│   ├── ${cohort_id}.spatial_coord_by_clusters.png
-	│   ├── ${cohort_id}.nhood_enrichment_adata_object.h5ad
 	│   ├── ${cohort_id}.nhood_enrichment.png
-	│   ├── ${cohort_id}.co_occurrence.h5ad
 	│   ├── ${cohort_id}.co_occurrence.png
 	│   ├── ${cohort_id}.final_adata_object.h5ad
 	│   ├── ${cohort_id}.moran_top_10_variable_genes.csv
@@ -172,12 +229,65 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 	└── preprocess
 		├── ${sampleA_id}.DCC.zip
 		├── ${sampleA_id}.geomxngs_out_dir.tar.gz
-		├── ${sampleA_id}.count_matrix.h5ad
+		├── ${sampleA_id}.initial_adata_object.h5ad
+		├── ${sampleA_id}.qc.h5ad
 		├── MANIFEST.tsv
 		├── ...
 		├── ${sampleN_id}.DCC.zip
 		├── ${sampleN_id}.geomxngs_out_dir.tar.gz
-		├── ${sampleN_id}.count_matrix.h5ad
+		├── ${sampleN_id}.initial_adata_object.h5ad
+		├── ${sampleN_id}.qc.h5ad
+		└── MANIFEST.tsv
+
+asap-dev-{cohort,team-xxyy}-{source}-{dataset}
+└── pmdbs_spatial_visium
+	├── cohort_analysis
+	│   ├── ${cohort_id}.sample_list.tsv
+	│   ├──	${cohort_id}.merged_adata_object.h5ad
+	│   ├── ${cohort_id}.qc_violin.png
+	│   ├── ${cohort_id}.qc_scatter.png
+	│   ├── ${cohort_id}.umap.png
+	│   ├── ${cohort_id}_scvi_model.tar.gz
+	│   ├── ${cohort_id}.cell_types.csv
+	│   ├── ${cohort_id}.image_features_spatial_scatter.png
+	│   ├── ${cohort_id}.nhood_enrichment.png
+	│   ├── ${cohort_id}.co_occurrence.png
+	│   ├── ${cohort_id}.final_adata_object.h5ad
+	│   ├── ${cohort_id}.moran_top_10_variable_genes.csv
+	│   └── MANIFEST.tsv
+	└── preprocess
+		├── ${sampleA_id}.raw_feature_bc_matrix.h5
+		├── ${sampleA_id}.filtered_feature_bc_matrix.h5
+		├── ${sampleA_id}.initial_adata_object.h5ad
+		├── ${sampleA_id}.molecule_info.h5
+		├── ${sampleA_id}.metrics_summary.csv
+		├── ${sampleA_id}.spaceranger_spatial_outputs.tar.gz
+		├── ${sampleA_id}.aligned_fiducials.jpg
+		├── ${sampleA_id}.detected_tissue_image.jpg
+		├── ${sampleA_id}.tissue_hires_image.png
+		├── ${sampleA_id}.tissue_lowres_image.png
+		├── ${sampleA_id}.scalefactors_json.json
+		├── ${sampleA_id}.tissue_positions.csv
+		├── ${sampleA_id}.spatial_enrichment.csv
+		├── ${sampleA_id}.initial_adata_object.h5ad
+		├── ${sampleA_id}.qc.h5ad
+		├── MANIFEST.tsv
+		├── ...
+		├── ${sampleN_id}.raw_feature_bc_matrix.h5
+		├── ${sampleN_id}.filtered_feature_bc_matrix.h5
+		├── ${sampleN_id}.initial_adata_object.h5ad
+		├── ${sampleN_id}.molecule_info.h5
+		├── ${sampleN_id}.metrics_summary.csv
+		├── ${sampleN_id}.spaceranger_spatial_outputs.tar.gz
+		├── ${sampleN_id}.aligned_fiducials.jpg
+		├── ${sampleN_id}.detected_tissue_image.jpg
+		├── ${sampleN_id}.tissue_hires_image.png
+		├── ${sampleN_id}.tissue_lowres_image.png
+		├── ${sampleN_id}.scalefactors_json.json
+		├── ${sampleN_id}.tissue_positions.csv
+		├── ${sampleN_id}.spatial_enrichment.csv
+		├── ${sampleN_id}.initial_adata_object.h5ad
+		├── ${sampleN_id}.qc.h5ad
 		└── MANIFEST.tsv
 ```
 
@@ -210,13 +320,14 @@ The script defaults to a dry run, printing out the files that would be copied or
 
 ```bash
 # List available teams
-./wf-common/util/promote_staging_data -t cohort -l -s pmdbs -d spatial-transcriptomics -w pmdbs_spatial_transcriptomics
+./wf-common/util/promote_staging_data -t cohort -l -s pmdbs -d spatial-geomx -w pmdbs_spatial_geomx
+./wf-common/util/promote_staging_data -t cohort -l -s pmdbs -d spatial-visium -w pmdbs_spatial_visium
 
 # Print out the files that would be copied or deleted from the staging bucket to the curated bucket for teams team-hardy and team-biederer
-./wf-common/util/promote_staging_data -t team-hardy team-biederer -s pmdbs -d spatial-transcriptomics -w pmdbs_spatial_transcriptomics
+./wf-common/util/promote_staging_data -t team-hardy team-biederer -s pmdbs -d spatial-geomx -w pmdbs_spatial_geomx
 
 # Promote data for team-hardy and cohort
-./wf-common/util/promote_staging_data -t team-hardy cohort -s pmdbs -d spatial-transcriptomics -w pmdbs_spatial_transcriptomics -p -e dev
+./wf-common/util/promote_staging_data -t team-hardy cohort -s pmdbs -d spatial-geomx -w pmdbs_spatial_geomx -p -e dev
 ```
 
 # Docker images
@@ -234,12 +345,14 @@ docker
 	├── Dockerfile
 	├── requirements.txt
 	└── scripts
-		├── merge_and_qc.py
+		├── geomx_qc.py
+		├── merge_and_plot_geomx_qc.py
 		├── filter_and_normalize.py
 		├── cluster.py
 		├── neighbors_enrichment_analysis.py
 		├── co_occurrence_probability.py
-		└── moran_i_score.py
+		├── moran_i_score.py
+		└── ...
 ```
 
 ## The `build.env` file
@@ -270,18 +383,19 @@ Docker images can be build using the [`build_docker_images`](https://github.com/
 
 ## Tool and library versions
 
-| Image | Major tool versions | Links |
-| :- | :- | :- |
-| geomxngs | <ul><li>[geomxngs v3.1.1.6](https://nanostring.app.box.com/v/GeoMxSW3-1-0/folder/233772026049)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/geomxngs) |
-| squidpy | Python (v3.12.5) libraries: <ul><li>[squidpy v1.6.2](https://github.com/scverse/squidpy/releases/tag/v1.6.2)</li><li>[matplotlib v3.10.0](https://github.com/matplotlib/matplotlib/releases/tag/v3.10.0)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li><li>[scanpy v1.10.4](https://github.com/scverse/scanpy/releases/tag/1.10.4)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/squidpy) |
-| util | <ul><li>[google-cloud-cli 444.0.0-slim](https://cloud.google.com/sdk/docs/release-notes#44400_2023-08-22)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/util) |
+| Image | Major tool versions | Links | Workflow |
+| :- | :- | :- | :- |
+| geomxngs | <ul><li>[geomxngs v3.1.1.6](https://nanostring.app.box.com/v/GeoMxSW3-1-0/folder/233772026049)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/geomxngs) | pmdbs_spatial_geomx |
+| squidpy | Python (v3.12.5) libraries: <ul><li>[squidpy v1.6.2](https://github.com/scverse/squidpy/releases/tag/v1.6.2)</li><li>[matplotlib v3.10.0](https://github.com/matplotlib/matplotlib/releases/tag/v3.10.0)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li><li>[scanpy v1.10.4](https://github.com/scverse/scanpy/releases/tag/1.10.4)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/squidpy) | both |
+| spaceranger | <ul><li>[spaceranger v3.1.2](https://www.10xgenomics.com/support/software/space-ranger/latest/release-notes/release-notes-for-SR#v-3-1-2)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/spaceranger) | pmdbs_spatial_visium |
+| util | <ul><li>[google-cloud-cli 444.0.0-slim](https://cloud.google.com/sdk/docs/release-notes#44400_2023-08-22)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/util) | both |
 
 
 # wdl-ci
 
-[`wdl-ci`](https://github.com/DNAstack/wdl-ci) provides tools to validate and test workflows and tasks written in [Workflow Description Language (WDL)](https://github.com/openwdl/wdl). In addition to the tests packaged in `wdl-ci`, the [pmdbs-wdl-ci-custom-test-dir](./pmdbs-bulk-rnaseq-wdl-ci-custom-test-dir) is a directory containing custom WDL-based tests that are used to test workflow tasks. `wdl-ci` in this repository is set up to run on pull request.
+[`wdl-ci`](https://github.com/DNAstack/wdl-ci) provides tools to validate and test workflows and tasks written in [Workflow Description Language (WDL)](https://github.com/openwdl/wdl). In addition to the tests packaged in `wdl-ci`, the [pmdbs-wdl-ci-custom-test-dir](./pmdbs-spatial-wdl-ci-custom-test-dir) is a directory containing custom WDL-based tests that are used to test workflow tasks. `wdl-ci` in this repository is set up to run on pull request.
 
-In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-ci.config.json) and compare current outputs and validated outputs based on changed tasks/workflows to ensure outputs are still valid by meeting the critera in the specified tests. For example, if the DCC to count matrix task in our workflow was changed, then this task would be submitted and that output would be considered the "current output". When inspecting the initial count matrix adata object, there is a test specified in the [wdl-ci.config.json](./wdl-ci.config.json) called, "check_hdf5". The test will compare the "current output" and "validated output" (provided in the [wdl-ci.config.json](./wdl-ci.config.json)) to make sure that the .h5ad file is still a valid HDF5 file.
+In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-ci.config.json) and compare current outputs and validated outputs based on changed tasks/workflows to ensure outputs are still valid by meeting the critera in the specified tests. For example, if the DCC to adata task in our workflow was changed, then this task would be submitted and that output would be considered the "current output". When inspecting the initial adata object, there is a test specified in the [wdl-ci.config.json](./wdl-ci.config.json) called, "check_hdf5". The test will compare the "current output" and "validated output" (provided in the [wdl-ci.config.json](./wdl-ci.config.json)) to make sure that the .h5ad file is still a valid HDF5 file.
 
 
 # Notes
