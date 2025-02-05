@@ -278,8 +278,8 @@ task spaceranger_count {
 			--image=~{visium_brightfield_image} \ # TODO - need to rename image file as well? One image per sample?
 			--slide=V19J01-123 \ # TODO - Slide ID should be in metadata
 			--area=A1 \ # TODO - Capture area should be in metadata
-			--localcores ~{threads} \
-			--localmem ~{mem_gb - 4} \
+			--localcores=~{threads} \
+			--localmem=~{mem_gb - 4} \
 			--create-bam=false
 
 		# Rename outputs to include sample ID
