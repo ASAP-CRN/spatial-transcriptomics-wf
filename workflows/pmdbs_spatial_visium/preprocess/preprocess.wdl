@@ -279,7 +279,8 @@ task spaceranger_count {
 			--slide=V19J01-123 \ # TODO - Slide ID should be in metadata
 			--area=A1 \ # TODO - Capture area should be in metadata
 			--localcores ~{threads} \
-			--localmem ~{mem_gb - 4}
+			--localmem ~{mem_gb - 4} \
+			--create-bam=false
 
 		# Rename outputs to include sample ID
 		mv ~{sample_id}/outs/raw_feature_bc_matrix.h5 ~{sample_id}.raw_feature_bc_matrix.h5
