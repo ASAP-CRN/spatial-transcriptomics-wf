@@ -213,8 +213,11 @@ task fastq_to_dcc {
 	command <<<
 		set -euo pipefail
 
-		# Move FASTQs into a directory
-		find . -maxdepth 1 -type f \( -name "*.fastq" -o -name "*.fq" \) -exec mv {} fastqs/ \;
+		# Ensure fastqs are in the same directory
+		mkdir fastqs
+		while read -r fastq || [[ -n "${fastq}" ]]; do
+			ln -s "${fastq}" "fastqs/${fastq}"
+		done < <(paste ~{write_lines(fastq_R1s)} ~{write_lines(fastq_R2s)})
 
 		geomxngspipeline \
 			--ini=~{config_ini} \
