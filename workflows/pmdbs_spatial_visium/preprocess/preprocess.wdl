@@ -11,6 +11,7 @@ workflow preprocess {
 		Array[Sample] samples
 
 		File spaceranger_reference_data
+		File visium_probe_set_csv
 
 		String workflow_name
 		String workflow_version
@@ -85,6 +86,7 @@ workflow preprocess {
 					fastq_I2s = sample.fastq_I2s,
 					visium_brightfield_image = select_first([sample.visium_brightfield_image]),
 					spaceranger_reference_data = spaceranger_reference_data,
+					visium_probe_set_csv = visium_probe_set_csv,
 					raw_data_path = spaceranger_raw_data_path,
 					workflow_info = workflow_info,
 					billing_project = billing_project,
@@ -228,6 +230,7 @@ task spaceranger_count {
 		File visium_brightfield_image
 
 		File spaceranger_reference_data
+		File visium_probe_set_csv
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -238,7 +241,7 @@ task spaceranger_count {
 
 	Int threads = 16
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size(flatten([fastq_R1s, fastq_R2s]), "GB") + size([visium_brightfield_image, spaceranger_reference_data], "GB") * 2 + 50)
+	Int disk_size = ceil(size(flatten([fastq_R1s, fastq_R2s]), "GB") + size([visium_brightfield_image, spaceranger_reference_data, visium_probe_set_csv], "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail
@@ -270,14 +273,20 @@ task spaceranger_count {
 
 		spaceranger --version
 
+		# TODO once teams submit data,
+		## Rename image?
+		## Determine if CytAssist was used because it'll change the command options
+		## What version of Transcriptome v1 or v2
+		## Slide ID and capture area should be in metadata; temporarily hard-coded based on test data
 		/usr/bin/time \
 		spaceranger count \
 			--id=~{sample_id} \
 			--transcriptome="$(pwd)/spaceranger_refdata" \
 			--fastqs="$(pwd)/fastqs" \
-			--image=~{visium_brightfield_image} \ # TODO - need to rename image file as well? One image per sample?
-			--slide=V19J01-123 \ # TODO - Slide ID should be in metadata
-			--area=A1 \ # TODO - Capture area should be in metadata
+			--cytaimage=~{visium_brightfield_image} \
+			--probe-set=~{visium_probe_set_csv} \
+			--slide=V53M06-039 \
+			--area=A1 \
 			--localcores=~{threads} \
 			--localmem=~{mem_gb - 4} \
 			--create-bam=false

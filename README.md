@@ -75,7 +75,8 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | :- | :- | :- |
 | String | cohort_id | Name of the cohort; used to name output files during cross-team cohort analysis. |
 | Array[[Project](#project)] | projects | The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis. |
-| File | spaceranger_reference_data | Spaceranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads. |
+| File | spaceranger_reference_data | Space Ranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads and [10x Visium notes](#10x-visium-notes). |
+| File | visium_probe_set_csv | Visium probe-based assays target genes in Space Ranger transcriptome; see https://www.10xgenomics.com/support/software/space-ranger/downloads and [10x Visium notes](#10x-visium-notes). |
 | Int? | filter_cells_min_counts | Minimum number of counts required for a cell to pass filtering. [5000] |
 | Int? | filter_genes_min_cells | Minimum number of cells expressed required for a gene to pass filtering. [10] |
 | String? | batch_key | Key in AnnData object for batch information so that highly-variable genes are selected within each batch separately and merged. ['batch_id'] |
@@ -407,6 +408,10 @@ The Nanostring GeoMx configuration (.pkc) files were obtained from https://nanos
 
 ## 10x Visium notes
 
-The Spaceranger reference data were obtained from https://www.10xgenomics.com/support/software/space-ranger/downloads.
+The Space Ranger reference data were obtained from https://www.10xgenomics.com/support/software/space-ranger/downloads.
 - [Human reference (GRCh38)](https://cf.10xgenomics.com/supp/spatial-exp/refdata-gex-GRCh38-2020-A.tar.gz)
 - [Mouse reference (mm10)](https://cf.10xgenomics.com/supp/spatial-exp/refdata-gex-mm10-2020-A.tar.gz)
+
+The Space Ranger probe set data were obtained from https://www.10xgenomics.com/support/software/space-ranger/downloads.
+- [Human Transcriptome v2](https://cf.10xgenomics.com/supp/spatial-exp/probeset/Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv)
+- [Mouse Transcriptome v2](https://cf.10xgenomics.com/supp/spatial-exp/probeset/Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv)

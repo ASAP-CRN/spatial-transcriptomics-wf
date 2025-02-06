@@ -13,6 +13,7 @@ workflow pmdbs_spatial_visium_analysis {
 		Array[Project] projects
 
 		File spaceranger_reference_data
+		File visium_probe_set_csv
 
 		# Filter parameters
 		Int filter_cells_min_counts = 5000
@@ -52,6 +53,7 @@ workflow pmdbs_spatial_visium_analysis {
 				dataset_id = project.dataset_id,
 				samples = project.samples,
 				spaceranger_reference_data = spaceranger_reference_data,
+				visium_probe_set_csv = visium_probe_set_csv,
 				workflow_name = workflow_name,
 				workflow_version = workflow_version,
 				workflow_release = workflow_release,
@@ -220,7 +222,8 @@ workflow pmdbs_spatial_visium_analysis {
 	parameter_meta {
 		cohort_id: {help: "Name of the cohort; used to name output files during cross-team downstream analysis."}
 		projects: {help: "The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis."}
-		spaceranger_reference_data: {help: "Spaceranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads."}
+		spaceranger_reference_data: {help: "Space Ranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads."}
+		visium_probe_set_csv: {help: "Visium probe-based assays target genes in Space Ranger transcriptome; see https://www.10xgenomics.com/support/software/space-ranger/downloads."}
 		filter_cells_min_counts: {help: "Minimum number of counts required for a cell to pass filtering. [5000]"}
 		filter_genes_min_cells: {help: "Minimum number of cells expressed required for a gene to pass filtering. [10]"}
 		batch_key: {help: "Key in AnnData object for batch information so that highly-variable genes are selected within each batch separately and merged. ['batch_id']"}
