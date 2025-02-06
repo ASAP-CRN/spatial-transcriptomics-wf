@@ -114,7 +114,6 @@ workflow preprocess {
 					dataset_id = dataset_id,
 					sample_id = sample.sample_id,
 					batch = select_first([sample.batch]),
-					spaceranger_counts = filtered_counts_output,
 					spaceranger_spatial_tar_gz = spatial_outputs_tar_gz_output,
 					raw_data_path = adata_raw_data_path,
 					workflow_info = workflow_info,
@@ -291,15 +290,15 @@ task spaceranger_count {
 			--localmem=~{mem_gb - 4} \
 			--create-bam=false
 
+		# Next steps require Space Ranger outputs to be in this directory structure
+		cp -r ~{sample_id}/outs spatial_outputs
+		tar -czvf "~{sample_id}.spaceranger_spatial_outputs.tar.gz" spatial_outputs
+
 		# Rename outputs to include sample ID
 		mv ~{sample_id}/outs/raw_feature_bc_matrix.h5 ~{sample_id}.raw_feature_bc_matrix.h5
 		mv ~{sample_id}/outs/filtered_feature_bc_matrix.h5 ~{sample_id}.filtered_feature_bc_matrix.h5
 		mv ~{sample_id}/outs/molecule_info.h5 ~{sample_id}.molecule_info.h5
 		mv ~{sample_id}/outs/metrics_summary.csv ~{sample_id}.metrics_summary.csv
-
-		cp -r ~{sample_id}/outs/spatial spatial
-		tar -czvf "~{sample_id}.spaceranger_spatial_outputs.tar.gz" spatial
-
 		mv ~{sample_id}/outs/spatial/aligned_fiducials.jpg ~{sample_id}.aligned_fiducials.jpg
 		mv ~{sample_id}/outs/spatial/detected_tissue_image.jpg ~{sample_id}.detected_tissue_image.jpg
 		mv ~{sample_id}/outs/spatial/scalefactors_json.json ~{sample_id}.scalefactors_json.json
@@ -361,7 +360,6 @@ task counts_to_adata {
 		String sample_id
 		String batch
 
-		File spaceranger_counts
 		File spaceranger_spatial_tar_gz
 
 		String raw_data_path
@@ -371,7 +369,7 @@ task counts_to_adata {
 		String zones
 	}
 
-	Int disk_size = ceil(size([spaceranger_counts, spaceranger_spatial_tar_gz], "GB") * 2 + 20)
+	Int disk_size = ceil(size([spaceranger_spatial_tar_gz], "GB") * 2 + 20)
 
 	command <<<
 		set -euo pipefail
@@ -383,8 +381,7 @@ task counts_to_adata {
 			--dataset ~{dataset_id} \
 			--sample-id ~{sample_id} \
 			--batch ~{batch} \
-			--spaceranger-counts-input ~{spaceranger_counts} \
-			--spaceranger-spatial-dir spatial \
+			--spaceranger-spatial-dir spatial_outputs \
 			--adata-output ~{sample_id}.initial_adata_object.h5ad
 
 		upload_outputs \

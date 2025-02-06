@@ -14,7 +14,6 @@ def main(args):
     #############################################
     adata = sc.read_visium(
         path=args.spaceranger_spatial_dir,
-        count_file=args.spaceranger_counts_input,
         library_id=args.sample_id, # TODO
     )
 
@@ -60,13 +59,6 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="Batch from which the sample/dataset originated"
-    )
-    parser.add_argument(
-        "-i",
-        "--spaceranger-counts-input",
-        type=str,
-        required=True,
-        help="Spaceranger counts to convert to adata objects"
     )
     parser.add_argument(
         "-f",
