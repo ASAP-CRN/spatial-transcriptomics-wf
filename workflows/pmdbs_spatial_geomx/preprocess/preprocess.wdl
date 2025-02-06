@@ -216,12 +216,14 @@ task fastq_to_dcc {
 		# Ensure fastqs are in the same directory
 		mkdir fastqs
 		while read -r fastq || [[ -n "${fastq}" ]]; do
-			ln -s "${fastq}" "fastqs/${fastq}"
-		done < <(paste ~{write_lines(fastq_R1s)} ~{write_lines(fastq_R2s)})
+			ln -s "${fastq}" "fastqs/$(basename "$fastq")"
+		done < <(cat \
+			~{write_lines(fastq_R1s)} \
+			~{write_lines(fastq_R2s)})
 
 		geomxngspipeline \
 			--ini=~{config_ini} \
-			--in=fastqs \
+			--in="$(pwd)/fastqs" \
 			--out="~{sample_id}_geomxngs_out_dir" \
 			--check-illumina-naming=false
 
