@@ -17,6 +17,9 @@ def main(args):
         library_id=args.sample_id, # TODO
     )
 
+    # Gene names is the index for adata.var, but there are duplicates genes so this will make it unique (e.g. TBCE vs. TBCE-1)
+    adata.var_names_make_unique()
+
     # Add metadata
     adata.obs["team"] = args.team_id
     adata.obs["dataset"] = args.dataset_id
