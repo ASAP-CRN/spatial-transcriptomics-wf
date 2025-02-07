@@ -57,8 +57,8 @@ def main(args):
     sq.pl.spatial_scatter(
         adata,
         color=["features_cluster", "cluster"],
-        save=f"{args.plots_prefix}.image_features_spatial_scatter.png",
     )
+    plt.savefig(f"{args.plots_prefix}.image_features_spatial_scatter.png", dpi=300, bbox_inches="tight")
 
     # Save adata object
     adata.write_h5ad(filename=args.adata_output)

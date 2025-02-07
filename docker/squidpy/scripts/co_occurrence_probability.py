@@ -21,8 +21,8 @@ def main(args):
     sq.pl.co_occurrence(
         adata,
         cluster_key="leiden",
-        save=f"{args.cohort_id}.co_occurrence.png",
     )
+    plt.savefig(f"{args.cohort_id}.co_occurrence.png", dpi=300, bbox_inches="tight")
 
     # Save adata object
     adata.write_h5ad(filename=args.counts_output)

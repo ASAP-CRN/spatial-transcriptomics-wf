@@ -19,8 +19,8 @@ def main(args):
         adata,
         cluster_key="leiden",
         title="Neighborhood enrichment adata",
-        save=f"{args.cohort_id}.nhood_enrichment.png",
     )
+    plt.savefig(f"{args.cohort_id}.nhood_enrichment.png", dpi=300, bbox_inches="tight")
 
     # Save adata object
     adata.write_h5ad(filename=args.counts_output)

@@ -20,8 +20,8 @@ def main(args):
 
     sc.pl.highly_variable_genes(
         adata,
-        save=f"{args.plots_prefix}.feature_dispersion.png",
     )
+    plt.savefig(f"{args.plots_prefix}.feature_dispersion.png", dpi=300, bbox_inches="tight")
 
 
     ##############################
