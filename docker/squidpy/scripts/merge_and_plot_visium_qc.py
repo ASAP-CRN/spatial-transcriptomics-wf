@@ -1,4 +1,5 @@
 import argparse
+import anndata as ad
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,7 +18,7 @@ def main(args):
         sample_id = adata.obs["sample"].unique()
         adatas[sample_id[0]] = adata
 
-    merged_adata = anndata.concat(adatas, index_unique="_", merge="same", uns_merge="same")
+    merged_adata = ad.concat(adatas, index_unique="_", merge="same", uns_merge="same")
 
 
     #####################
