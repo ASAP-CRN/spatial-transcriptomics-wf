@@ -47,7 +47,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-b",
         "--batch-key",
-        type=int,
+        type=str,
         required=True,
         help="Key in AnnData object for batch information so that highly-variable genes are selected within each batch separately and merged ['batch_id']"
     )
