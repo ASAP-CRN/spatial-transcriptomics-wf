@@ -13,7 +13,7 @@ def main(args):
     ##############################
     ## CALCULATE IMAGE FEATURES ##
     ##############################
-    adata = sc.read_10x_h5(args.adata_input)
+    adata = sc.read_h5ad(args.adata_input)
 
     # Calculate features for different scales (higher value means more context)
     for scale in [1.0, 2.0]:

@@ -14,7 +14,7 @@ def main(args):
     #########################
     adatas = {}
     for file_path in args.adata_paths_input:
-        adata = sc.read_10x_h5(file_path)
+        adata = sc.read_h5ad(file_path)
         sample_id = adata.obs["sample"].unique()
         adatas[sample_id[0]] = adata
 

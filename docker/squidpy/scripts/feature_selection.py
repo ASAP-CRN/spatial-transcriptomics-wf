@@ -10,7 +10,7 @@ def main(args):
     #######################
     ## FEATURE SELECTION ##
     #######################
-    adata = sc.read_10x_h5(args.adata_input)
+    adata = sc.read_h5ad(args.adata_input)
 
     sc.pp.highly_variable_genes(
         adata,
