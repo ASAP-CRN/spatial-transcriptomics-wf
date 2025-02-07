@@ -103,6 +103,7 @@ task neighbors_enrichment_analysis {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		bootDiskSizeGb: 30
 		zones: zones
 	}
 }
@@ -148,6 +149,7 @@ task co_occurrence_probability {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		bootDiskSizeGb: 30
 		zones: zones
 	}
 }
@@ -194,6 +196,7 @@ task spatially_variable_gene_analysis {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		bootDiskSizeGb: 30
 		zones: zones
 	}
 }

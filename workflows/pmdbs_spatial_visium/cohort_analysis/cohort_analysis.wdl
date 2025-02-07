@@ -253,6 +253,7 @@ task merge_and_plot_qc_metrics {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		bootDiskSizeGb: 30
 		zones: zones
 	}
 }
@@ -292,6 +293,7 @@ task filter_and_normalize {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		bootDiskSizeGb: 30
 		zones: zones
 	}
 }
@@ -342,6 +344,7 @@ task feature_selection {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		bootDiskSizeGb: 30
 		zones: zones
 	}
 }
@@ -389,6 +392,7 @@ task image_features {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		bootDiskSizeGb: 30
 		zones: zones
 	}
 }
