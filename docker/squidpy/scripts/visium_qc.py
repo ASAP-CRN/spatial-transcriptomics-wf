@@ -21,6 +21,11 @@ def main(args):
 
     # Add doublet_score and predicted_doublet to .obs
     sc.pp.scrublet(adata)
+
+    # Adata object must contain strings
+    for col in adata.obs.columns:
+        if pd.api.types.is_object_dtype(adata.obs[col].dtype):
+            adata.obs[col] = adata.obs[col].astype(str) 
     
     adata.write_h5ad(filename=args.qc_adata_output)
 
