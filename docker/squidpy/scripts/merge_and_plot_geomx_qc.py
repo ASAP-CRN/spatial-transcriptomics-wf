@@ -38,12 +38,14 @@ def main(args):
         kde=False,
         ax=axs[1],
     )
-    axs[2].set_title("Transcripts per FOV")
-    sns.histplot(
-        merged_adata.obs.groupby("fov").sum()["total_counts"],
-        kde=False,
-        ax=axs[2],
-    )
+    fov_values = merged_adata.obs.get("fov")
+    if fov_values is not None:
+        axs[2].set_title("Transcripts per FOV")
+        sns.histplot(
+            merged_adata.obs.groupby("fov").sum()["total_counts"],
+            kde=False,
+            ax=axs[2],
+        )
 
     # Save outputs
     plt.tight_layout()
