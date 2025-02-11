@@ -30,7 +30,9 @@ def main(args):
         [
             "n_genes_by_counts",
             "total_counts",
-            "pct_counts_mt"
+            "pct_counts_mt",
+            "pct_counts_rb",
+            "doublet_score",
         ],
         jitter=0.4,
         multi_panel=True,

@@ -12,11 +12,11 @@ def main(args):
     ########
     adata = sc.read_h5ad(args.adata_input)
     adata.var["mt"] = adata.var_names.str.startswith("MT-")
-    adata.var["ribo"] = adata.var_names.str.startswith(("RPS", "RPL"))
+    adata.var["rb"] = adata.var_names.str.startswith(("RPS", "RPL"))
     adata.var["hb"] = adata.var_names.str.contains("^HB[^(P)]")
 
     sc.pp.calculate_qc_metrics(
-        adata, qc_vars=["mt", "ribo", "hb"], inplace=True, log1p=True
+        adata, qc_vars=["mt", "rb", "hb"], inplace=True, log1p=True
     )
 
     # Add doublet_score and predicted_doublet to .obs
@@ -25,7 +25,7 @@ def main(args):
     # Adata object must contain strings
     for col in adata.obs.columns:
         if pd.api.types.is_object_dtype(adata.obs[col].dtype):
-            adata.obs[col] = adata.obs[col].astype(str) 
+            adata.obs[col] = adata.obs[col].astype(str)
     
     adata.write_h5ad(filename=args.qc_adata_output)
 
