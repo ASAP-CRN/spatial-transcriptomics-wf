@@ -221,12 +221,11 @@ task fastq_to_dcc {
 			~{write_lines(fastq_R1s)} \
 			~{write_lines(fastq_R2s)})
 
-		geomxngspipeline \
+		echo 2 | geomxngspipeline \
 			--ini=~{config_ini} \
 			--in="$(pwd)/fastqs" \
 			--out="~{sample_id}_geomxngs_out_dir" \
-			--check-illumina-naming=false \
-			--use-max-threads=true
+			--check-illumina-naming=false
 
 		# DCC zip file is automatically named following format: DCC-<YYYYMMDD>.zip
 		dcc_file_to_rename=$(find ./~{sample_id}_geomxngs_out_dir -type f -name 'DCC-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].zip')
