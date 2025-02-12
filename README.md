@@ -33,14 +33,20 @@ These workflows are set up to analyze spatial transcriptomics data: Nanostring G
 
 **10x Visium input template**: [workflows/pmdbs_spatial_visium/inputs.json](workflows/pmdbs_spatial_visium/inputs.json)
 
-Both workflows follow the same structure, it is broken up into two main chunks:
+Both workflows follow a similar structure, it is broken up into two main chunks:
 
 1. [Preprocessing](#preprocessing)
 2. [Cohort analysis](#cohort-analysis)
 
+The 10x Visium workflow has a step in between for [image analysis](#image-analysis).
+
 ## Preprocessing
 
 Run once per sample; only rerun when the preprocessing workflow version is updated. Preprocessing outputs are stored in the originating team's raw and staging data buckets.
+
+## Image analysis (10x Visium only)
+
+Run once per sample; only rerun when the image analysis workflow version is updated. Image analysis outputs are not saved, but instead, treated as intermediate outputs.
 
 ## Cohort analysis
 
@@ -259,12 +265,6 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 	│   ├── ${cohort_id}.final_adata_object.h5ad
 	│   ├── ${cohort_id}.moran_top_10_variable_genes.csv
 	│   └── MANIFEST.tsv
-	├── image_analysis
-	│   ├── ${sampleA_id}.image_features_spatial_scatter.png
-	│	├── MANIFEST.tsv
-	│	├── ...
-	│	├── ${sampleN_id}.image_features_spatial_scatter.png
-	│	└── MANIFEST.tsv
 	└── preprocess
 		├── ${sampleA_id}.raw_feature_bc_matrix.h5
 		├── ${sampleA_id}.filtered_feature_bc_matrix.h5

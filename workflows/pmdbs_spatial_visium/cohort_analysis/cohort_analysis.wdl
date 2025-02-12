@@ -15,7 +15,6 @@ workflow cohort_analysis {
 
 		# If provided, these files will be uploaded to the staging bucket alongside other intermediate files made by this workflow
 		Array[String] preprocessing_output_file_paths = []
-		Array[String] image_analysis_output_file_paths = []
 
 		# Filter parameters
 		Int filter_cells_min_counts
@@ -124,15 +123,6 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call UploadFinalOutputs.upload_final_outputs as upload_image_analysis_files {
-		input:
-			output_file_paths = image_analysis_output_file_paths,
-			staging_data_buckets = staging_data_buckets,
-			staging_data_path = "~{workflow_name}/image_analysis",
-			billing_project = billing_project,
-			zones = zones
-	}
-
 	Array[String] cohort_analysis_final_output_paths = flatten([
 		[
 			write_cohort_sample_list.cohort_sample_list
@@ -195,7 +185,6 @@ workflow cohort_analysis {
 		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
 
 		Array[File] preprocess_manifest_tsvs = upload_preprocess_files.manifests #!FileCoercion
-		Array[File] image_analysis_manifest_tsvs = upload_image_analysis_files.manifests #!FileCoercion
 		Array[File] cohort_analysis_manifest_tsvs = upload_cohort_analysis_files.manifests #!FileCoercion
 	}
 }
