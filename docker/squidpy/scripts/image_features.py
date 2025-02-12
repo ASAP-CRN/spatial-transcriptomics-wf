@@ -83,7 +83,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-n",
         "--n-jobs",
-        type=str,
+        type=int,
         required=True,
         help="Number of parallel jobs"
     )
