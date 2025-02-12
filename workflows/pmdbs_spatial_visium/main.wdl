@@ -5,6 +5,7 @@ version 1.0
 import "../../wf-common/wdl/structs.wdl"
 import "../../wf-common/wdl/tasks/get_workflow_metadata.wdl" as GetWorkflowMetadata
 import "preprocess/preprocess.wdl" as Preprocess
+import "image_analysis/image_analysis.wdl" as ImageAnalysis
 import "cohort_analysis/cohort_analysis.wdl" as CohortAnalysis
 
 workflow pmdbs_spatial_visium_analysis {
@@ -78,13 +79,31 @@ workflow pmdbs_spatial_visium_analysis {
 			preprocess.qc_adata_object
 		]) #!StringCoercion
 
+		call ImageAnalysis.image_analysis {
+			input:
+				preprocessed_adata_objects = preprocess.qc_adata_object,
+				workflow_name = workflow_name,
+				workflow_version = workflow_version,
+				workflow_release = workflow_release,
+				run_timestamp = get_workflow_metadata.timestamp,
+				raw_data_path_prefix = project_raw_data_path_prefix,
+				billing_project = get_workflow_metadata.billing_project,
+				container_registry = container_registry,
+				zones = zones
+		}
+
+		Array[String] image_analysis_output_file_paths = flatten([
+			image_analysis.image_features_spatial_scatter_plot_png
+		]) #!StringCoercion
+
 		if (project.run_project_cohort_analysis) {
 			call CohortAnalysis.cohort_analysis as project_cohort_analysis {
 				input:
 					cohort_id = project.team_id,
 					project_sample_ids = preprocess.project_sample_ids,
-					preprocessed_adata_objects = preprocess.qc_adata_object,
+					preprocessed_adata_objects = image_analysis.image_features_adata_object,
 					preprocessing_output_file_paths = preprocessing_output_file_paths,
+					image_analysis_output_file_paths = image_analysis_output_file_paths,
 					filter_cells_min_counts = filter_cells_min_counts,
 					filter_genes_min_cells = filter_genes_min_cells,
 					batch_key = batch_key,
@@ -111,8 +130,9 @@ workflow pmdbs_spatial_visium_analysis {
 			input:
 				cohort_id = cohort_id,
 				project_sample_ids = flatten(preprocess.project_sample_ids),
-				preprocessed_adata_objects = flatten(preprocess.qc_adata_object),
+				preprocessed_adata_objects = flatten(image_analysis.image_features_adata_object),
 				preprocessing_output_file_paths = flatten(preprocessing_output_file_paths),
+				image_analysis_output_file_paths = flatten(image_analysis_output_file_paths),
 				filter_cells_min_counts = filter_cells_min_counts,
 				filter_genes_min_cells = filter_genes_min_cells,
 				batch_key = batch_key,
@@ -149,6 +169,10 @@ workflow pmdbs_spatial_visium_analysis {
 		Array[Array[File]] initial_adata_object = preprocess.initial_adata_object
 		Array[Array[File]] qc_adata_object = preprocess.qc_adata_object
 
+		## Image analysis
+		Array[Array[File]] image_features_adata_object = image_analysis.image_features_adata_object
+		Array[Array[File]] image_features_spatial_scatter_plot_png = image_analysis.image_features_spatial_scatter_plot_png
+
 		# Project cohort analysis outputs
 		## List of samples included in the cohort
 		Array[File?] project_cohort_sample_list = project_cohort_analysis.cohort_sample_list
@@ -167,10 +191,6 @@ workflow pmdbs_spatial_visium_analysis {
 		Array[File?] project_cell_annotated_adata_object = project_cohort_analysis.cell_annotated_adata_object
 		Array[File?] project_cell_types_csv = project_cohort_analysis.cell_types_csv
 
-		# Image features outputs
-		Array[File?] project_image_features_adata_object = project_cohort_analysis.image_features_adata_object
-		Array[File?] project_image_features_spatial_scatter_plot_png = project_cohort_analysis.image_features_spatial_scatter_plot_png
-
 		# Spatial statistics outputs
 		Array[File?] project_nhood_enrichment_adata_object = project_cohort_analysis.nhood_enrichment_adata_object
 		Array[File?] project_nhood_enrichment_plot_png = project_cohort_analysis.nhood_enrichment_plot_png
@@ -180,6 +200,7 @@ workflow pmdbs_spatial_visium_analysis {
 		Array[File?] project_moran_top_10_variable_genes_csv = project_cohort_analysis.moran_top_10_variable_genes_csv
 
 		Array[Array[File]?] preprocess_manifests = project_cohort_analysis.preprocess_manifest_tsvs
+		Array[Array[File]?] image_analysis_manifests = project_cohort_analysis.image_analysis_manifest_tsvs
 		Array[Array[File]?] project_manifests = project_cohort_analysis.cohort_analysis_manifest_tsvs
 
 		# Cross-team cohort analysis outputs
@@ -199,10 +220,6 @@ workflow pmdbs_spatial_visium_analysis {
 		File? cohort_umap_cluster_adata_object = cross_team_cohort_analysis.umap_cluster_adata_object
 		File? cohort_cell_annotated_adata_object = cross_team_cohort_analysis.cell_annotated_adata_object
 		File? cohort_cell_types_csv = cross_team_cohort_analysis.cell_types_csv
-
-		# Image features outputs
-		File? cohort_image_features_adata_object = cross_team_cohort_analysis.image_features_adata_object
-		File? cohort_image_features_spatial_scatter_plot_png = cross_team_cohort_analysis.image_features_spatial_scatter_plot_png
 
 		# Spatial statistics outputs
 		File? cohort_nhood_enrichment_adata_object = cross_team_cohort_analysis.nhood_enrichment_adata_object

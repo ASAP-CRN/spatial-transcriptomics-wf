@@ -194,6 +194,10 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 		│	└──${cohort_analysis_workflow_version}
 		│		└── ${workflow_run_timestamp}
 		│				└── <cohort_analysis outputs>
+		├── image_analysis
+		│	└── image_features
+		│		└── ${image_features_task_version}
+		│				└── <image_features outputs>
         └── preprocess
             ├── spaceranger_count
             │   └── ${spaceranger_count_task_version}
@@ -250,12 +254,17 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 	│   ├── ${cohort_id}.umap.png
 	│   ├── ${cohort_id}_scvi_model.tar.gz
 	│   ├── ${cohort_id}.cell_types.csv
-	│   ├── ${cohort_id}.image_features_spatial_scatter.png
 	│   ├── ${cohort_id}.nhood_enrichment.png
 	│   ├── ${cohort_id}.co_occurrence.png
 	│   ├── ${cohort_id}.final_adata_object.h5ad
 	│   ├── ${cohort_id}.moran_top_10_variable_genes.csv
 	│   └── MANIFEST.tsv
+	├── image_analysis
+	│   ├── ${sampleA_id}.image_features_spatial_scatter.png
+	│	├── MANIFEST.tsv
+	│	├── ...
+	│	├── ${sampleN_id}.image_features_spatial_scatter.png
+	│	└── MANIFEST.tsv
 	└── preprocess
 		├── ${sampleA_id}.raw_feature_bc_matrix.h5
 		├── ${sampleA_id}.filtered_feature_bc_matrix.h5

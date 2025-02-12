@@ -15,6 +15,7 @@ workflow cohort_analysis {
 
 		# If provided, these files will be uploaded to the staging bucket alongside other intermediate files made by this workflow
 		Array[String] preprocessing_output_file_paths = []
+		Array[String] image_analysis_output_file_paths = []
 
 		# Filter parameters
 		Int filter_cells_min_counts
@@ -103,21 +104,10 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call image_features {
-		input:
-			cohort_id = cohort_id,
-			cell_annotated_adata_object = cluster_data.cell_annotated_adata_object, #!FileCoercion
-			raw_data_path = raw_data_path,
-			workflow_info = workflow_info,
-			billing_project = billing_project,
-			container_registry = container_registry,
-			zones = zones
-	}
-
 	call SpatialStatistics.spatial_statistics {
 		input:
 			cohort_id = cohort_id,
-			clustered_adata_object = image_features.image_features_adata_object, #!FileCoercion
+			clustered_adata_object = cluster_data.cell_annotated_adata_object, #!FileCoercion
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -130,6 +120,15 @@ workflow cohort_analysis {
 			output_file_paths = preprocessing_output_file_paths,
 			staging_data_buckets = staging_data_buckets,
 			staging_data_path = "~{workflow_name}/preprocess",
+			billing_project = billing_project,
+			zones = zones
+	}
+
+	call UploadFinalOutputs.upload_final_outputs as upload_image_analysis_files {
+		input:
+			output_file_paths = image_analysis_output_file_paths,
+			staging_data_buckets = staging_data_buckets,
+			staging_data_path = "~{workflow_name}/image_analysis",
 			billing_project = billing_project,
 			zones = zones
 	}
@@ -148,9 +147,6 @@ workflow cohort_analysis {
 		[
 			cluster_data.scvi_model_tar_gz,
 			cluster_data.cell_types_csv
-		],
-		[
-			image_features.image_features_spatial_scatter_plot_png
 		],
 		[
 			spatial_statistics.nhood_enrichment_plot_png,
@@ -190,10 +186,6 @@ workflow cohort_analysis {
 		File cell_annotated_adata_object = cluster_data.cell_annotated_adata_object
 		File cell_types_csv = cluster_data.cell_types_csv
 
-		# Image features output
-		File image_features_adata_object = image_features.image_features_adata_object #!FileCoercion
-		File image_features_spatial_scatter_plot_png = image_features.image_features_spatial_scatter_plot_png #!FileCoercion
-
 		# Spatial statistics output
 		File nhood_enrichment_adata_object = spatial_statistics.nhood_enrichment_adata_object
 		File nhood_enrichment_plot_png = spatial_statistics.nhood_enrichment_plot_png
@@ -203,6 +195,7 @@ workflow cohort_analysis {
 		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
 
 		Array[File] preprocess_manifest_tsvs = upload_preprocess_files.manifests #!FileCoercion
+		Array[File] image_analysis_manifest_tsvs = upload_image_analysis_files.manifests #!FileCoercion
 		Array[File] cohort_analysis_manifest_tsvs = upload_cohort_analysis_files.manifests #!FileCoercion
 	}
 }
@@ -341,54 +334,6 @@ task feature_selection {
 	runtime {
 		docker: "~{container_registry}/squidpy:1.6.2_1"
 		cpu: 2
-		memory: "~{mem_gb} GB"
-		disks: "local-disk ~{disk_size} HDD"
-		preemptible: 3
-		bootDiskSizeGb: 30
-		zones: zones
-	}
-}
-
-task image_features {
-	input {
-		String cohort_id
-		File cell_annotated_adata_object
-
-		String raw_data_path
-		Array[Array[String]] workflow_info
-		String billing_project
-		String container_registry
-		String zones
-	}
-
-	Int threads = 4
-	Int mem_gb = ceil(size(cell_annotated_adata_object, "GB") * 2 + 20)
-	Int disk_size = ceil(size(cell_annotated_adata_object, "GB") * 2 + 50)
-
-	command <<<
-		set -euo pipefail
-
-		python3 /opt/scripts/image_features.py \
-			--adata-input ~{cell_annotated_adata_object} \
-			--n-jobs ~{threads} \
-			--plots-prefix ~{cohort_id} \
-			--adata-output ~{cohort_id}.image_features.h5ad
-
-		upload_outputs \
-			-b ~{billing_project} \
-			-d ~{raw_data_path} \
-			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.image_features_spatial_scatter.png"
-	>>>
-
-	output {
-		File image_features_adata_object = "~{cohort_id}.image_features.h5ad"
-		String image_features_spatial_scatter_plot_png = "~{raw_data_path}/~{cohort_id}.image_features_spatial_scatter.png"
-	}
-
-	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
-		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
