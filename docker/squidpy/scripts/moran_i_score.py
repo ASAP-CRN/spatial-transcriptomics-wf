@@ -13,7 +13,12 @@ def main(args):
     ##########################################################
     adata = sc.read_h5ad(args.adata_input)
 
-    sq.gr.spatial_neighbors(adata, coord_type="generic", delaunay=True)
+    sq.gr.spatial_neighbors(
+        adata,
+        library_key="sample",
+        coord_type="generic",
+        delaunay=True,
+    )
     sq.gr.spatial_autocorr(
         adata,
         mode="moran",

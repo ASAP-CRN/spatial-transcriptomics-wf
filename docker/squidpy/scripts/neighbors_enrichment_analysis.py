@@ -14,7 +14,11 @@ def main(args):
     adata = sc.read_h5ad(args.adata_input)
 
     plt.rcParams["figure.figsize"] = (8, 8)
-    sq.gr.nhood_enrichment(adata, cluster_key="leiden")
+    sq.gr.nhood_enrichment(
+        adata,
+        library_key="sample",
+        cluster_key="leiden",
+    )
     sq.pl.nhood_enrichment(
         adata,
         cluster_key="leiden",

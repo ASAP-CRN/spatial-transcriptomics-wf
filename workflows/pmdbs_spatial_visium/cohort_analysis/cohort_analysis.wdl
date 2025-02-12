@@ -114,6 +114,17 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
+	call plot_spatial {
+		input:
+			cohort_id = cohort_id,
+			final_adata_object = spatial_statistics.final_adata_object, #!FileCoercion
+			raw_data_path = raw_data_path,
+			workflow_info = workflow_info,
+			billing_project = billing_project,
+			container_registry = container_registry,
+			zones = zones
+	}
+
 	call UploadFinalOutputs.upload_final_outputs as upload_preprocess_files {
 		input:
 			output_file_paths = preprocessing_output_file_paths,
@@ -143,6 +154,11 @@ workflow cohort_analysis {
 			spatial_statistics.co_occurrence_plot_png,
 			spatial_statistics.final_adata_object,
 			spatial_statistics.moran_top_10_variable_genes_csv
+		],
+		[
+			plot_spatial.features_umap_plot_png,
+			plot_spatial.groups_umap_plot_png,
+			plot_spatial.image_features_spatial_scatter_plot_png
 		]
 	]) #!StringCoercion
 
@@ -183,6 +199,11 @@ workflow cohort_analysis {
 		File co_occurrence_plot_png = spatial_statistics.co_occurrence_plot_png
 		File final_adata_object = spatial_statistics.final_adata_object
 		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
+
+		# Spatial plots
+		File features_umap_plot_png = plot_spatial.features_umap_plot_png #!FileCoercion
+		File groups_umap_plot_png = plot_spatial.groups_umap_plot_png #!FileCoercion
+		File image_features_spatial_scatter_plot_png = plot_spatial.image_features_spatial_scatter_plot_png #!FileCoercion
 
 		Array[File] preprocess_manifest_tsvs = upload_preprocess_files.manifests #!FileCoercion
 		Array[File] cohort_analysis_manifest_tsvs = upload_cohort_analysis_files.manifests #!FileCoercion
@@ -318,6 +339,54 @@ task feature_selection {
 	output {
 		File feature_selection_adata_object = "~{cohort_id}.hvg_pca_neighbors_umap.h5ad"
 		String feature_dispersion_plot_png = "~{raw_data_path}/~{cohort_id}.umap.png"
+	}
+
+	runtime {
+		docker: "~{container_registry}/squidpy:1.6.2_1"
+		cpu: 2
+		memory: "~{mem_gb} GB"
+		disks: "local-disk ~{disk_size} HDD"
+		preemptible: 3
+		bootDiskSizeGb: 30
+		zones: zones
+	}
+}
+
+task plot_spatial {
+	input {
+		String cohort_id
+		File final_adata_object
+
+		String raw_data_path
+		Array[Array[String]] workflow_info
+		String billing_project
+		String container_registry
+		String zones
+	}
+
+	Int mem_gb = ceil(size(final_adata_object, "GB") * 2 + 20)
+	Int disk_size = ceil(size(final_adata_object, "GB") * 2 + 50)
+
+	command <<<
+		set -euo pipefail
+
+		python3 /opt/scripts/plot_spatial.py \
+			--adata-input ~{final_adata_object} \
+			--plots-prefix ~{cohort_id}
+
+		upload_outputs \
+			-b ~{billing_project} \
+			-d ~{raw_data_path} \
+			-i ~{write_tsv(workflow_info)} \
+			-o "~{cohort_id}.features_umap.png" \
+			-o "~{cohort_id}.groups_umap.png" \
+			-o "~{cohort_id}.image_features_spatial_scatter.png"
+	>>>
+
+	output {
+		String features_umap_plot_png = "~{raw_data_path}/~{cohort_id}.features_umap.png"
+		String groups_umap_plot_png = "~{raw_data_path}/~{cohort_id}.groups_umap.png"
+		String image_features_spatial_scatter_plot_png = "~{raw_data_path}/~{cohort_id}.image_features_spatial_scatter.png"
 	}
 
 	runtime {
