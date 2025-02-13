@@ -131,7 +131,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		Array[File?] project_qc_plots_png = project_cohort_analysis.qc_plots_png
 		Array[File?] project_filtered_normalized_adata_object = project_cohort_analysis.filtered_normalized_adata_object
 		Array[File?] project_umap_cluster_adata_object = project_cohort_analysis.umap_cluster_adata_object
-		Array[Array[File]?] project_umap_and_spatial_coord_plots_png = project_cohort_analysis.umap_and_spatial_coord_plots_png
+		Array[File?] project_umap_cluster_plot_png = project_cohort_analysis.umap_cluster_plot_png
 
 		# Spatial statistics outputs
 		Array[File?] project_moran_adata_object = project_cohort_analysis.moran_adata_object
@@ -153,7 +153,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		File? cohort_qc_plots_png = cross_team_cohort_analysis.qc_plots_png
 		File? cohort_filtered_normalized_adata_object = cross_team_cohort_analysis.filtered_normalized_adata_object
 		File? cohort_umap_cluster_adata_object = cross_team_cohort_analysis.umap_cluster_adata_object
-		Array[File]? cohort_umap_and_spatial_coord_plots_png = cross_team_cohort_analysis.umap_and_spatial_coord_plots_png
+		File? cohort_umap_cluster_plot_png = cross_team_cohort_analysis.umap_cluster_plot_png
 
 		# Spatial statistics outputs
 		File? cohort_moran_adata_object = cross_team_cohort_analysis.moran_adata_object

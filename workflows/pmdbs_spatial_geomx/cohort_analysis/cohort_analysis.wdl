@@ -111,7 +111,9 @@ workflow cohort_analysis {
 			merge_and_plot_qc_metrics.merged_adata_object,
 			merge_and_plot_qc_metrics.qc_plots_png
 		],
-		cluster.umap_and_spatial_coord_plots_png,
+		[
+			cluster.umap_cluster_plot_png,
+		],
 		[
 			spatial_statistics.moran_top_10_variable_genes_csv,
 			spatial_statistics.nhood_enrichment_plot_png,
@@ -141,7 +143,7 @@ workflow cohort_analysis {
 
 		# Leiden clustered adata object and UMAP and spatial coordinates plots
 		File umap_cluster_adata_object = cluster.umap_cluster_adata_object #!FileCoercion
-		Array[File] umap_and_spatial_coord_plots_png = cluster.umap_and_spatial_coord_plots_png #!FileCoercion
+		File umap_cluster_plot_png = cluster.umap_cluster_plot_png #!FileCoercion
 
 		# Spatial statistics outputs
 		File moran_adata_object = spatial_statistics.moran_adata_object
@@ -280,18 +282,12 @@ task cluster {
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
 			-o "~{cohort_id}.umap_cluster.h5ad" \
-			-o "~{cohort_id}.umap.png" \
-			-o "~{cohort_id}.spatial_coord_by_counts.png" \
-			-o "~{cohort_id}.spatial_coord_by_clusters.png"
+			-o "~{cohort_id}.umap_cluster.png"
 	>>>
 
 	output {
 		String umap_cluster_adata_object = "~{raw_data_path}/~{cohort_id}.umap_cluster.h5ad"
-		Array[String] umap_and_spatial_coord_plots_png = [
-			"~{raw_data_path}/~{cohort_id}.umap.png",
-			"~{raw_data_path}/~{cohort_id}.spatial_coord_by_counts.png",
-			"~{raw_data_path}/~{cohort_id}.spatial_coord_by_clusters.png"
-		]
+		String umap_cluster_plot_png = "~{raw_data_path}/~{cohort_id}.umap_cluster.png"
 	}
 
 	runtime {
