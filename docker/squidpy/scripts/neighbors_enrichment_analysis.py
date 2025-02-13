@@ -13,15 +13,23 @@ def main(args):
     ###################################
     adata = sc.read_h5ad(args.adata_input)
 
+    obs_columns = list(adata.obs.columns)
+    if "leiden" in obs_columns:
+        cluster_key="leiden"
+    elif "leiden_res_0.40" in obs_columns:
+        cluster_key="leiden_res_0.40"
+    else:
+        raise ValueError("Leiden cluster_key is missing in adata.obs")
+
     plt.rcParams["figure.figsize"] = (8, 8)
     sq.gr.nhood_enrichment(
         adata,
         library_key="sample",
-        cluster_key="leiden_res_0.40",
+        cluster_key=cluster_key,
     )
     sq.pl.nhood_enrichment(
         adata,
-        cluster_key="leiden_res_0.40",
+        cluster_key=cluster_key,
         title="Neighborhood enrichment adata",
     )
     plt.savefig(f"{args.cohort_id}.nhood_enrichment.png", dpi=300, bbox_inches="tight")
