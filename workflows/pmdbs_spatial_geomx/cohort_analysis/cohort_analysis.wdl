@@ -135,7 +135,6 @@ workflow cohort_analysis {
 		# Merged adata objects and QC plots
 		File merged_adata_object = merge_and_plot_qc_metrics.merged_adata_object #!FileCoercion
 		File qc_plots_png = merge_and_plot_qc_metrics.qc_plots_png #!FileCoercion
-		Float qc_unassigned_ctrl_probes_percentage = merge_and_plot_qc_metrics.qc_unassigned_ctrl_probes_percentage
 
 		# Filtered and normalized adata object
 		File filtered_normalized_adata_object = filter_and_normalize.filtered_normalized_adata_object #!FileCoercion
@@ -191,7 +190,6 @@ task merge_and_plot_qc_metrics {
 	output {
 		String merged_adata_object = "~{raw_data_path}/~{cohort_id}.merged_adata_object.h5ad"
 		String qc_plots_png = "~{raw_data_path}/~{cohort_id}.qc_hist.png"
-		Float qc_unassigned_ctrl_probes_percentage = read_float("unassigned_ctrl_probes_percentage.txt")
 	}
 
 	runtime {

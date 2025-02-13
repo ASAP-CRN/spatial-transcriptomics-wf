@@ -135,6 +135,7 @@ workflow preprocess {
 
 		# QC adata object
 		Array[File] qc_adata_object = qc_adata_object_output #!FileCoercion
+		Array[Float?] qc_unassigned_ctrl_probes_percentage = qc.qc_unassigned_ctrl_probes_percentage
 	}
 }
 
@@ -355,6 +356,7 @@ task qc {
 
 	output {
 		String qc_adata_object = "~{raw_data_path}/~{sample_id}.qc.h5ad"
+		Float qc_unassigned_ctrl_probes_percentage = read_float("unassigned_ctrl_probes_percentage.txt")
 	}
 
 	runtime {
