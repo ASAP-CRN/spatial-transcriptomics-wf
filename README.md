@@ -177,11 +177,11 @@ In the workflow, task outputs are either specified as `String` (final outputs, w
 ```bash
 asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 └── workflow_execution
-	└── pmdbs_spatial_geomx
-		├── cohort_analysis
-		│	└──${cohort_analysis_workflow_version}
-		│		└── ${workflow_run_timestamp}
-		│				└── <cohort_analysis outputs>
+    └── pmdbs_spatial_geomx
+        ├── cohort_analysis
+        │   └──${cohort_analysis_workflow_version}
+        │      └── ${workflow_run_timestamp}
+        │          └── <cohort_analysis outputs>
         └── preprocess
             ├── fastq_to_dcc
             │   └── ${fastq_to_dcc_task_version}
@@ -195,15 +195,15 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 
 asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 └── workflow_execution
-	└── pmdbs_spatial_visium
-		├── cohort_analysis
-		│	└──${cohort_analysis_workflow_version}
-		│		└── ${workflow_run_timestamp}
-		│				└── <cohort_analysis outputs>
-		├── image_analysis
-		│	└── image_features
-		│		└── ${image_features_task_version}
-		│				└── <image_features outputs>
+    └── pmdbs_spatial_visium
+        ├── cohort_analysis
+        │   └──${cohort_analysis_workflow_version}
+        │      └── ${workflow_run_timestamp}
+        │          └── <cohort_analysis outputs>
+        ├── image_analysis
+        │   └── image_features
+        │       └── ${image_features_task_version}
+        │           └── <image_features outputs>
         └── preprocess
             ├── spaceranger_count
             │   └── ${spaceranger_count_task_version}
@@ -225,83 +225,83 @@ Data may be synced using [the `promote_staging_data` script](#promoting-staging-
 ```bash
 asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 └── pmdbs_spatial_geomx
-	├── cohort_analysis
-	│   ├── ${cohort_id}.sample_list.tsv
-	│   ├──	${cohort_id}.merged_adata_object.h5ad
-	│   ├── ${cohort_id}.qc_hist.png
-	│   ├── ${cohort_id}.umap.png
-	│   ├── ${cohort_id}.spatial_coord_by_counts.png
-	│   ├── ${cohort_id}.spatial_coord_by_clusters.png
-	│   ├── ${cohort_id}.moran_top_10_variable_genes.csv
-	│   ├── ${cohort_id}.nhood_enrichment.png
-	│   ├── ${cohort_id}.final_adata_object.h5ad
-	│   ├── ${cohort_id}.co_occurrence.png
-	│   └── MANIFEST.tsv
-	└── preprocess
-		├── ${sampleA_id}.DCC.zip
-		├── ${sampleA_id}.geomxngs_out_dir.tar.gz
-		├── ${sampleA_id}.initial_adata_object.h5ad
-		├── ${sampleA_id}.qc.h5ad
-		├── MANIFEST.tsv
-		├── ...
-		├── ${sampleN_id}.DCC.zip
-		├── ${sampleN_id}.geomxngs_out_dir.tar.gz
-		├── ${sampleN_id}.initial_adata_object.h5ad
-		├── ${sampleN_id}.qc.h5ad
-		└── MANIFEST.tsv
+    ├── cohort_analysis
+    │   ├── ${cohort_id}.sample_list.tsv
+    │   ├──	${cohort_id}.merged_adata_object.h5ad
+    │   ├── ${cohort_id}.qc_hist.png
+    │   ├── ${cohort_id}.umap.png
+    │   ├── ${cohort_id}.spatial_coord_by_counts.png
+    │   ├── ${cohort_id}.spatial_coord_by_clusters.png
+    │   ├── ${cohort_id}.moran_top_10_variable_genes.csv
+    │   ├── ${cohort_id}.nhood_enrichment.png
+    │   ├── ${cohort_id}.final_adata_object.h5ad
+    │   ├── ${cohort_id}.co_occurrence.png
+    │   └── MANIFEST.tsv
+    └── preprocess
+        ├── ${sampleA_id}.DCC.zip
+        ├── ${sampleA_id}.geomxngs_out_dir.tar.gz
+        ├── ${sampleA_id}.initial_adata_object.h5ad
+        ├── ${sampleA_id}.qc.h5ad
+        ├── MANIFEST.tsv
+        ├── ...
+        ├── ${sampleN_id}.DCC.zip
+        ├── ${sampleN_id}.geomxngs_out_dir.tar.gz
+        ├── ${sampleN_id}.initial_adata_object.h5ad
+        ├── ${sampleN_id}.qc.h5ad
+        └── MANIFEST.tsv
 
 asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 └── pmdbs_spatial_visium
-	├── cohort_analysis
-	│   ├── ${cohort_id}.sample_list.tsv
-	│   ├──	${cohort_id}.merged_adata_object.h5ad
-	│   ├── ${cohort_id}.qc_violin.png
-	│   ├── ${cohort_id}.qc_scatter.png
-	│   ├── ${cohort_id}.umap.png
-	│   ├── ${cohort_id}_scvi_model.tar.gz
-	│   ├── ${cohort_id}.cell_types.csv
-	│   ├── ${cohort_id}.features_umap.png
-	│   ├── ${cohort_id}.groups_umap.png
-	│   ├── ${cohort_id}.image_features_spatial_scatter.png
-	│   ├── ${cohort_id}.moran_top_10_variable_genes.csv
-	│   ├── ${cohort_id}.nhood_enrichment.png
-	│   ├── ${cohort_id}.final_adata_object.h5ad
-	│   ├── ${cohort_id}.co_occurrence.png
-	│   └── MANIFEST.tsv
-	└── preprocess
-		├── ${sampleA_id}.raw_feature_bc_matrix.h5
-		├── ${sampleA_id}.filtered_feature_bc_matrix.h5
-		├── ${sampleA_id}.initial_adata_object.h5ad
-		├── ${sampleA_id}.molecule_info.h5
-		├── ${sampleA_id}.metrics_summary.csv
-		├── ${sampleA_id}.spaceranger_spatial_outputs.tar.gz
-		├── ${sampleA_id}.aligned_fiducials.jpg
-		├── ${sampleA_id}.detected_tissue_image.jpg
-		├── ${sampleA_id}.tissue_hires_image.png
-		├── ${sampleA_id}.tissue_lowres_image.png
-		├── ${sampleA_id}.scalefactors_json.json
-		├── ${sampleA_id}.tissue_positions.csv
-		├── ${sampleA_id}.spatial_enrichment.csv
-		├── ${sampleA_id}.initial_adata_object.h5ad
-		├── ${sampleA_id}.qc.h5ad
-		├── MANIFEST.tsv
-		├── ...
-		├── ${sampleN_id}.raw_feature_bc_matrix.h5
-		├── ${sampleN_id}.filtered_feature_bc_matrix.h5
-		├── ${sampleN_id}.initial_adata_object.h5ad
-		├── ${sampleN_id}.molecule_info.h5
-		├── ${sampleN_id}.metrics_summary.csv
-		├── ${sampleN_id}.spaceranger_spatial_outputs.tar.gz
-		├── ${sampleN_id}.aligned_fiducials.jpg
-		├── ${sampleN_id}.detected_tissue_image.jpg
-		├── ${sampleN_id}.tissue_hires_image.png
-		├── ${sampleN_id}.tissue_lowres_image.png
-		├── ${sampleN_id}.scalefactors_json.json
-		├── ${sampleN_id}.tissue_positions.csv
-		├── ${sampleN_id}.spatial_enrichment.csv
-		├── ${sampleN_id}.initial_adata_object.h5ad
-		├── ${sampleN_id}.qc.h5ad
-		└── MANIFEST.tsv
+    ├── cohort_analysis
+    │   ├── ${cohort_id}.sample_list.tsv
+    │   ├──	${cohort_id}.merged_adata_object.h5ad
+    │   ├── ${cohort_id}.qc_violin.png
+    │   ├── ${cohort_id}.qc_scatter.png
+    │   ├── ${cohort_id}.umap.png
+    │   ├── ${cohort_id}_scvi_model.tar.gz
+    │   ├── ${cohort_id}.cell_types.csv
+    │   ├── ${cohort_id}.features_umap.png
+    │   ├── ${cohort_id}.groups_umap.png
+    │   ├── ${cohort_id}.image_features_spatial_scatter.png
+    │   ├── ${cohort_id}.moran_top_10_variable_genes.csv
+    │   ├── ${cohort_id}.nhood_enrichment.png
+    │   ├── ${cohort_id}.final_adata_object.h5ad
+    │   ├── ${cohort_id}.co_occurrence.png
+    │   └── MANIFEST.tsv
+    └── preprocess
+        ├── ${sampleA_id}.raw_feature_bc_matrix.h5
+        ├── ${sampleA_id}.filtered_feature_bc_matrix.h5
+        ├── ${sampleA_id}.initial_adata_object.h5ad
+        ├── ${sampleA_id}.molecule_info.h5
+        ├── ${sampleA_id}.metrics_summary.csv
+        ├── ${sampleA_id}.spaceranger_spatial_outputs.tar.gz
+        ├── ${sampleA_id}.aligned_fiducials.jpg
+        ├── ${sampleA_id}.detected_tissue_image.jpg
+        ├── ${sampleA_id}.tissue_hires_image.png
+        ├── ${sampleA_id}.tissue_lowres_image.png
+        ├── ${sampleA_id}.scalefactors_json.json
+        ├── ${sampleA_id}.tissue_positions.csv
+        ├── ${sampleA_id}.spatial_enrichment.csv
+        ├── ${sampleA_id}.initial_adata_object.h5ad
+        ├── ${sampleA_id}.qc.h5ad
+        ├── MANIFEST.tsv
+        ├── ...
+        ├── ${sampleN_id}.raw_feature_bc_matrix.h5
+        ├── ${sampleN_id}.filtered_feature_bc_matrix.h5
+        ├── ${sampleN_id}.initial_adata_object.h5ad
+        ├── ${sampleN_id}.molecule_info.h5
+        ├── ${sampleN_id}.metrics_summary.csv
+        ├── ${sampleN_id}.spaceranger_spatial_outputs.tar.gz
+        ├── ${sampleN_id}.aligned_fiducials.jpg
+        ├── ${sampleN_id}.detected_tissue_image.jpg
+        ├── ${sampleN_id}.tissue_hires_image.png
+        ├── ${sampleN_id}.tissue_lowres_image.png
+        ├── ${sampleN_id}.scalefactors_json.json
+        ├── ${sampleN_id}.tissue_positions.csv
+        ├── ${sampleN_id}.spatial_enrichment.csv
+        ├── ${sampleN_id}.initial_adata_object.h5ad
+        ├── ${sampleN_id}.qc.h5ad
+        └── MANIFEST.tsv
 ```
 
 ## Promoting staging data
@@ -318,7 +318,7 @@ The script defaults to a dry run, printing out the files that would be copied or
 
 ### Options
 
-```bash
+```
 -h  Display this message and exit
 -t  Space-delimited team(s) to promote data for
 -l  List available teams
@@ -354,18 +354,18 @@ docker
 │   ├── build.env
 │   └── Dockerfile
 └── squidpy
-	├── build.env
-	├── Dockerfile
-	├── requirements.txt
-	└── scripts
-		├── geomx_qc.py
-		├── merge_and_plot_geomx_qc.py
-		├── filter_and_normalize.py
-		├── cluster.py
-		├── neighbors_enrichment_analysis.py
-		├── co_occurrence_probability.py
-		├── moran_i_score.py
-		└── ...
+    ├── build.env
+    ├── Dockerfile
+    ├── requirements.txt
+    └── scripts
+        ├── geomx_qc.py
+        ├── merge_and_plot_geomx_qc.py
+        ├── filter_and_normalize.py
+        ├── cluster.py
+        ├── neighbors_enrichment_analysis.py
+        ├── co_occurrence_probability.py
+        ├── moran_i_score.py
+        └── ...
 ```
 
 ## The `build.env` file
