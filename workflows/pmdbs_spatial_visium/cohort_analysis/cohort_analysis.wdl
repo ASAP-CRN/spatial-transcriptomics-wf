@@ -338,7 +338,7 @@ task feature_selection {
 
 	output {
 		File feature_selection_adata_object = "~{cohort_id}.hvg_pca_neighbors_umap.h5ad"
-		String feature_dispersion_plot_png = "~{raw_data_path}/~{cohort_id}.umap.png"
+		String feature_dispersion_plot_png = "~{raw_data_path}/~{cohort_id}.feature_dispersion.png"
 	}
 
 	runtime {
