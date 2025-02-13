@@ -33,7 +33,7 @@ def main(args):
     plt.savefig(f"{args.cohort_id}.co_occurrence.png", dpi=300, bbox_inches="tight")
 
     # Save adata object
-    adata.write_h5ad(filename=args.counts_output)
+    adata.write_h5ad(filename=args.adata_output)
 
 
 if __name__ == "__main__":
