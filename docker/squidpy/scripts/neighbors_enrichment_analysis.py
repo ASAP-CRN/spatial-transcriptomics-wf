@@ -17,11 +17,11 @@ def main(args):
     sq.gr.nhood_enrichment(
         adata,
         library_key="sample",
-        cluster_key="leiden",
+        cluster_key="leiden_res_0.40",
     )
     sq.pl.nhood_enrichment(
         adata,
-        cluster_key="leiden",
+        cluster_key="leiden_res_0.40",
         title="Neighborhood enrichment adata",
     )
     plt.savefig(f"{args.cohort_id}.nhood_enrichment.png", dpi=300, bbox_inches="tight")

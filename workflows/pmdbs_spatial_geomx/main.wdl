@@ -134,12 +134,12 @@ workflow pmdbs_spatial_geomx_analysis {
 		Array[Array[File]?] project_umap_and_spatial_coord_plots_png = project_cohort_analysis.umap_and_spatial_coord_plots_png
 
 		# Spatial statistics outputs
+		Array[File?] project_moran_adata_object = project_cohort_analysis.moran_adata_object
+		Array[File?] project_moran_top_10_variable_genes_csv = project_cohort_analysis.moran_top_10_variable_genes_csv
 		Array[File?] project_nhood_enrichment_adata_object = project_cohort_analysis.nhood_enrichment_adata_object
 		Array[File?] project_nhood_enrichment_plot_png = project_cohort_analysis.nhood_enrichment_plot_png
-		Array[File?] project_co_occurrence_adata_object = project_cohort_analysis.co_occurrence_adata_object
-		Array[File?] project_co_occurrence_plot_png = project_cohort_analysis.co_occurrence_plot_png
 		Array[File?] project_final_adata_object = project_cohort_analysis.final_adata_object
-		Array[File?] project_moran_top_10_variable_genes_csv = project_cohort_analysis.moran_top_10_variable_genes_csv
+		Array[File?] project_co_occurrence_plot_png = project_cohort_analysis.co_occurrence_plot_png
 
 		Array[Array[File]?] preprocess_manifests = project_cohort_analysis.preprocess_manifest_tsvs
 		Array[Array[File]?] project_manifests = project_cohort_analysis.cohort_analysis_manifest_tsvs
@@ -156,12 +156,12 @@ workflow pmdbs_spatial_geomx_analysis {
 		Array[File]? cohort_umap_and_spatial_coord_plots_png = cross_team_cohort_analysis.umap_and_spatial_coord_plots_png
 
 		# Spatial statistics outputs
+		File? cohort_moran_adata_object = cross_team_cohort_analysis.moran_adata_object
+		File? cohort_moran_top_10_variable_genes_csv = cross_team_cohort_analysis.moran_top_10_variable_genes_csv
 		File? cohort_nhood_enrichment_adata_object = cross_team_cohort_analysis.nhood_enrichment_adata_object
 		File? cohort_nhood_enrichment_plot_png = cross_team_cohort_analysis.nhood_enrichment_plot_png
-		File? cohort_co_occurrence_adata_object = cross_team_cohort_analysis.co_occurrence_adata_object
-		File? cohort_co_occurrence_plot_png = cross_team_cohort_analysis.co_occurrence_plot_png
 		File? cohort_final_adata_object = cross_team_cohort_analysis.final_adata_object
-		File? cohort_moran_top_10_variable_genes_csv = cross_team_cohort_analysis.moran_top_10_variable_genes_csv
+		File? cohort_co_occurrence_plot_png = cross_team_cohort_analysis.co_occurrence_plot_png
 
 		Array[File]? cohort_manifests = cross_team_cohort_analysis.cohort_analysis_manifest_tsvs
 	}

@@ -232,10 +232,10 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 	│   ├── ${cohort_id}.umap.png
 	│   ├── ${cohort_id}.spatial_coord_by_counts.png
 	│   ├── ${cohort_id}.spatial_coord_by_clusters.png
-	│   ├── ${cohort_id}.nhood_enrichment.png
-	│   ├── ${cohort_id}.co_occurrence.png
-	│   ├── ${cohort_id}.final_adata_object.h5ad
 	│   ├── ${cohort_id}.moran_top_10_variable_genes.csv
+	│   ├── ${cohort_id}.nhood_enrichment.png
+	│   ├── ${cohort_id}.final_adata_object.h5ad
+	│   ├── ${cohort_id}.co_occurrence.png
 	│   └── MANIFEST.tsv
 	└── preprocess
 		├── ${sampleA_id}.DCC.zip
@@ -260,13 +260,13 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 	│   ├── ${cohort_id}.umap.png
 	│   ├── ${cohort_id}_scvi_model.tar.gz
 	│   ├── ${cohort_id}.cell_types.csv
-	│   ├── ${cohort_id}.nhood_enrichment.png
-	│   ├── ${cohort_id}.co_occurrence.png
-	│   ├── ${cohort_id}.final_adata_object.h5ad
-	│   ├── ${cohort_id}.moran_top_10_variable_genes.csv
 	│   ├── ${cohort_id}.features_umap.png
 	│   ├── ${cohort_id}.groups_umap.png
 	│   ├── ${cohort_id}.image_features_spatial_scatter.png
+	│   ├── ${cohort_id}.moran_top_10_variable_genes.csv
+	│   ├── ${cohort_id}.nhood_enrichment.png
+	│   ├── ${cohort_id}.final_adata_object.h5ad
+	│   ├── ${cohort_id}.co_occurrence.png
 	│   └── MANIFEST.tsv
 	└── preprocess
 		├── ${sampleA_id}.raw_feature_bc_matrix.h5

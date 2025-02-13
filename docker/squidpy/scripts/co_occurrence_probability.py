@@ -15,12 +15,12 @@ def main(args):
 
     sq.gr.co_occurrence(
         adata,
-        cluster_key="leiden",
+        cluster_key="leiden_res_0.40",
     )
 
     sq.pl.co_occurrence(
         adata,
-        cluster_key="leiden",
+        cluster_key="leiden_res_0.40",
     )
     plt.savefig(f"{args.cohort_id}.co_occurrence.png", dpi=300, bbox_inches="tight")
 

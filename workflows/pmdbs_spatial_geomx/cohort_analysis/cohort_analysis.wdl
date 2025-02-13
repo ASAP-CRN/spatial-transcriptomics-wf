@@ -113,10 +113,10 @@ workflow cohort_analysis {
 		],
 		cluster.umap_and_spatial_coord_plots_png,
 		[
+			spatial_statistics.moran_top_10_variable_genes_csv,
 			spatial_statistics.nhood_enrichment_plot_png,
-			spatial_statistics.co_occurrence_plot_png,
 			spatial_statistics.final_adata_object,
-			spatial_statistics.moran_top_10_variable_genes_csv
+			spatial_statistics.co_occurrence_plot_png
 		]
 	]) #!StringCoercion
 
@@ -144,12 +144,12 @@ workflow cohort_analysis {
 		Array[File] umap_and_spatial_coord_plots_png = cluster.umap_and_spatial_coord_plots_png #!FileCoercion
 
 		# Spatial statistics outputs
+		File moran_adata_object = spatial_statistics.moran_adata_object
+		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
 		File nhood_enrichment_adata_object = spatial_statistics.nhood_enrichment_adata_object
 		File nhood_enrichment_plot_png = spatial_statistics.nhood_enrichment_plot_png
-		File co_occurrence_adata_object = spatial_statistics.co_occurrence_adata_object
-		File co_occurrence_plot_png = spatial_statistics.co_occurrence_plot_png
 		File final_adata_object = spatial_statistics.final_adata_object
-		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
+		File co_occurrence_plot_png = spatial_statistics.co_occurrence_plot_png
 
 		Array[File] preprocess_manifest_tsvs = upload_preprocess_files.manifests #!FileCoercion
 		Array[File] cohort_analysis_manifest_tsvs = upload_cohort_analysis_files.manifests #!FileCoercion

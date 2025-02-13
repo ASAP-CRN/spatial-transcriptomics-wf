@@ -103,7 +103,7 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call SpatialStatistics.spatial_statistics {
+	call plot_spatial {
 		input:
 			cohort_id = cohort_id,
 			clustered_adata_object = cluster_data.cell_annotated_adata_object, #!FileCoercion
@@ -114,10 +114,10 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call plot_spatial {
+	call SpatialStatistics.spatial_statistics {
 		input:
 			cohort_id = cohort_id,
-			final_adata_object = spatial_statistics.final_adata_object, #!FileCoercion
+			clustered_adata_object = cluster_data.cell_annotated_adata_object, #!FileCoercion
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -149,11 +149,11 @@ workflow cohort_analysis {
 			cluster_data.scvi_model_tar_gz,
 			cluster_data.cell_types_csv
 		],
-		[
+		[	
+			spatial_statistics.moran_top_10_variable_genes_csv,
 			spatial_statistics.nhood_enrichment_plot_png,
-			spatial_statistics.co_occurrence_plot_png,
 			spatial_statistics.final_adata_object,
-			spatial_statistics.moran_top_10_variable_genes_csv
+			spatial_statistics.co_occurrence_plot_png
 		],
 		[
 			plot_spatial.features_umap_plot_png,
@@ -192,18 +192,18 @@ workflow cohort_analysis {
 		File cell_annotated_adata_object = cluster_data.cell_annotated_adata_object
 		File cell_types_csv = cluster_data.cell_types_csv
 
-		# Spatial statistics output
-		File nhood_enrichment_adata_object = spatial_statistics.nhood_enrichment_adata_object
-		File nhood_enrichment_plot_png = spatial_statistics.nhood_enrichment_plot_png
-		File co_occurrence_adata_object = spatial_statistics.co_occurrence_adata_object
-		File co_occurrence_plot_png = spatial_statistics.co_occurrence_plot_png
-		File final_adata_object = spatial_statistics.final_adata_object
-		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
-
 		# Spatial plots
 		File features_umap_plot_png = plot_spatial.features_umap_plot_png #!FileCoercion
 		File groups_umap_plot_png = plot_spatial.groups_umap_plot_png #!FileCoercion
 		File image_features_spatial_scatter_plot_png = plot_spatial.image_features_spatial_scatter_plot_png #!FileCoercion
+
+		# Spatial statistics output
+		File moran_adata_object = spatial_statistics.moran_adata_object
+		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
+		File nhood_enrichment_adata_object = spatial_statistics.nhood_enrichment_adata_object
+		File nhood_enrichment_plot_png = spatial_statistics.nhood_enrichment_plot_png
+		File final_adata_object = spatial_statistics.final_adata_object
+		File co_occurrence_plot_png = spatial_statistics.co_occurrence_plot_png
 
 		Array[File] preprocess_manifest_tsvs = upload_preprocess_files.manifests #!FileCoercion
 		Array[File] cohort_analysis_manifest_tsvs = upload_cohort_analysis_files.manifests #!FileCoercion
@@ -355,7 +355,7 @@ task feature_selection {
 task plot_spatial {
 	input {
 		String cohort_id
-		File final_adata_object
+		File clustered_adata_object
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -364,14 +364,14 @@ task plot_spatial {
 		String zones
 	}
 
-	Int mem_gb = ceil(size(final_adata_object, "GB") * 2 + 20)
-	Int disk_size = ceil(size(final_adata_object, "GB") * 2 + 50)
+	Int mem_gb = ceil(size(clustered_adata_object, "GB") * 2 + 20)
+	Int disk_size = ceil(size(clustered_adata_object, "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail
 
 		python3 /opt/scripts/plot_spatial.py \
-			--adata-input ~{final_adata_object} \
+			--adata-input ~{clustered_adata_object} \
 			--plots-prefix ~{cohort_id}
 
 		upload_outputs \
