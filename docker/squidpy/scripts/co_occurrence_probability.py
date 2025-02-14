@@ -14,12 +14,10 @@ def main(args):
     adata = sc.read_h5ad(args.adata_input)
 
     obs_columns = list(adata.obs.columns)
-    if "leiden" in obs_columns:
-        cluster_key="leiden"
-    elif "leiden_res_0.40" in obs_columns:
-        cluster_key="leiden_res_0.40"
+    if "cell_type" in obs_columns:
+        cluster_key="cell_type"
     else:
-        raise ValueError("Leiden cluster_key is missing in adata.obs")
+        raise ValueError("Cell type is missing in adata.obs")
 
     sq.gr.co_occurrence(
         adata,
