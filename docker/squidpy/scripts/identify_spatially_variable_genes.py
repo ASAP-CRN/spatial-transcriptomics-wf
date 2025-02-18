@@ -13,6 +13,7 @@ def main(args):
     ##########################################################
     adata = sc.read_h5ad(args.adata_input)
 
+    genes = adata[:, adata.var.highly_variable]
     sq.gr.spatial_neighbors(
         adata,
         library_key="sample",
@@ -22,6 +23,7 @@ def main(args):
     sq.gr.spatial_autocorr(
         adata,
         mode="moran",
+        genes=genes,
         n_perms=100,
         n_jobs=1,
     )
