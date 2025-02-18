@@ -14,9 +14,11 @@ def main(args):
     #############################################
     adata = sc.read_visium(
         path=args.spaceranger_spatial_dir,
-        count_file=args.spaceranger_counts_input,
         library_id=args.sample_id, # TODO
     )
+
+    # Gene names is the index for adata.var, but there are duplicates genes so this will make it unique (e.g. TBCE vs. TBCE-1)
+    adata.var_names_make_unique()
 
     # Add metadata
     adata.obs["team"] = args.team_id
@@ -60,13 +62,6 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="Batch from which the sample/dataset originated"
-    )
-    parser.add_argument(
-        "-i",
-        "--spaceranger-counts-input",
-        type=str,
-        required=True,
-        help="Spaceranger counts to convert to adata objects"
     )
     parser.add_argument(
         "-f",

@@ -1,4 +1,5 @@
 import argparse
+import anndata as ad
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,11 +14,11 @@ def main(args):
     #########################
     adatas = {}
     for file_path in args.adata_paths_input:
-        adata = sc.read_10x_h5(file_path)
+        adata = sc.read_h5ad(file_path)
         sample_id = adata.obs["sample"].unique()
         adatas[sample_id[0]] = adata
 
-    merged_adata = anndata.concat(adatas, index_unique="_", merge="same", uns_merge="same")
+    merged_adata = ad.concat(adatas, index_unique="_", merge="same", uns_merge="same")
 
 
     #####################
@@ -29,12 +30,14 @@ def main(args):
         [
             "n_genes_by_counts",
             "total_counts",
-            "pct_counts_mt"
+            "pct_counts_mt",
+            "pct_counts_rb",
+            "doublet_score",
         ],
         jitter=0.4,
         multi_panel=True,
-        save=f"{args.qc_plots_prefix}.qc_violin.png",
     )
+    plt.savefig(f"{args.qc_plots_prefix}.qc_violin.png", dpi=300, bbox_inches="tight")
 
     # QC scatter plot colored by pct_counts_mt
     sc.pl.scatter(
@@ -42,8 +45,8 @@ def main(args):
         "total_counts",
         "n_genes_by_counts",
         color="pct_counts_mt",
-        save=f"{args.qc_plots_prefix}.qc_scatter.png",
     )
+    plt.savefig(f"{args.qc_plots_prefix}.qc_scatter.png", dpi=300, bbox_inches="tight")
 
     # Save outputs
     merged_adata.write_h5ad(filename=args.merged_adata_output)

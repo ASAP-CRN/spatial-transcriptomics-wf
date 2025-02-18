@@ -10,7 +10,7 @@ def main(args):
     #######################
     ## FEATURE SELECTION ##
     #######################
-    adata = sc.read_10x_h5(args.adata_input)
+    adata = sc.read_h5ad(args.adata_input)
 
     sc.pp.highly_variable_genes(
         adata,
@@ -20,8 +20,8 @@ def main(args):
 
     sc.pl.highly_variable_genes(
         adata,
-        save=f"{args.plots_prefix}.feature_dispersion.png",
     )
+    plt.savefig(f"{args.plots_prefix}.feature_dispersion.png", dpi=300, bbox_inches="tight")
 
 
     ##############################
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-b",
         "--batch-key",
-        type=int,
+        type=str,
         required=True,
         help="Key in AnnData object for batch information so that highly-variable genes are selected within each batch separately and merged ['batch_id']"
     )

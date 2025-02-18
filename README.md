@@ -33,14 +33,20 @@ These workflows are set up to analyze spatial transcriptomics data: Nanostring G
 
 **10x Visium input template**: [workflows/pmdbs_spatial_visium/inputs.json](workflows/pmdbs_spatial_visium/inputs.json)
 
-Both workflows follow the same structure, it is broken up into two main chunks:
+Both workflows follow a similar structure, it is broken up into two main chunks:
 
 1. [Preprocessing](#preprocessing)
 2. [Cohort analysis](#cohort-analysis)
 
+The 10x Visium workflow has a step in between for [image analysis](#image-analysis).
+
 ## Preprocessing
 
 Run once per sample; only rerun when the preprocessing workflow version is updated. Preprocessing outputs are stored in the originating team's raw and staging data buckets.
+
+## Image analysis (10x Visium only)
+
+Run once per sample; only rerun when the image analysis workflow version is updated. Image analysis outputs are not saved, but instead, treated as intermediate outputs.
 
 ## Cohort analysis
 
@@ -75,7 +81,8 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | :- | :- | :- |
 | String | cohort_id | Name of the cohort; used to name output files during cross-team cohort analysis. |
 | Array[[Project](#project)] | projects | The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis. |
-| File | spaceranger_reference_data | Spaceranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads. |
+| File | spaceranger_reference_data | Space Ranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads and [10x Visium notes](#10x-visium-notes). |
+| File | visium_probe_set_csv | Visium probe-based assays target genes in Space Ranger transcriptome; see https://www.10xgenomics.com/support/software/space-ranger/downloads and [10x Visium notes](#10x-visium-notes). |
 | Int? | filter_cells_min_counts | Minimum number of counts required for a cell to pass filtering. [5000] |
 | Int? | filter_genes_min_cells | Minimum number of cells expressed required for a gene to pass filtering. [10] |
 | String? | batch_key | Key in AnnData object for batch information so that highly-variable genes are selected within each batch separately and merged. ['batch_id'] |
@@ -170,11 +177,11 @@ In the workflow, task outputs are either specified as `String` (final outputs, w
 ```bash
 asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 └── workflow_execution
-	└── pmdbs_spatial_geomx
-		├── cohort_analysis
-		│	└──${cohort_analysis_workflow_version}
-		│		└── ${workflow_run_timestamp}
-		│				└── <cohort_analysis outputs>
+    └── pmdbs_spatial_geomx
+        ├── cohort_analysis
+        │   └──${cohort_analysis_workflow_version}
+        │      └── ${workflow_run_timestamp}
+        │          └── <cohort_analysis outputs>
         └── preprocess
             ├── fastq_to_dcc
             │   └── ${fastq_to_dcc_task_version}
@@ -188,11 +195,15 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 
 asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 └── workflow_execution
-	└── pmdbs_spatial_visium
-		├── cohort_analysis
-		│	└──${cohort_analysis_workflow_version}
-		│		└── ${workflow_run_timestamp}
-		│				└── <cohort_analysis outputs>
+    └── pmdbs_spatial_visium
+        ├── cohort_analysis
+        │   └──${cohort_analysis_workflow_version}
+        │      └── ${workflow_run_timestamp}
+        │          └── <cohort_analysis outputs>
+        ├── image_analysis
+        │   └── image_features
+        │       └── ${image_features_task_version}
+        │           └── <image_features outputs>
         └── preprocess
             ├── spaceranger_count
             │   └── ${spaceranger_count_task_version}
@@ -214,81 +225,81 @@ Data may be synced using [the `promote_staging_data` script](#promoting-staging-
 ```bash
 asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 └── pmdbs_spatial_geomx
-	├── cohort_analysis
-	│   ├── ${cohort_id}.sample_list.tsv
-	│   ├──	${cohort_id}.merged_adata_object.h5ad
-	│   ├── ${cohort_id}.qc_hist.png
-	│   ├── ${cohort_id}.umap.png
-	│   ├── ${cohort_id}.spatial_coord_by_counts.png
-	│   ├── ${cohort_id}.spatial_coord_by_clusters.png
-	│   ├── ${cohort_id}.nhood_enrichment.png
-	│   ├── ${cohort_id}.co_occurrence.png
-	│   ├── ${cohort_id}.final_adata_object.h5ad
-	│   ├── ${cohort_id}.moran_top_10_variable_genes.csv
-	│   └── MANIFEST.tsv
-	└── preprocess
-		├── ${sampleA_id}.DCC.zip
-		├── ${sampleA_id}.geomxngs_out_dir.tar.gz
-		├── ${sampleA_id}.initial_adata_object.h5ad
-		├── ${sampleA_id}.qc.h5ad
-		├── MANIFEST.tsv
-		├── ...
-		├── ${sampleN_id}.DCC.zip
-		├── ${sampleN_id}.geomxngs_out_dir.tar.gz
-		├── ${sampleN_id}.initial_adata_object.h5ad
-		├── ${sampleN_id}.qc.h5ad
-		└── MANIFEST.tsv
+    ├── cohort_analysis
+    │   ├── ${cohort_id}.sample_list.tsv
+    │   ├──	${cohort_id}.merged_adata_object.h5ad
+    │   ├── ${cohort_id}.qc_hist.png
+    │   ├── ${cohort_id}.umap_cluster.png
+    │   ├── ${cohort_id}.moran_top_10_variable_genes.csv
+    │   ├── ${cohort_id}.nhood_enrichment.png
+    │   ├── ${cohort_id}.final_adata_object.h5ad
+    │   ├── ${cohort_id}.co_occurrence.png
+    │   └── MANIFEST.tsv
+    └── preprocess
+        ├── ${sampleA_id}.DCC.zip
+        ├── ${sampleA_id}.geomxngs_out_dir.tar.gz
+        ├── ${sampleA_id}.initial_adata_object.h5ad
+        ├── ${sampleA_id}.qc.h5ad
+        ├── MANIFEST.tsv
+        ├── ...
+        ├── ${sampleN_id}.DCC.zip
+        ├── ${sampleN_id}.geomxngs_out_dir.tar.gz
+        ├── ${sampleN_id}.initial_adata_object.h5ad
+        ├── ${sampleN_id}.qc.h5ad
+        └── MANIFEST.tsv
 
 asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 └── pmdbs_spatial_visium
-	├── cohort_analysis
-	│   ├── ${cohort_id}.sample_list.tsv
-	│   ├──	${cohort_id}.merged_adata_object.h5ad
-	│   ├── ${cohort_id}.qc_violin.png
-	│   ├── ${cohort_id}.qc_scatter.png
-	│   ├── ${cohort_id}.umap.png
-	│   ├── ${cohort_id}_scvi_model.tar.gz
-	│   ├── ${cohort_id}.cell_types.csv
-	│   ├── ${cohort_id}.image_features_spatial_scatter.png
-	│   ├── ${cohort_id}.nhood_enrichment.png
-	│   ├── ${cohort_id}.co_occurrence.png
-	│   ├── ${cohort_id}.final_adata_object.h5ad
-	│   ├── ${cohort_id}.moran_top_10_variable_genes.csv
-	│   └── MANIFEST.tsv
-	└── preprocess
-		├── ${sampleA_id}.raw_feature_bc_matrix.h5
-		├── ${sampleA_id}.filtered_feature_bc_matrix.h5
-		├── ${sampleA_id}.initial_adata_object.h5ad
-		├── ${sampleA_id}.molecule_info.h5
-		├── ${sampleA_id}.metrics_summary.csv
-		├── ${sampleA_id}.spaceranger_spatial_outputs.tar.gz
-		├── ${sampleA_id}.aligned_fiducials.jpg
-		├── ${sampleA_id}.detected_tissue_image.jpg
-		├── ${sampleA_id}.tissue_hires_image.png
-		├── ${sampleA_id}.tissue_lowres_image.png
-		├── ${sampleA_id}.scalefactors_json.json
-		├── ${sampleA_id}.tissue_positions.csv
-		├── ${sampleA_id}.spatial_enrichment.csv
-		├── ${sampleA_id}.initial_adata_object.h5ad
-		├── ${sampleA_id}.qc.h5ad
-		├── MANIFEST.tsv
-		├── ...
-		├── ${sampleN_id}.raw_feature_bc_matrix.h5
-		├── ${sampleN_id}.filtered_feature_bc_matrix.h5
-		├── ${sampleN_id}.initial_adata_object.h5ad
-		├── ${sampleN_id}.molecule_info.h5
-		├── ${sampleN_id}.metrics_summary.csv
-		├── ${sampleN_id}.spaceranger_spatial_outputs.tar.gz
-		├── ${sampleN_id}.aligned_fiducials.jpg
-		├── ${sampleN_id}.detected_tissue_image.jpg
-		├── ${sampleN_id}.tissue_hires_image.png
-		├── ${sampleN_id}.tissue_lowres_image.png
-		├── ${sampleN_id}.scalefactors_json.json
-		├── ${sampleN_id}.tissue_positions.csv
-		├── ${sampleN_id}.spatial_enrichment.csv
-		├── ${sampleN_id}.initial_adata_object.h5ad
-		├── ${sampleN_id}.qc.h5ad
-		└── MANIFEST.tsv
+    ├── cohort_analysis
+    │   ├── ${cohort_id}.sample_list.tsv
+    │   ├──	${cohort_id}.merged_adata_object.h5ad
+    │   ├── ${cohort_id}.qc_violin.png
+    │   ├── ${cohort_id}.qc_scatter.png
+    │   ├── ${cohort_id}.umap.png
+    │   ├── ${cohort_id}_scvi_model.tar.gz
+    │   ├── ${cohort_id}.cell_types.csv
+    │   ├── ${cohort_id}.features_umap.png
+    │   ├── ${cohort_id}.groups_umap.png
+    │   ├── ${cohort_id}.image_features_spatial_scatter.png
+    │   ├── ${cohort_id}.moran_top_10_variable_genes.csv
+    │   ├── ${cohort_id}.nhood_enrichment.png
+    │   ├── ${cohort_id}.final_adata_object.h5ad
+    │   ├── ${cohort_id}.co_occurrence.png
+    │   └── MANIFEST.tsv
+    └── preprocess
+        ├── ${sampleA_id}.raw_feature_bc_matrix.h5
+        ├── ${sampleA_id}.filtered_feature_bc_matrix.h5
+        ├── ${sampleA_id}.initial_adata_object.h5ad
+        ├── ${sampleA_id}.molecule_info.h5
+        ├── ${sampleA_id}.metrics_summary.csv
+        ├── ${sampleA_id}.spaceranger_spatial_outputs.tar.gz
+        ├── ${sampleA_id}.aligned_fiducials.jpg
+        ├── ${sampleA_id}.detected_tissue_image.jpg
+        ├── ${sampleA_id}.tissue_hires_image.png
+        ├── ${sampleA_id}.tissue_lowres_image.png
+        ├── ${sampleA_id}.scalefactors_json.json
+        ├── ${sampleA_id}.tissue_positions.csv
+        ├── ${sampleA_id}.spatial_enrichment.csv
+        ├── ${sampleA_id}.initial_adata_object.h5ad
+        ├── ${sampleA_id}.qc.h5ad
+        ├── MANIFEST.tsv
+        ├── ...
+        ├── ${sampleN_id}.raw_feature_bc_matrix.h5
+        ├── ${sampleN_id}.filtered_feature_bc_matrix.h5
+        ├── ${sampleN_id}.initial_adata_object.h5ad
+        ├── ${sampleN_id}.molecule_info.h5
+        ├── ${sampleN_id}.metrics_summary.csv
+        ├── ${sampleN_id}.spaceranger_spatial_outputs.tar.gz
+        ├── ${sampleN_id}.aligned_fiducials.jpg
+        ├── ${sampleN_id}.detected_tissue_image.jpg
+        ├── ${sampleN_id}.tissue_hires_image.png
+        ├── ${sampleN_id}.tissue_lowres_image.png
+        ├── ${sampleN_id}.scalefactors_json.json
+        ├── ${sampleN_id}.tissue_positions.csv
+        ├── ${sampleN_id}.spatial_enrichment.csv
+        ├── ${sampleN_id}.initial_adata_object.h5ad
+        ├── ${sampleN_id}.qc.h5ad
+        └── MANIFEST.tsv
 ```
 
 ## Promoting staging data
@@ -305,7 +316,7 @@ The script defaults to a dry run, printing out the files that would be copied or
 
 ### Options
 
-```bash
+```
 -h  Display this message and exit
 -t  Space-delimited team(s) to promote data for
 -l  List available teams
@@ -341,18 +352,18 @@ docker
 │   ├── build.env
 │   └── Dockerfile
 └── squidpy
-	├── build.env
-	├── Dockerfile
-	├── requirements.txt
-	└── scripts
-		├── geomx_qc.py
-		├── merge_and_plot_geomx_qc.py
-		├── filter_and_normalize.py
-		├── cluster.py
-		├── neighbors_enrichment_analysis.py
-		├── co_occurrence_probability.py
-		├── moran_i_score.py
-		└── ...
+    ├── build.env
+    ├── Dockerfile
+    ├── requirements.txt
+    └── scripts
+        ├── geomx_qc.py
+        ├── merge_and_plot_geomx_qc.py
+        ├── filter_and_normalize.py
+        ├── cluster.py
+        ├── neighbors_enrichment_analysis.py
+        ├── co_occurrence_probability.py
+        ├── moran_i_score.py
+        └── ...
 ```
 
 ## The `build.env` file
@@ -400,6 +411,17 @@ In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-
 
 # Notes
 
+## Nanostring GeoMx notes
 The Nanostring GeoMx configuration (.pkc) files were obtained from https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-configuration-files/.
 - [Human_WTA_v1.0](https://nanostring.com/wp-content/uploads/Hs_R_NGS_WTA_v1.0.pkc_.zip) for Human Whole Transcriptome Atlas
 - [Mouse_WTA_v2.0](https://nanostring.com/wp-content/uploads/2024/06/Mm_R_NGS_WTA_v2.0.zip) for Mouse Whole Transcriptome Atlas
+
+## 10x Visium notes
+
+The Space Ranger reference data were obtained from https://www.10xgenomics.com/support/software/space-ranger/downloads.
+- [Human reference (GRCh38)](https://cf.10xgenomics.com/supp/spatial-exp/refdata-gex-GRCh38-2020-A.tar.gz)
+- [Mouse reference (mm10)](https://cf.10xgenomics.com/supp/spatial-exp/refdata-gex-mm10-2020-A.tar.gz)
+
+The Space Ranger probe set data were obtained from https://www.10xgenomics.com/support/software/space-ranger/downloads.
+- [Human Transcriptome v2](https://cf.10xgenomics.com/supp/spatial-exp/probeset/Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv)
+- [Mouse Transcriptome v2](https://cf.10xgenomics.com/supp/spatial-exp/probeset/Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv)

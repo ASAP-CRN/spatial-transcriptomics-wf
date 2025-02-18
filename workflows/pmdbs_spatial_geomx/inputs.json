@@ -1,13 +1,13 @@
 {
-  "pmdbs_spatial_transcriptomics_analysis.cohort_id": "String",
-  "pmdbs_spatial_visium_analysis.projects": "Array[WomCompositeType {\n project_condition_metadata_csv -> File?\nproject_sample_metadata_csv -> File?\nteam_id -> String\ndataset_id -> String\nsamples -> Array[WomCompositeType {\n fastq_I1s -> Array[File]\nsample_id -> String\nfastq_R1s -> Array[File]+\nbatch -> String?\nvisium_brightfield_image -> File?\nfastq_I2s -> Array[File]\nfastq_R2s -> Array[File]+ \n}]\nstaging_data_buckets -> Array[String]\nrun_project_cohort_analysis -> Boolean\nraw_data_bucket -> String \n}]",
-  "pmdbs_spatial_transcriptomics_analysis.config_ini": "File",
-  "pmdbs_spatial_transcriptomics_analysis.geomxngs_config_pkc": "File",
-  "pmdbs_spatial_transcriptomics_analysis.filter_cells_min_counts": "Int (optional, default = 5000)",
-  "pmdbs_spatial_transcriptomics_analysis.filter_genes_min_cells": "Int (optional, default = 10)",
-  "pmdbs_spatial_transcriptomics_analysis.run_cross_team_cohort_analysis": "Boolean (optional, default = false)",
-  "pmdbs_spatial_transcriptomics_analysis.cohort_raw_data_bucket": "String",
-  "pmdbs_spatial_transcriptomics_analysis.cohort_staging_data_buckets": "Array[String]",
-  "pmdbs_spatial_transcriptomics_analysis.container_registry": "String",
-  "pmdbs_spatial_transcriptomics_analysis.zones": "String (optional, default = \"us-central1-c us-central1-f\")"
+  "pmdbs_spatial_geomx_analysis.cohort_id": "String",
+  "pmdbs_spatial_geomx_analysis.projects": "Array[WomCompositeType {\n project_condition_metadata_csv -> File?\nproject_sample_metadata_csv -> File?\nteam_id -> String\ndataset_id -> String\nsamples -> Array[WomCompositeType {\n fastq_I1s -> Array[File]\nsample_id -> String\nfastq_R1s -> Array[File]+\nbatch -> String?\nvisium_brightfield_image -> File?\nfastq_I2s -> Array[File]\nfastq_R2s -> Array[File]+ \n}]\nstaging_data_buckets -> Array[String]\nrun_project_cohort_analysis -> Boolean\nraw_data_bucket -> String \n}]",
+  "pmdbs_spatial_geomx_analysis.config_ini": "File",
+  "pmdbs_spatial_geomx_analysis.geomxngs_config_pkc": "File",
+  "pmdbs_spatial_geomx_analysis.filter_cells_min_counts": "Int (optional, default = 5000)",
+  "pmdbs_spatial_geomx_analysis.filter_genes_min_cells": "Int (optional, default = 10)",
+  "pmdbs_spatial_geomx_analysis.run_cross_team_cohort_analysis": "Boolean (optional, default = false)",
+  "pmdbs_spatial_geomx_analysis.cohort_raw_data_bucket": "String",
+  "pmdbs_spatial_geomx_analysis.cohort_staging_data_buckets": "Array[String]",
+  "pmdbs_spatial_geomx_analysis.container_registry": "String",
+  "pmdbs_spatial_geomx_analysis.zones": "String (optional, default = \"us-central1-c us-central1-f\")"
 }

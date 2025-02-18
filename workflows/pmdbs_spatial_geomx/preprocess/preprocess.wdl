@@ -135,6 +135,7 @@ workflow preprocess {
 
 		# QC adata object
 		Array[File] qc_adata_object = qc_adata_object_output #!FileCoercion
+		Array[Float?] qc_unassigned_ctrl_probes_percentage = qc.qc_unassigned_ctrl_probes_percentage
 	}
 }
 
@@ -213,14 +214,24 @@ task fastq_to_dcc {
 	command <<<
 		set -euo pipefail
 
-		# Move FASTQs into a directory
-		find . -maxdepth 1 -type f \( -name "*.fastq" -o -name "*.fq" \) -exec mv {} fastqs/ \;
+		# Ensure fastqs are in the same directory
+		mkdir fastqs
+		while read -r fastq || [[ -n "${fastq}" ]]; do
+			ln -s "${fastq}" "fastqs/$(basename "$fastq")"
+		done < <(cat \
+			~{write_lines(fastq_R1s)} \
+			~{write_lines(fastq_R2s)})
 
-		geomxngspipeline \
+		expect <<EOF
+		set timeout -1
+		spawn geomxngspipeline \
 			--ini=~{config_ini} \
-			--in=fastqs \
+			--in="$(pwd)/fastqs" \
 			--out="~{sample_id}_geomxngs_out_dir" \
 			--check-illumina-naming=false
+		send -- "2"
+		expect eof
+		EOF
 
 		# DCC zip file is automatically named following format: DCC-<YYYYMMDD>.zip
 		dcc_file_to_rename=$(find ./~{sample_id}_geomxngs_out_dir -type f -name 'DCC-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].zip')
@@ -247,6 +258,7 @@ task fastq_to_dcc {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		bootDiskSizeGb: 30
 		zones: zones
 	}
 }
@@ -306,6 +318,7 @@ task dcc_to_adata {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		bootDiskSizeGb: 30
 		zones: zones
 	}
 }
@@ -343,6 +356,7 @@ task qc {
 
 	output {
 		String qc_adata_object = "~{raw_data_path}/~{sample_id}.qc.h5ad"
+		Float qc_unassigned_ctrl_probes_percentage = read_float("unassigned_ctrl_probes_percentage.txt")
 	}
 
 	runtime {
@@ -351,6 +365,7 @@ task qc {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		bootDiskSizeGb: 30
 		zones: zones
 	}
 }

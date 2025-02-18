@@ -26,31 +26,11 @@ def main(args):
             "leiden",
         ],
         wspace=0.4,
-        save=f"{args.cohort_id}.umap.png",
     )
-
-    plt.rcParams["figure.figsize"] = (8, 8)
-    sc.pl.spatial(
-        adata,
-        img_key="hires", # img_key: key where the img is stored in the adata.uns element
-        color=[
-            "total_counts",
-            "n_genes_by_counts",
-        ],
-        save=f"{args.cohort_id}.spatial_coord_by_counts.png",
-    )
-
-    plt.rcParams["figure.figsize"] = (8, 8)
-    sc.pl.spatial(
-        adata,
-        img_key="hires",
-        color="clusters",
-        size=1.5,
-        save=f"{args.cohort_id}.spatial_coord_by_clusters.png",
-    )
+    plt.savefig(f"{args.cohort_id}.umap_cluster.png", dpi=300, bbox_inches="tight")
 
     # Save adata object
-    adata.write_h5ad(filename=args.counts_output)
+    adata.write_h5ad(filename=args.adata_output)
 
 
 if __name__ == "__main__":

@@ -20,7 +20,7 @@ def main(args):
 
     targets = list(config["Targets"].keys())
     if len(targets) == 0:
-        raise ValueError("No targets found")
+        raise ValueError("[ERROR] No targets found")
 
 
     ###########################
@@ -89,6 +89,8 @@ def main(args):
     ## GENERATE ADATA OBJECT ##
     ###########################
     matrix = matrix.astype("int")
+    if np.all(matrix == 0):
+        raise ValueError("[ERROR] Matrix of DCC files are all zeros, check if config .ini file AOI List match FASTQ names. No counts found")
     adata = AnnData(X=matrix, obs=obs, var=var)
     for col in adata.obs.columns:
         if pd.api.types.is_object_dtype(adata.obs[col].dtype):

@@ -120,6 +120,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		Array[Array[File]] geomxngs_output_tar_gz = preprocess.geomxngs_output_tar_gz
 		Array[Array[File]] initial_adata_object = preprocess.initial_adata_object
 		Array[Array[File]] qc_adata_object = preprocess.qc_adata_object
+		Array[Array[Float?]] qc_unassigned_ctrl_probes_percentage = preprocess.qc_unassigned_ctrl_probes_percentage
 
 		# Project cohort analysis outputs
 		## List of samples included in the cohort
@@ -128,18 +129,17 @@ workflow pmdbs_spatial_geomx_analysis {
 		# Merged adata objects, filtered and normalized adata objects, clustered adata objects, and plots
 		Array[File?] project_merged_adata_object = project_cohort_analysis.merged_adata_object
 		Array[File?] project_qc_plots_png = project_cohort_analysis.qc_plots_png
-		Array[Float?] project_qc_unassigned_ctrl_probes_percentage = project_cohort_analysis.qc_unassigned_ctrl_probes_percentage
 		Array[File?] project_filtered_normalized_adata_object = project_cohort_analysis.filtered_normalized_adata_object
 		Array[File?] project_umap_cluster_adata_object = project_cohort_analysis.umap_cluster_adata_object
-		Array[Array[File]?] project_umap_and_spatial_coord_plots_png = project_cohort_analysis.umap_and_spatial_coord_plots_png
+		Array[File?] project_umap_cluster_plot_png = project_cohort_analysis.umap_cluster_plot_png
 
 		# Spatial statistics outputs
+		Array[File?] project_moran_adata_object = project_cohort_analysis.moran_adata_object
+		Array[File?] project_moran_top_10_variable_genes_csv = project_cohort_analysis.moran_top_10_variable_genes_csv
 		Array[File?] project_nhood_enrichment_adata_object = project_cohort_analysis.nhood_enrichment_adata_object
 		Array[File?] project_nhood_enrichment_plot_png = project_cohort_analysis.nhood_enrichment_plot_png
-		Array[File?] project_co_occurrence_adata_object = project_cohort_analysis.co_occurrence_adata_object
-		Array[File?] project_co_occurrence_plot_png = project_cohort_analysis.co_occurrence_plot_png
 		Array[File?] project_final_adata_object = project_cohort_analysis.final_adata_object
-		Array[File?] project_moran_top_10_variable_genes_csv = project_cohort_analysis.moran_top_10_variable_genes_csv
+		Array[File?] project_co_occurrence_plot_png = project_cohort_analysis.co_occurrence_plot_png
 
 		Array[Array[File]?] preprocess_manifests = project_cohort_analysis.preprocess_manifest_tsvs
 		Array[Array[File]?] project_manifests = project_cohort_analysis.cohort_analysis_manifest_tsvs
@@ -151,18 +151,17 @@ workflow pmdbs_spatial_geomx_analysis {
 		# Merged adata objects, filtered and normalized adata objects, clustered adata objects, and plots
 		File? cohort_merged_adata_object = cross_team_cohort_analysis.merged_adata_object
 		File? cohort_qc_plots_png = cross_team_cohort_analysis.qc_plots_png
-		Float? cohort_qc_unassigned_ctrl_probes_percentage = cross_team_cohort_analysis.qc_unassigned_ctrl_probes_percentage
 		File? cohort_filtered_normalized_adata_object = cross_team_cohort_analysis.filtered_normalized_adata_object
 		File? cohort_umap_cluster_adata_object = cross_team_cohort_analysis.umap_cluster_adata_object
-		Array[File]? cohort_umap_and_spatial_coord_plots_png = cross_team_cohort_analysis.umap_and_spatial_coord_plots_png
+		File? cohort_umap_cluster_plot_png = cross_team_cohort_analysis.umap_cluster_plot_png
 
 		# Spatial statistics outputs
+		File? cohort_moran_adata_object = cross_team_cohort_analysis.moran_adata_object
+		File? cohort_moran_top_10_variable_genes_csv = cross_team_cohort_analysis.moran_top_10_variable_genes_csv
 		File? cohort_nhood_enrichment_adata_object = cross_team_cohort_analysis.nhood_enrichment_adata_object
 		File? cohort_nhood_enrichment_plot_png = cross_team_cohort_analysis.nhood_enrichment_plot_png
-		File? cohort_co_occurrence_adata_object = cross_team_cohort_analysis.co_occurrence_adata_object
-		File? cohort_co_occurrence_plot_png = cross_team_cohort_analysis.co_occurrence_plot_png
 		File? cohort_final_adata_object = cross_team_cohort_analysis.final_adata_object
-		File? cohort_moran_top_10_variable_genes_csv = cross_team_cohort_analysis.moran_top_10_variable_genes_csv
+		File? cohort_co_occurrence_plot_png = cross_team_cohort_analysis.co_occurrence_plot_png
 
 		Array[File]? cohort_manifests = cross_team_cohort_analysis.cohort_analysis_manifest_tsvs
 	}

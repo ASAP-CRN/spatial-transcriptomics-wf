@@ -111,12 +111,14 @@ workflow cohort_analysis {
 			merge_and_plot_qc_metrics.merged_adata_object,
 			merge_and_plot_qc_metrics.qc_plots_png
 		],
-		cluster.umap_and_spatial_coord_plots_png,
 		[
+			cluster.umap_cluster_plot_png,
+		],
+		[
+			spatial_statistics.moran_top_10_variable_genes_csv,
 			spatial_statistics.nhood_enrichment_plot_png,
-			spatial_statistics.co_occurrence_plot_png,
 			spatial_statistics.final_adata_object,
-			spatial_statistics.moran_top_10_variable_genes_csv
+			spatial_statistics.co_occurrence_plot_png
 		]
 	]) #!StringCoercion
 
@@ -135,22 +137,21 @@ workflow cohort_analysis {
 		# Merged adata objects and QC plots
 		File merged_adata_object = merge_and_plot_qc_metrics.merged_adata_object #!FileCoercion
 		File qc_plots_png = merge_and_plot_qc_metrics.qc_plots_png #!FileCoercion
-		Float qc_unassigned_ctrl_probes_percentage = merge_and_plot_qc_metrics.qc_unassigned_ctrl_probes_percentage
 
 		# Filtered and normalized adata object
 		File filtered_normalized_adata_object = filter_and_normalize.filtered_normalized_adata_object #!FileCoercion
 
 		# Leiden clustered adata object and UMAP and spatial coordinates plots
 		File umap_cluster_adata_object = cluster.umap_cluster_adata_object #!FileCoercion
-		Array[File] umap_and_spatial_coord_plots_png = cluster.umap_and_spatial_coord_plots_png #!FileCoercion
+		File umap_cluster_plot_png = cluster.umap_cluster_plot_png #!FileCoercion
 
 		# Spatial statistics outputs
+		File moran_adata_object = spatial_statistics.moran_adata_object
+		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
 		File nhood_enrichment_adata_object = spatial_statistics.nhood_enrichment_adata_object
 		File nhood_enrichment_plot_png = spatial_statistics.nhood_enrichment_plot_png
-		File co_occurrence_adata_object = spatial_statistics.co_occurrence_adata_object
-		File co_occurrence_plot_png = spatial_statistics.co_occurrence_plot_png
 		File final_adata_object = spatial_statistics.final_adata_object
-		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
+		File co_occurrence_plot_png = spatial_statistics.co_occurrence_plot_png
 
 		Array[File] preprocess_manifest_tsvs = upload_preprocess_files.manifests #!FileCoercion
 		Array[File] cohort_analysis_manifest_tsvs = upload_cohort_analysis_files.manifests #!FileCoercion
@@ -191,7 +192,6 @@ task merge_and_plot_qc_metrics {
 	output {
 		String merged_adata_object = "~{raw_data_path}/~{cohort_id}.merged_adata_object.h5ad"
 		String qc_plots_png = "~{raw_data_path}/~{cohort_id}.qc_hist.png"
-		Float qc_unassigned_ctrl_probes_percentage = read_float("unassigned_ctrl_probes_percentage.txt")
 	}
 
 	runtime {
@@ -200,6 +200,7 @@ task merge_and_plot_qc_metrics {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		bootDiskSizeGb: 30
 		zones: zones
 	}
 }
@@ -248,6 +249,7 @@ task filter_and_normalize {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		bootDiskSizeGb: 30
 		zones: zones
 	}
 }
@@ -280,18 +282,12 @@ task cluster {
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
 			-o "~{cohort_id}.umap_cluster.h5ad" \
-			-o "~{cohort_id}.umap.png" \
-			-o "~{cohort_id}.spatial_coord_by_counts.png" \
-			-o "~{cohort_id}.spatial_coord_by_clusters.png"
+			-o "~{cohort_id}.umap_cluster.png"
 	>>>
 
 	output {
 		String umap_cluster_adata_object = "~{raw_data_path}/~{cohort_id}.umap_cluster.h5ad"
-		Array[String] umap_and_spatial_coord_plots_png = [
-			"~{raw_data_path}/~{cohort_id}.umap.png",
-			"~{raw_data_path}/~{cohort_id}.spatial_coord_by_counts.png",
-			"~{raw_data_path}/~{cohort_id}.spatial_coord_by_clusters.png"
-		]
+		String umap_cluster_plot_png = "~{raw_data_path}/~{cohort_id}.umap_cluster.png"
 	}
 
 	runtime {
@@ -300,6 +296,7 @@ task cluster {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		bootDiskSizeGb: 30
 		zones: zones
 	}
 }

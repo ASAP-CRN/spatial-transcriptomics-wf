@@ -13,7 +13,12 @@ def main(args):
     ##########################################################
     adata = sc.read_h5ad(args.adata_input)
 
-    sq.gr.spatial_neighbors(adata, coord_type="generic", delaunay=True)
+    sq.gr.spatial_neighbors(
+        adata,
+        library_key="sample",
+        coord_type="generic",
+        delaunay=True,
+    )
     sq.gr.spatial_autocorr(
         adata,
         mode="moran",
@@ -24,7 +29,7 @@ def main(args):
 
     # Save table and adata object
     top_10_variable_genes.to_csv(f"{args.cohort_id}.moran_top_10_variable_genes.csv")
-    adata.write_h5ad(filename=args.counts_output)
+    adata.write_h5ad(filename=args.adata_output)
 
 
 if __name__ == "__main__":

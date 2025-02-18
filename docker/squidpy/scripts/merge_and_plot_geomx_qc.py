@@ -1,4 +1,5 @@
 import argparse
+import anndata as ad
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,7 +18,7 @@ def main(args):
         sample_id = adata.obs["sample"].unique()
         adatas[sample_id[0]] = adata
 
-    merged_adata = anndata.concat(adatas, index_unique="_", merge="same", uns_merge="same")
+    merged_adata = ad.concat(adatas, index_unique="_", merge="same", uns_merge="same")
 
 
     #####################
@@ -37,12 +38,14 @@ def main(args):
         kde=False,
         ax=axs[1],
     )
-    axs[2].set_title("Transcripts per FOV")
-    sns.histplot(
-        merged_adata.obs.groupby("fov").sum()["total_counts"],
-        kde=False,
-        ax=axs[2],
-    )
+    fov_values = merged_adata.obs.get("fov")
+    if fov_values is not None:
+        axs[2].set_title("Transcripts per FOV")
+        sns.histplot(
+            merged_adata.obs.groupby("fov").sum()["total_counts"],
+            kde=False,
+            ax=axs[2],
+        )
 
     # Save outputs
     plt.tight_layout()

@@ -16,6 +16,7 @@ RUN apt-get -qq update \
 		unzip \
 		time \
 		curl \
+		expect \
 		zlib1g-dev \
 		libncursesw5-dev \
 		libssl-dev \

@@ -1,8 +1,7 @@
 import argparse
+import anndata as ad
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 import scanpy as sc
 import squidpy as sq
 
@@ -13,14 +12,20 @@ def main(args):
     ##############################
     ## CALCULATE IMAGE FEATURES ##
     ##############################
-    adata = sc.read_10x_h5(args.adata_input)
+    adata = sc.read_h5ad(args.adata_input)
+
+    img = sq.im.ImageContainer.from_adata(
+        adata,
+        library_id=args.sample_id,
+    )
 
     # Calculate features for different scales (higher value means more context)
     for scale in [1.0, 2.0]:
-        feature_name = f"features_summary_scale{scale}"
+        feature_name = f"features_summary_scale_{scale}"
         sq.im.calculate_image_features(
             adata,
-            img_key="hires",
+            img,
+            library_id=args.sample_id,
             features="summary",
             key_added=feature_name,
             n_jobs=args.n_jobs,
@@ -53,13 +58,6 @@ def main(args):
     sc.tl.leiden(adata_tmp)
     adata.obs["features_cluster"] = adata_tmp.obs["leiden"]
 
-    # Compare feature and gene clusters
-    sq.pl.spatial_scatter(
-        adata,
-        color=["features_cluster", "cluster"],
-        save=f"{args.plots_prefix}.image_features_spatial_scatter.png",
-    )
-
     # Save adata object
     adata.write_h5ad(filename=args.adata_output)
 
@@ -67,6 +65,13 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Calculate image features (e.g. morphological, intensity-based, and texture-based features) to help describe spatial patterns that can be linked to gene expression or cell organization."
+    )
+    parser.add_argument(
+        "-s",
+        "--sample-id",
+        type=str,
+        required=True,
+        help="Sample ID"
     )
     parser.add_argument(
         "-i",
@@ -78,16 +83,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "-n",
         "--n-jobs",
-        type=str,
+        type=int,
         required=True,
         help="Number of parallel jobs"
-    )
-    parser.add_argument(
-        "-p",
-        "--plots-prefix",
-        type=str,
-        required=True,
-        help="Output file name prefix for the feature and gene clusters spatial scatter plots"
     )
     parser.add_argument(
         "-o",

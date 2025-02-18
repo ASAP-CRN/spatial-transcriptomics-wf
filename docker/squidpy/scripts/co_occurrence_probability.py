@@ -13,19 +13,25 @@ def main(args):
     ###############################
     adata = sc.read_h5ad(args.adata_input)
 
+    obs_columns = list(adata.obs.columns)
+    if "cell_type" in obs_columns:
+        cluster_key="cell_type"
+    else:
+        raise ValueError("Cell type is missing in adata.obs")
+
     sq.gr.co_occurrence(
         adata,
-        cluster_key="leiden",
+        cluster_key=cluster_key,
     )
 
     sq.pl.co_occurrence(
         adata,
-        cluster_key="leiden",
-        save=f"{args.cohort_id}.co_occurrence.png",
+        cluster_key=cluster_key,
     )
+    plt.savefig(f"{args.cohort_id}.co_occurrence.png", dpi=300, bbox_inches="tight")
 
     # Save adata object
-    adata.write_h5ad(filename=args.counts_output)
+    adata.write_h5ad(filename=args.adata_output)
 
 
 if __name__ == "__main__":

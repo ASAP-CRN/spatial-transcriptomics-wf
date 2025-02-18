@@ -5,6 +5,7 @@ version 1.0
 import "../../wf-common/wdl/structs.wdl"
 import "../../wf-common/wdl/tasks/get_workflow_metadata.wdl" as GetWorkflowMetadata
 import "preprocess/preprocess.wdl" as Preprocess
+import "image_analysis/image_analysis.wdl" as ImageAnalysis
 import "cohort_analysis/cohort_analysis.wdl" as CohortAnalysis
 
 workflow pmdbs_spatial_visium_analysis {
@@ -13,6 +14,7 @@ workflow pmdbs_spatial_visium_analysis {
 		Array[Project] projects
 
 		File spaceranger_reference_data
+		File visium_probe_set_csv
 
 		# Filter parameters
 		Int filter_cells_min_counts = 5000
@@ -52,6 +54,7 @@ workflow pmdbs_spatial_visium_analysis {
 				dataset_id = project.dataset_id,
 				samples = project.samples,
 				spaceranger_reference_data = spaceranger_reference_data,
+				visium_probe_set_csv = visium_probe_set_csv,
 				workflow_name = workflow_name,
 				workflow_version = workflow_version,
 				workflow_release = workflow_release,
@@ -76,12 +79,21 @@ workflow pmdbs_spatial_visium_analysis {
 			preprocess.qc_adata_object
 		]) #!StringCoercion
 
+		call ImageAnalysis.image_analysis {
+			input:
+				preprocessed_adata_objects = preprocess.qc_adata_object,
+				raw_data_path_prefix = project_raw_data_path_prefix,
+				billing_project = get_workflow_metadata.billing_project,
+				container_registry = container_registry,
+				zones = zones
+		}
+
 		if (project.run_project_cohort_analysis) {
 			call CohortAnalysis.cohort_analysis as project_cohort_analysis {
 				input:
 					cohort_id = project.team_id,
 					project_sample_ids = preprocess.project_sample_ids,
-					preprocessed_adata_objects = preprocess.qc_adata_object,
+					preprocessed_adata_objects = image_analysis.image_features_adata_object,
 					preprocessing_output_file_paths = preprocessing_output_file_paths,
 					filter_cells_min_counts = filter_cells_min_counts,
 					filter_genes_min_cells = filter_genes_min_cells,
@@ -109,7 +121,7 @@ workflow pmdbs_spatial_visium_analysis {
 			input:
 				cohort_id = cohort_id,
 				project_sample_ids = flatten(preprocess.project_sample_ids),
-				preprocessed_adata_objects = flatten(preprocess.qc_adata_object),
+				preprocessed_adata_objects = flatten(image_analysis.image_features_adata_object),
 				preprocessing_output_file_paths = flatten(preprocessing_output_file_paths),
 				filter_cells_min_counts = filter_cells_min_counts,
 				filter_genes_min_cells = filter_genes_min_cells,
@@ -147,6 +159,9 @@ workflow pmdbs_spatial_visium_analysis {
 		Array[Array[File]] initial_adata_object = preprocess.initial_adata_object
 		Array[Array[File]] qc_adata_object = preprocess.qc_adata_object
 
+		## Image analysis
+		Array[Array[File]] image_features_adata_object = image_analysis.image_features_adata_object
+
 		# Project cohort analysis outputs
 		## List of samples included in the cohort
 		Array[File?] project_cohort_sample_list = project_cohort_analysis.cohort_sample_list
@@ -165,17 +180,18 @@ workflow pmdbs_spatial_visium_analysis {
 		Array[File?] project_cell_annotated_adata_object = project_cohort_analysis.cell_annotated_adata_object
 		Array[File?] project_cell_types_csv = project_cohort_analysis.cell_types_csv
 
-		# Image features outputs
-		Array[File?] project_image_features_adata_object = project_cohort_analysis.image_features_adata_object
+		# Spatial plots outputs
+		Array[File?] project_features_umap_plot_png = project_cohort_analysis.features_umap_plot_png
+		Array[File?] project_groups_umap_plot_png = project_cohort_analysis.groups_umap_plot_png
 		Array[File?] project_image_features_spatial_scatter_plot_png = project_cohort_analysis.image_features_spatial_scatter_plot_png
 
 		# Spatial statistics outputs
+		Array[File?] project_moran_adata_object = project_cohort_analysis.moran_adata_object
+		Array[File?] project_moran_top_10_variable_genes_csv = project_cohort_analysis.moran_top_10_variable_genes_csv
 		Array[File?] project_nhood_enrichment_adata_object = project_cohort_analysis.nhood_enrichment_adata_object
 		Array[File?] project_nhood_enrichment_plot_png = project_cohort_analysis.nhood_enrichment_plot_png
-		Array[File?] project_co_occurrence_adata_object = project_cohort_analysis.co_occurrence_adata_object
-		Array[File?] project_co_occurrence_plot_png = project_cohort_analysis.co_occurrence_plot_png
 		Array[File?] project_final_adata_object = project_cohort_analysis.final_adata_object
-		Array[File?] project_moran_top_10_variable_genes_csv = project_cohort_analysis.moran_top_10_variable_genes_csv
+		Array[File?] project_co_occurrence_plot_png = project_cohort_analysis.co_occurrence_plot_png
 
 		Array[Array[File]?] preprocess_manifests = project_cohort_analysis.preprocess_manifest_tsvs
 		Array[Array[File]?] project_manifests = project_cohort_analysis.cohort_analysis_manifest_tsvs
@@ -198,17 +214,18 @@ workflow pmdbs_spatial_visium_analysis {
 		File? cohort_cell_annotated_adata_object = cross_team_cohort_analysis.cell_annotated_adata_object
 		File? cohort_cell_types_csv = cross_team_cohort_analysis.cell_types_csv
 
-		# Image features outputs
-		File? cohort_image_features_adata_object = cross_team_cohort_analysis.image_features_adata_object
+		# Spatial plots outputs
+		File? cohort_features_umap_plot_png = cross_team_cohort_analysis.features_umap_plot_png
+		File? cohort_groups_umap_plot_png = cross_team_cohort_analysis.groups_umap_plot_png
 		File? cohort_image_features_spatial_scatter_plot_png = cross_team_cohort_analysis.image_features_spatial_scatter_plot_png
 
 		# Spatial statistics outputs
+		File? cohort_moran_adata_object = cross_team_cohort_analysis.moran_adata_object
+		File? cohort_moran_top_10_variable_genes_csv = cross_team_cohort_analysis.moran_top_10_variable_genes_csv
 		File? cohort_nhood_enrichment_adata_object = cross_team_cohort_analysis.nhood_enrichment_adata_object
 		File? cohort_nhood_enrichment_plot_png = cross_team_cohort_analysis.nhood_enrichment_plot_png
-		File? cohort_co_occurrence_adata_object = cross_team_cohort_analysis.co_occurrence_adata_object
-		File? cohort_co_occurrence_plot_png = cross_team_cohort_analysis.co_occurrence_plot_png
 		File? cohort_final_adata_object = cross_team_cohort_analysis.final_adata_object
-		File? cohort_moran_top_10_variable_genes_csv = cross_team_cohort_analysis.moran_top_10_variable_genes_csv
+		File? cohort_co_occurrence_plot_png = cross_team_cohort_analysis.co_occurrence_plot_png
 
 		Array[File]? cohort_manifests = cross_team_cohort_analysis.cohort_analysis_manifest_tsvs
 	}
@@ -220,7 +237,8 @@ workflow pmdbs_spatial_visium_analysis {
 	parameter_meta {
 		cohort_id: {help: "Name of the cohort; used to name output files during cross-team downstream analysis."}
 		projects: {help: "The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis."}
-		spaceranger_reference_data: {help: "Spaceranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads."}
+		spaceranger_reference_data: {help: "Space Ranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads."}
+		visium_probe_set_csv: {help: "Visium probe-based assays target genes in Space Ranger transcriptome; see https://www.10xgenomics.com/support/software/space-ranger/downloads."}
 		filter_cells_min_counts: {help: "Minimum number of counts required for a cell to pass filtering. [5000]"}
 		filter_genes_min_cells: {help: "Minimum number of cells expressed required for a gene to pass filtering. [10]"}
 		batch_key: {help: "Key in AnnData object for batch information so that highly-variable genes are selected within each batch separately and merged. ['batch_id']"}
