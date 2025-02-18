@@ -1,9 +1,10 @@
 import argparse
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+import scipy as sp
 import scanpy as sc
+
+# https://scanpy-tutorials.readthedocs.io/en/multiomics/analysis-visualization-spatial.html
 
 
 def main(args):
@@ -15,12 +16,11 @@ def main(args):
     adata.var["rb"] = adata.var_names.str.startswith(("RPS", "RPL"))
     adata.var["hb"] = adata.var_names.str.contains("^HB[^(P)]")
 
+    adata.obs["mt_frac"] = adata[:, adata.var["mt"]].X.sum(1).A.squeeze()/adata.obs["total_counts"]
+
     sc.pp.calculate_qc_metrics(
         adata, qc_vars=["mt", "rb", "hb"], inplace=True, log1p=True
     )
-
-    # Add doublet_score and predicted_doublet to .obs
-    sc.pp.scrublet(adata)
 
     # Adata object must contain strings
     for col in adata.obs.columns:

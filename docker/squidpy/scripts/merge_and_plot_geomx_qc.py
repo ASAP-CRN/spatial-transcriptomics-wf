@@ -3,7 +3,7 @@ import anndata as ad
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
+import seaborn as sb
 import scanpy as sc
 import squidpy as sq
 
@@ -27,13 +27,13 @@ def main(args):
     # QC distribution plots
     fig, axs = plt.subplots(1, 3, figsize=(15, 4))
     axs[0].set_title("Total transcripts per cell")
-    sns.histplot(
+    sb.histplot(
         merged_adata.obs["total_counts"],
         kde=False,
         ax=axs[0],
     )
     axs[1].set_title("Unique transcripts per cell")
-    sns.histplot(
+    sb.histplot(
         merged_adata.obs["n_genes_by_counts"],
         kde=False,
         ax=axs[1],
@@ -41,7 +41,7 @@ def main(args):
     fov_values = merged_adata.obs.get("fov")
     if fov_values is not None:
         axs[2].set_title("Transcripts per FOV")
-        sns.histplot(
+        sb.histplot(
             merged_adata.obs.groupby("fov").sum()["total_counts"],
             kde=False,
             ax=axs[2],

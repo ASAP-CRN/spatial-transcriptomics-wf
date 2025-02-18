@@ -2,7 +2,7 @@ import argparse
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
+import seaborn as sb
 import scanpy as sc
 import squidpy as sq
 
@@ -26,6 +26,15 @@ def main(args):
         n_jobs=1,
     )
     top_10_variable_genes = adata.uns["moranI"].head(10)
+
+    top_3_variable_gene_list = adata.uns["moranI"].head(3).index.tolist()
+    top_3_variable_gene_list.append("clusters")
+    sq.pl.spatial_scatter(
+        adata,
+        library_key="sample",
+        color=top_3_variable_gene_list,
+    )
+    plt.savefig(f"{args.cohort_id}.moran_top_3_variable_genes_spatial_scatter.png", dpi=300, bbox_inches="tight")
 
     # Save table and adata object
     top_10_variable_genes.to_csv(f"{args.cohort_id}.moran_top_10_variable_genes.csv")

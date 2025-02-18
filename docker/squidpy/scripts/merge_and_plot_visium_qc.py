@@ -2,10 +2,10 @@ import argparse
 import anndata as ad
 import pandas as pd
 import numpy as np
+import scipy as sp
 import matplotlib.pyplot as plt
-import seaborn as sns
+import seaborn as sb
 import scanpy as sc
-import squidpy as sq
 
 
 def main(args):
@@ -21,9 +21,9 @@ def main(args):
     merged_adata = ad.concat(adatas, index_unique="_", merge="same", uns_merge="same")
 
 
-    #####################
-    ## PLOT QC METRICS ##
-    #####################
+    ##########
+    ## PLOT ##
+    ##########
     # QC violin plots
     sc.pl.violin(
         merged_adata,
@@ -32,21 +32,40 @@ def main(args):
             "total_counts",
             "pct_counts_mt",
             "pct_counts_rb",
-            "doublet_score",
         ],
         jitter=0.4,
         multi_panel=True,
     )
     plt.savefig(f"{args.qc_plots_prefix}.qc_violin.png", dpi=300, bbox_inches="tight")
 
-    # QC scatter plot colored by pct_counts_mt
-    sc.pl.scatter(
-        merged_adata,
-        "total_counts",
-        "n_genes_by_counts",
-        color="pct_counts_mt",
+    # Total counts and n genes by counts distribution plots
+    fig, axs = plt.subplots(1, 4, figsize=(15,4))
+    fig.suptitle("Covariates for filtering")
+    sb.distplot(
+        merged_adata.obs["total_counts"],
+        kde=False,
+        ax=axs[0],
     )
-    plt.savefig(f"{args.qc_plots_prefix}.qc_scatter.png", dpi=300, bbox_inches="tight")
+    sb.distplot(
+        merged_adata.obs["total_counts"][merged_adata.obs["total_counts"]<10000],
+        kde=False,
+        bins=40,
+        ax=axs[1],
+    )
+    sb.distplot(
+        merged_adata.obs["n_genes_by_counts"],
+        kde=False,
+        bins=60,
+        ax=axs[2],
+    )
+    sb.distplot(
+        merged_adata.obs["n_genes_by_counts"][merged_adata.obs["n_genes_by_counts"]<4000],
+        kde=False,
+        bins=60,
+        ax=axs[3],
+    )
+
+    plt.savefig(f"{args.qc_plots_prefix}.qc_dist.png", dpi=300, bbox_inches="tight")
 
     # Save outputs
     merged_adata.write_h5ad(filename=args.merged_adata_output)
@@ -68,7 +87,7 @@ if __name__ == "__main__":
         "--qc-plots-prefix",
         type=str,
         required=True,
-        help="Output file name prefix for the QC violin and scatter plots"
+        help="Output file name prefix for the QC violin and distribution plots"
     )
     parser.add_argument(
         "-o",

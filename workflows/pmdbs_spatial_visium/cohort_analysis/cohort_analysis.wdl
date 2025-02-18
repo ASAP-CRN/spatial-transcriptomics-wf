@@ -3,7 +3,6 @@ version 1.0
 # Merge and process adata object with QC, filtering, normalization, and clustering
 
 import "../../../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
-import "pmdbs-sc-rnaseq-wf/workflows/cohort_analysis/cluster_data/cluster_data.wdl" as ClusterData
 import "../../spatial_statistics/spatial_statistics.wdl" as SpatialStatistics
 import "../../../wf-common/wdl/tasks/upload_final_outputs.wdl" as UploadFinalOutputs
 
@@ -18,13 +17,10 @@ workflow cohort_analysis {
 
 		# Filter parameters
 		Int filter_cells_min_counts
+		Int filter_cells_min_genes
 		Int filter_genes_min_cells
-
-		# Feature selection and clustering inputs and parameters
-		String batch_key
-		String scvi_latent_key
+		Float filter_mt_max_percent
 		Int n_top_genes
-		File cell_type_markers_list
 
 		String workflow_name
 		String workflow_version
@@ -71,31 +67,18 @@ workflow cohort_analysis {
 			cohort_id = cohort_id,
 			merged_adata_object = merge_and_plot_qc_metrics.merged_adata_object, #!FileCoercion
 			filter_cells_min_counts = filter_cells_min_counts,
+			filter_cells_min_genes = filter_cells_min_genes,
 			filter_genes_min_cells = filter_genes_min_cells,
+			filter_mt_max_percent = filter_mt_max_percent,
 			container_registry = container_registry,
 			zones = zones
 	}
 
-	call feature_selection {
+	call cluster {
 		input:
 			cohort_id = cohort_id,
-			batch_key = batch_key,
-			n_top_genes = n_top_genes,
 			filtered_normalized_adata_object = filter_and_normalize.filtered_normalized_adata_object, #!FileCoercion
-			raw_data_path = raw_data_path,
-			workflow_info = workflow_info,
-			billing_project = billing_project,
-			container_registry = container_registry,
-			zones = zones
-	}
-
-	call ClusterData.cluster_data {
-		input:
-			cohort_id = cohort_id,
-			normalized_adata_object = feature_selection.feature_selection_adata_object, #!FileCoercion
-			scvi_latent_key = scvi_latent_key,
-			batch_key = batch_key,
-			cell_type_markers_list = cell_type_markers_list,
+			n_top_genes = n_top_genes,
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -106,7 +89,7 @@ workflow cohort_analysis {
 	call plot_spatial {
 		input:
 			cohort_id = cohort_id,
-			clustered_adata_object = cluster_data.cell_annotated_adata_object, #!FileCoercion
+			clustered_adata_object = cluster.clustered_adata_object, #!FileCoercion
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -117,7 +100,7 @@ workflow cohort_analysis {
 	call SpatialStatistics.spatial_statistics {
 		input:
 			cohort_id = cohort_id,
-			clustered_adata_object = cluster_data.cell_annotated_adata_object, #!FileCoercion
+			clustered_adata_object = cluster.clustered_adata_object, #!FileCoercion
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -142,23 +125,14 @@ workflow cohort_analysis {
 			merge_and_plot_qc_metrics.merged_adata_object
 		],
 		merge_and_plot_qc_metrics.qc_plots_png,
+		cluster.hvg_and_cluster_plots_png,
 		[
-			feature_selection.feature_dispersion_plot_png
-		],
-		[
-			cluster_data.scvi_model_tar_gz,
-			cluster_data.cell_types_csv
+			plot_spatial.image_features_spatial_scatter_plot_png
 		],
 		[	
-			spatial_statistics.moran_top_10_variable_genes_csv,
-			spatial_statistics.nhood_enrichment_plot_png,
 			spatial_statistics.final_adata_object,
-			spatial_statistics.co_occurrence_plot_png
-		],
-		[
-			plot_spatial.features_umap_plot_png,
-			plot_spatial.groups_umap_plot_png,
-			plot_spatial.image_features_spatial_scatter_plot_png
+			spatial_statistics.moran_top_10_variable_genes_csv,
+			spatial_statistics.moran_top_3_variable_genes_spatial_scatter_plot_png
 		]
 	]) #!StringCoercion
 
@@ -181,29 +155,17 @@ workflow cohort_analysis {
 		# Filtered and normalized adata object
 		File filtered_normalized_adata_object = filter_and_normalize.filtered_normalized_adata_object #!FileCoercion
 
-		# Feature selection
-		File feature_selection_adata_object = feature_selection.feature_selection_adata_object #!FileCoercion
-		File feature_dispersion_plot_png = feature_selection.feature_dispersion_plot_png #!FileCoercion
-
-		# Clustering output
-		File integrated_adata_object = cluster_data.integrated_adata_object
-		File scvi_model_tar_gz = cluster_data.scvi_model_tar_gz
-		File umap_cluster_adata_object = cluster_data.umap_cluster_adata_object
-		File cell_annotated_adata_object = cluster_data.cell_annotated_adata_object
-		File cell_types_csv = cluster_data.cell_types_csv
+		# Cluster
+		File clustered_adata_object = cluster.clustered_adata_object #!FileCoercion
+		Array[File] hvg_and_cluster_plots_png = cluster.hvg_and_cluster_plots_png #!FileCoercion
 
 		# Spatial plots
-		File features_umap_plot_png = plot_spatial.features_umap_plot_png #!FileCoercion
-		File groups_umap_plot_png = plot_spatial.groups_umap_plot_png #!FileCoercion
 		File image_features_spatial_scatter_plot_png = plot_spatial.image_features_spatial_scatter_plot_png #!FileCoercion
 
 		# Spatial statistics output
-		File moran_adata_object = spatial_statistics.moran_adata_object
-		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
-		File nhood_enrichment_adata_object = spatial_statistics.nhood_enrichment_adata_object
-		File nhood_enrichment_plot_png = spatial_statistics.nhood_enrichment_plot_png
 		File final_adata_object = spatial_statistics.final_adata_object
-		File co_occurrence_plot_png = spatial_statistics.co_occurrence_plot_png
+		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
+		File moran_top_3_variable_genes_spatial_scatter_plot_png = spatial_statistics.moran_top_3_variable_genes_spatial_scatter_plot_png
 
 		Array[File] preprocess_manifest_tsvs = upload_preprocess_files.manifests #!FileCoercion
 		Array[File] cohort_analysis_manifest_tsvs = upload_cohort_analysis_files.manifests #!FileCoercion
@@ -239,14 +201,14 @@ task merge_and_plot_qc_metrics {
 			-i ~{write_tsv(workflow_info)} \
 			-o "~{cohort_id}.merged_adata_object.h5ad" \
 			-o "~{cohort_id}.qc_violin.png" \
-			-o "~{cohort_id}.qc_scatter.png"
+			-o "~{cohort_id}.qc_dist.png"
 	>>>
 
 	output {
 		String merged_adata_object = "~{raw_data_path}/~{cohort_id}.merged_adata_object.h5ad"
 		Array[String] qc_plots_png = [
 			"~{raw_data_path}/~{cohort_id}.qc_violin.png",
-			"~{raw_data_path}/~{cohort_id}.qc_scatter.png"
+			"~{raw_data_path}/~{cohort_id}.qc_dist.png"
 		]
 	}
 
@@ -267,7 +229,9 @@ task filter_and_normalize {
 		File merged_adata_object
 
 		Int filter_cells_min_counts
+		Int filter_cells_min_genes
 		Int filter_genes_min_cells
+		Float filter_mt_max_percent
 
 		String container_registry
 		String zones
@@ -282,7 +246,9 @@ task filter_and_normalize {
 		python3 /opt/scripts/filter_and_normalize.py \
 			--adata-input ~{merged_adata_object} \
 			--min-counts ~{filter_cells_min_counts} \
+			--min-genes ~{filter_cells_min_genes} \
 			--min-cells ~{filter_genes_min_cells} \
+			--mt-max-percent ~{filter_mt_max_percent} \
 			--adata-output ~{cohort_id}.filtered_normalized.h5ad
 	>>>
 
@@ -301,12 +267,11 @@ task filter_and_normalize {
 	}
 }
 
-task feature_selection {
+task cluster {
 	input {
 		String cohort_id
 		File filtered_normalized_adata_object
 
-		String batch_key
 		Int n_top_genes
 
 		String raw_data_path
@@ -322,9 +287,8 @@ task feature_selection {
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/feature_selection.py \
+		python3 /opt/scripts/dim_reduction_and_clustering.py \
 			--adata-input ~{filtered_normalized_adata_object} \
-			--batch-key ~{batch_key} \
 			--n-top-genes ~{n_top_genes} \
 			--plots-prefix ~{cohort_id} \
 			--adata-output ~{cohort_id}.hvg_pca_neighbors_umap.h5ad
@@ -333,12 +297,16 @@ task feature_selection {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.feature_dispersion.png"
+			-o "~{cohort_id}.hvg_dispersion.png" \
+			-o "~{cohort_id}.umap_cluster.png"
 	>>>
 
 	output {
-		File feature_selection_adata_object = "~{cohort_id}.hvg_pca_neighbors_umap.h5ad"
-		String feature_dispersion_plot_png = "~{raw_data_path}/~{cohort_id}.feature_dispersion.png"
+		File clustered_adata_object = "~{cohort_id}.hvg_pca_neighbors_umap.h5ad"
+		Array[String] hvg_and_cluster_plots_png = [
+			"~{raw_data_path}/~{cohort_id}.hvg_dispersion.png",
+			"~{raw_data_path}/~{cohort_id}.umap_cluster.png"
+		]
 	}
 
 	runtime {
@@ -378,14 +346,10 @@ task plot_spatial {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.features_umap.png" \
-			-o "~{cohort_id}.groups_umap.png" \
 			-o "~{cohort_id}.image_features_spatial_scatter.png"
 	>>>
 
 	output {
-		String features_umap_plot_png = "~{raw_data_path}/~{cohort_id}.features_umap.png"
-		String groups_umap_plot_png = "~{raw_data_path}/~{cohort_id}.groups_umap.png"
 		String image_features_spatial_scatter_plot_png = "~{raw_data_path}/~{cohort_id}.image_features_spatial_scatter.png"
 	}
 
