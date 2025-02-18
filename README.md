@@ -84,11 +84,10 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | File | spaceranger_reference_data | Space Ranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads and [10x Visium notes](#10x-visium-notes). |
 | File | visium_probe_set_csv | Visium probe-based assays target genes in Space Ranger transcriptome; see https://www.10xgenomics.com/support/software/space-ranger/downloads and [10x Visium notes](#10x-visium-notes). |
 | Int? | filter_cells_min_counts | Minimum number of counts required for a cell to pass filtering. [5000] |
+| Int? | filter_cells_min_genes | Minimum number of genes required for a cell to pass filtering. [3000] |
 | Int? | filter_genes_min_cells | Minimum number of cells expressed required for a gene to pass filtering. [10] |
-| String? | batch_key | Key in AnnData object for batch information so that highly-variable genes are selected within each batch separately and merged. ['batch_id'] |
-| String? | scvi_latent_key | Latent key to save the scVI latent to. ['X_scvi'] |
+| Float? | filter_mt_max_percent | Maximum percentage of mitochondrial read counts for a cell to pass filtering. [0.2] |
 | Int? | n_top_genes | Number of highly-variable genes to keep. [3000] |
-| File? | cell_type_markers_list | CSV file containing a list of major cell type markers; used to annotate clusters. |
 | Boolean? | run_cross_team_cohort_analysis | Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps ( and generating the initial adata object(s)) will run for samples. [false] |
 | String | cohort_raw_data_bucket | Bucket to upload cross-team cohort analysis intermediate files to. |
 | Array[String] | cohort_staging_data_buckets | Buckets to upload cross-team cohort analysis outputs to. |
@@ -254,17 +253,13 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
     │   ├── ${cohort_id}.sample_list.tsv
     │   ├──	${cohort_id}.merged_adata_object.h5ad
     │   ├── ${cohort_id}.qc_violin.png
-    │   ├── ${cohort_id}.qc_scatter.png
-    │   ├── ${cohort_id}.umap.png
-    │   ├── ${cohort_id}_scvi_model.tar.gz
-    │   ├── ${cohort_id}.cell_types.csv
-    │   ├── ${cohort_id}.features_umap.png
-    │   ├── ${cohort_id}.groups_umap.png
+    │   ├── ${cohort_id}.qc_dist.png
+    │   ├── ${cohort_id}.hvg_dispersion.png
+    │   ├── ${cohort_id}.umap_cluster.png
     │   ├── ${cohort_id}.image_features_spatial_scatter.png
-    │   ├── ${cohort_id}.moran_top_10_variable_genes.csv
-    │   ├── ${cohort_id}.nhood_enrichment.png
     │   ├── ${cohort_id}.final_adata_object.h5ad
-    │   ├── ${cohort_id}.co_occurrence.png
+    │   ├── ${cohort_id}.moran_top_10_variable_genes.csv
+    │   ├── ${cohort_id}.moran_top_3_variable_genes_spatial_scatter.png
     │   └── MANIFEST.tsv
     └── preprocess
         ├── ${sampleA_id}.raw_feature_bc_matrix.h5
