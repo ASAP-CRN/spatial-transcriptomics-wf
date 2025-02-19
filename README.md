@@ -359,8 +359,9 @@ docker
         ├── visium_qc.py
         ├── image_features.py
         ├── merge_and_plot_visium_qc.py
-        ├── filter_and_normalize.py
-        ├── dim_reduction_and_clustering.py
+        ├── process.py
+        ├── integrate_harmony.py
+        ├── cluster.py
         ├── plot_spatial.py
         ├── identify_spatially_variable_genes.py
         └── ...
