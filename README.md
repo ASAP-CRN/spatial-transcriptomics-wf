@@ -346,18 +346,19 @@ docker
 ├── geomxngs
 │   ├── build.env
 │   └── Dockerfile
-└── squidpy
+└── spatial_py
     ├── build.env
     ├── Dockerfile
     ├── requirements.txt
     └── scripts
-        ├── geomx_qc.py
-        ├── merge_and_plot_geomx_qc.py
+        ├── counts_to_adata.py
+        ├── visium_qc.py
+        ├── image_features.py
+        ├── merge_and_plot_visium_qc.py
         ├── filter_and_normalize.py
-        ├── cluster.py
-        ├── neighbors_enrichment_analysis.py
-        ├── co_occurrence_probability.py
-        ├── moran_i_score.py
+        ├── dim_reduction_and_clustering.py
+        ├── plot_spatial.py
+        ├── identify_spatially_variable_genes.py
         └── ...
 ```
 
@@ -392,7 +393,7 @@ Docker images can be build using the [`build_docker_images`](https://github.com/
 | Image | Major tool versions | Links | Workflow |
 | :- | :- | :- | :- |
 | geomxngs | <ul><li>[geomxngs v3.1.1.6](https://nanostring.app.box.com/v/GeoMxSW3-1-0/folder/233772026049)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/geomxngs) | pmdbs_spatial_geomx |
-| squidpy | Python (v3.12.5) libraries: <ul><li>[squidpy v1.6.2](https://github.com/scverse/squidpy/releases/tag/v1.6.2)</li><li>[matplotlib v3.10.0](https://github.com/matplotlib/matplotlib/releases/tag/v3.10.0)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li><li>[scanpy v1.10.4](https://github.com/scverse/scanpy/releases/tag/1.10.4)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/squidpy) | both |
+| spatial_py | Python (v3.12.5) libraries: <ul><li>[squidpy v1.6.2](https://github.com/scverse/squidpy/releases/tag/v1.6.2)</li><li>[matplotlib v3.10.0](https://github.com/matplotlib/matplotlib/releases/tag/v3.10.0)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li><li>[scanpy v1.10.4](https://github.com/scverse/scanpy/releases/tag/1.10.4)</li><li>[stlearn v0.4.10](https://github.com/BiomedicalMachineLearning/stLearn/releases/tag/0.4.10)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/spatial_py) | both |
 | spaceranger | <ul><li>[spaceranger v3.1.2](https://www.10xgenomics.com/support/software/space-ranger/latest/release-notes/release-notes-for-SR#v-3-1-2)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/spaceranger) | pmdbs_spatial_visium |
 | util | <ul><li>[google-cloud-cli 444.0.0-slim](https://cloud.google.com/sdk/docs/release-notes#44400_2023-08-22)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/util) | both |
 
