@@ -87,7 +87,7 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | Int? | filter_cells_min_genes | Minimum number of genes required for a cell to pass filtering. [3000] |
 | Int? | filter_genes_min_cells | Minimum number of cells expressed required for a gene to pass filtering. [10] |
 | Float? | filter_mt_max_percent | Maximum percentage of mitochondrial read counts for a cell to pass filtering. [0.2] |
-| Float? | normalize_target_sum | The total count to which each cell's gene expression values will be normalized. [1e4] |
+| Float? | normalize_target_sum | The total count to which each cell's gene expression values will be normalized. [10000] |
 | Int? | n_top_genes | Number of highly-variable genes to keep. [3000] |
 | Int? | n_comps | Number of principal components to compute. [30] |
 | String? | batch_key | Key in AnnData object for batch information. ['batch_id'] |
@@ -124,6 +124,8 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | File? | fastq_I1 | Optional fastq index 1. |
 | File? | fastq_I2 | Optional fastq index 2. |
 | File? | visium_brightfield_image | Optional 10x Visium brightfield image. This is required for the spatial transcriptomics 10x Visium pipeline. |
+| String? | visium_slide_serial_number | Optional 10x Visium slide serial number. This is required for the spatial transcriptomics 10x Visium pipeline. |
+| String? | visium_capture_area | Optional 10x Visium slide capture area. This is required for the spatial transcriptomics 10x Visium pipeline. |
 
 ## Generating the inputs JSON
 

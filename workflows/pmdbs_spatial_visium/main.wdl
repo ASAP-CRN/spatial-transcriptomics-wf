@@ -20,7 +20,7 @@ workflow pmdbs_spatial_visium_analysis {
 		Int filter_cells_min_genes = 3000
 		Int filter_genes_min_cells = 10
 		Float filter_mt_max_percent = 0.2
-		Float normalize_target_sum = 1e4
+		Float normalize_target_sum = 10000
 		Int n_top_genes = 3000
 		Int n_comps = 30
 		String batch_key = "batch_id"
@@ -217,7 +217,7 @@ workflow pmdbs_spatial_visium_analysis {
 		filter_cells_min_genes: {help: "Minimum number of genes required for a cell to pass filtering. [3000]"}
 		filter_genes_min_cells: {help: "Minimum number of cells expressed required for a gene to pass filtering. [10]"}
 		filter_mt_max_percent: {help: "Maximum percentage of mitochondrial read counts for a cell to pass filtering. [0.2]"}
-		normalize_target_sum: {help: "The total count to which each cell's gene expression values will be normalized. [1e4]"}
+		normalize_target_sum: {help: "The total count to which each cell's gene expression values will be normalized. [10000]"}
 		n_top_genes: {help: "Number of highly-variable genes to keep. [3000]"}
 		n_comps: {help: "Number of principal components to compute. [30]"}
 		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}

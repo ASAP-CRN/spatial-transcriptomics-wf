@@ -108,7 +108,7 @@ if __name__ == "__main__":
         "--target-sum",
         type=float,
         required=True,
-        help="The total count to which each cell's gene expression values will be normalized using `scanpy.pp.normalize_total` [1e4]"
+        help="The total count to which each cell's gene expression values will be normalized using `scanpy.pp.normalize_total` [10000]"
     )
     parser.add_argument(
         "-n",
