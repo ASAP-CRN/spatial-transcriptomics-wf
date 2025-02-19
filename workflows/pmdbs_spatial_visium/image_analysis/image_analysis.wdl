@@ -127,7 +127,7 @@ task image_features {
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
+		docker: "~{container_registry}/spatial_py:1.0.0"
 		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"

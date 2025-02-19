@@ -12,7 +12,7 @@ def main(args):
     sq.pl.spatial_scatter(
         adata,
         library_key="sample",
-        color=["total_counts", "n_genes_by_counts", "clusters"],
+        color=["total_counts", "n_genes_by_counts", "batch", "leiden"],
     )
     plt.savefig(f"{args.plots_prefix}.image_features_spatial_scatter.png", dpi=300, bbox_inches="tight")
 

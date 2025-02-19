@@ -87,7 +87,11 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | Int? | filter_cells_min_genes | Minimum number of genes required for a cell to pass filtering. [3000] |
 | Int? | filter_genes_min_cells | Minimum number of cells expressed required for a gene to pass filtering. [10] |
 | Float? | filter_mt_max_percent | Maximum percentage of mitochondrial read counts for a cell to pass filtering. [0.2] |
+| Float? | normalize_target_sum | The total count to which each cell's gene expression values will be normalized. [1e4] |
 | Int? | n_top_genes | Number of highly-variable genes to keep. [3000] |
+| Int? | n_comps | Number of principal components to compute. [30] |
+| String? | batch_key | Key in AnnData object for batch information. ['batch_id'] |
+| Float? | leiden_resolution | Value controlling the coarseness of the Leiden clustering. [0.4] |
 | Boolean? | run_cross_team_cohort_analysis | Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps ( and generating the initial adata object(s)) will run for samples. [false] |
 | String | cohort_raw_data_bucket | Bucket to upload cross-team cohort analysis intermediate files to. |
 | Array[String] | cohort_staging_data_buckets | Buckets to upload cross-team cohort analysis outputs to. |

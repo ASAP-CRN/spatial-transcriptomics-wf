@@ -15,12 +15,16 @@ workflow pmdbs_spatial_visium_analysis {
 		File spaceranger_reference_data
 		File visium_probe_set_csv
 
-		# Filter parameters
+		# Processing parameters
 		Int filter_cells_min_counts = 5000
 		Int filter_cells_min_genes = 3000
 		Int filter_genes_min_cells = 10
 		Float filter_mt_max_percent = 0.2
+		Float normalize_target_sum = 1e4
 		Int n_top_genes = 3000
+		Int n_comps = 30
+		String batch_key = "batch_id"
+		Float leiden_resolution = 0.4
 
 		# Cohort analysis
 		Boolean run_cross_team_cohort_analysis = false
@@ -86,7 +90,11 @@ workflow pmdbs_spatial_visium_analysis {
 					filter_cells_min_genes = filter_cells_min_genes,
 					filter_genes_min_cells = filter_genes_min_cells,
 					filter_mt_max_percent = filter_mt_max_percent,
+					normalize_target_sum = normalize_target_sum,
 					n_top_genes = n_top_genes,
+					n_comps = n_comps,
+					batch_key = batch_key,
+					leiden_resolution = leiden_resolution,
 					workflow_name = workflow_name,
 					workflow_version = workflow_version,
 					workflow_release = workflow_release,
@@ -113,7 +121,11 @@ workflow pmdbs_spatial_visium_analysis {
 				filter_cells_min_genes = filter_cells_min_genes,
 				filter_genes_min_cells = filter_genes_min_cells,
 				filter_mt_max_percent = filter_mt_max_percent,
+				normalize_target_sum = normalize_target_sum,
 				n_top_genes = n_top_genes,
+				n_comps = n_comps,
+				batch_key = batch_key,
+				leiden_resolution = leiden_resolution,
 				workflow_name = workflow_name,
 				workflow_version = workflow_version,
 				workflow_release = workflow_release,
@@ -148,12 +160,14 @@ workflow pmdbs_spatial_visium_analysis {
 		## List of samples included in the cohort
 		Array[File?] project_cohort_sample_list = project_cohort_analysis.cohort_sample_list
 
-		# Merged adata objects, filtered and normalized adata objects, clustered adata objects, and plots
+		# Merged, processed (filtered, normalized, dimensionality reduced), integrated, and clustered adata objects, and plots
 		Array[File?] project_merged_adata_object = project_cohort_analysis.merged_adata_object
 		Array[Array[File]?] project_qc_plots_png = project_cohort_analysis.qc_plots_png
-		Array[File?] project_filtered_normalized_adata_object = project_cohort_analysis.filtered_normalized_adata_object
+		Array[File?] project_processed_adata_object = project_cohort_analysis.processed_adata_object
+		Array[File?] project_hvg_plot_png = project_cohort_analysis.hvg_plot_png
+		Array[File?] project_integrated_adata_object = project_cohort_analysis.integrated_adata_object
 		Array[File?] project_clustered_adata_object = project_cohort_analysis.clustered_adata_object
-		Array[Array[File]?] project_hvg_and_cluster_plots_png = project_cohort_analysis.hvg_and_cluster_plots_png
+		Array[File?] project_umap_cluster_plots_png = project_cohort_analysis.umap_cluster_plots_png
 
 		# Image features outputs
 		Array[File?] project_image_features_spatial_scatter_plot_png = project_cohort_analysis.image_features_spatial_scatter_plot_png
@@ -170,14 +184,16 @@ workflow pmdbs_spatial_visium_analysis {
 		## List of samples included in the cohort
 		File? cohort_cohort_sample_list = cross_team_cohort_analysis.cohort_sample_list
 
-		# Merged adata objects, filtered and normalized adata objects, clustered adata objects, and plots
+		# Merged, processed (filtered, normalized, dimensionality reduced), integrated, and clustered adata objects, and plots
 		File? cohort_merged_adata_object = cross_team_cohort_analysis.merged_adata_object
 		Array[File]? cohort_qc_plots_png = cross_team_cohort_analysis.qc_plots_png
-		File? cohort_filtered_normalized_adata_object = cross_team_cohort_analysis.filtered_normalized_adata_object
+		File? cohort_processed_adata_object = cross_team_cohort_analysis.processed_adata_object
+		File? cohort_hvg_plot_png = cross_team_cohort_analysis.hvg_plot_png
+		File? cohort_integrated_adata_object = cross_team_cohort_analysis.integrated_adata_object
 		File? cohort_clustered_adata_object = cross_team_cohort_analysis.clustered_adata_object
-		Array[File]? cohort_hvg_and_cluster_plots_png = cross_team_cohort_analysis.hvg_and_cluster_plots_png
+		File? cohort_umap_cluster_plots_png = cross_team_cohort_analysis.umap_cluster_plots_png
 
-		# Image features outputs
+		# Spatial plots
 		File? cohort_image_features_spatial_scatter_plot_png = cross_team_cohort_analysis.image_features_spatial_scatter_plot_png
 
 		# Spatial statistics outputs
@@ -201,7 +217,11 @@ workflow pmdbs_spatial_visium_analysis {
 		filter_cells_min_genes: {help: "Minimum number of genes required for a cell to pass filtering. [3000]"}
 		filter_genes_min_cells: {help: "Minimum number of cells expressed required for a gene to pass filtering. [10]"}
 		filter_mt_max_percent: {help: "Maximum percentage of mitochondrial read counts for a cell to pass filtering. [0.2]"}
+		normalize_target_sum: {help: "The total count to which each cell's gene expression values will be normalized. [1e4]"}
 		n_top_genes: {help: "Number of highly-variable genes to keep. [3000]"}
+		n_comps: {help: "Number of principal components to compute. [30]"}
+		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}
+		leiden_resolution: {help: "Value controlling the coarseness of the Leiden clustering. [0.4]"}
 		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (GeoMxNGSPipeline and generating the initial adata object(s)) will run for samples. [false]"}
 		cohort_raw_data_bucket: {help: "Bucket to upload cross-team downstream intermediate files to."}
 		cohort_staging_data_buckets: {help: "Set of buckets to stage cross-team downstream analysis outputs in."}

@@ -1,8 +1,9 @@
 version 1.0
 
-# Merge and process adata object with QC, filtering, normalization, and clustering
+# Merge and process adata object with QC, filtering, normalization, dimensionality reduction, integration, and clustering
 
 import "../../../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
+import "integrate_data/integrate_data.wdl" as IntegrateData
 import "../../spatial_statistics/spatial_statistics.wdl" as SpatialStatistics
 import "../../../wf-common/wdl/tasks/upload_final_outputs.wdl" as UploadFinalOutputs
 
@@ -15,12 +16,16 @@ workflow cohort_analysis {
 		# If provided, these files will be uploaded to the staging bucket alongside other intermediate files made by this workflow
 		Array[String] preprocessing_output_file_paths = []
 
-		# Filter parameters
+		# Processing parameters
 		Int filter_cells_min_counts
 		Int filter_cells_min_genes
 		Int filter_genes_min_cells
 		Float filter_mt_max_percent
+		Float normalize_target_sum
 		Int n_top_genes
+		Int n_comps
+		String batch_key
+		Float leiden_resolution
 
 		String workflow_name
 		String workflow_version
@@ -62,7 +67,7 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call filter_and_normalize {
+	call process {
 		input:
 			cohort_id = cohort_id,
 			merged_adata_object = merge_and_plot_qc_metrics.merged_adata_object, #!FileCoercion
@@ -70,15 +75,23 @@ workflow cohort_analysis {
 			filter_cells_min_genes = filter_cells_min_genes,
 			filter_genes_min_cells = filter_genes_min_cells,
 			filter_mt_max_percent = filter_mt_max_percent,
+			normalize_target_sum = normalize_target_sum,
+			n_top_genes = n_top_genes,
+			n_comps = n_comps,
+			raw_data_path = raw_data_path,
+			workflow_info = workflow_info,
+			billing_project = billing_project,
 			container_registry = container_registry,
 			zones = zones
 	}
 
-	call cluster {
+	call IntegrateData.integrate_data {
 		input:
 			cohort_id = cohort_id,
-			filtered_normalized_adata_object = filter_and_normalize.filtered_normalized_adata_object, #!FileCoercion
-			n_top_genes = n_top_genes,
+			processed_adata_object = process.processed_adata_object, #!FileCoercion
+			n_comps = n_comps,
+			batch_key = batch_key,
+			leiden_resolution = leiden_resolution,
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -89,7 +102,7 @@ workflow cohort_analysis {
 	call plot_spatial {
 		input:
 			cohort_id = cohort_id,
-			clustered_adata_object = cluster.clustered_adata_object, #!FileCoercion
+			clustered_adata_object = integrate_data.clustered_adata_object, #!FileCoercion
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -100,7 +113,7 @@ workflow cohort_analysis {
 	call SpatialStatistics.spatial_statistics {
 		input:
 			cohort_id = cohort_id,
-			clustered_adata_object = cluster.clustered_adata_object, #!FileCoercion
+			clustered_adata_object = integrate_data.clustered_adata_object, #!FileCoercion
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -125,7 +138,12 @@ workflow cohort_analysis {
 			merge_and_plot_qc_metrics.merged_adata_object
 		],
 		merge_and_plot_qc_metrics.qc_plots_png,
-		cluster.hvg_and_cluster_plots_png,
+		[
+			process.hvg_plot_png
+		],
+		[
+			integrate_data.umap_cluster_plots_png
+		],
 		[
 			plot_spatial.image_features_spatial_scatter_plot_png
 		],
@@ -152,17 +170,19 @@ workflow cohort_analysis {
 		File merged_adata_object = merge_and_plot_qc_metrics.merged_adata_object #!FileCoercion
 		Array[File] qc_plots_png = merge_and_plot_qc_metrics.qc_plots_png #!FileCoercion
 
-		# Filtered and normalized adata object
-		File filtered_normalized_adata_object = filter_and_normalize.filtered_normalized_adata_object #!FileCoercion
+		# Processed outputs
+		File processed_adata_object = process.processed_adata_object
+		File hvg_plot_png = process.hvg_plot_png #!FileCoercion
 
-		# Cluster
-		File clustered_adata_object = cluster.clustered_adata_object #!FileCoercion
-		Array[File] hvg_and_cluster_plots_png = cluster.hvg_and_cluster_plots_png #!FileCoercion
+		# Integrate data outputs
+		File integrated_adata_object = integrate_data.integrated_adata_object
+		File clustered_adata_object = integrate_data.clustered_adata_object
+		File umap_cluster_plots_png = integrate_data.umap_cluster_plots_png
 
 		# Spatial plots
 		File image_features_spatial_scatter_plot_png = plot_spatial.image_features_spatial_scatter_plot_png #!FileCoercion
 
-		# Spatial statistics output
+		# Spatial statistics outputs
 		File final_adata_object = spatial_statistics.final_adata_object
 		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
 		File moran_top_3_variable_genes_spatial_scatter_plot_png = spatial_statistics.moran_top_3_variable_genes_spatial_scatter_plot_png
@@ -213,7 +233,7 @@ task merge_and_plot_qc_metrics {
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
+		docker: "~{container_registry}/spatial_py:1.0.0"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -223,7 +243,7 @@ task merge_and_plot_qc_metrics {
 	}
 }
 
-task filter_and_normalize {
+task process {
 	input {
 		String cohort_id
 		File merged_adata_object
@@ -232,7 +252,13 @@ task filter_and_normalize {
 		Int filter_cells_min_genes
 		Int filter_genes_min_cells
 		Float filter_mt_max_percent
+		Float normalize_target_sum
+		Int n_top_genes
+		Int n_comps
 
+		String raw_data_path
+		Array[Array[String]] workflow_info
+		String billing_project
 		String container_registry
 		String zones
 	}
@@ -243,75 +269,33 @@ task filter_and_normalize {
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/filter_and_normalize.py \
+		python3 /opt/scripts/process.py \
 			--adata-input ~{merged_adata_object} \
 			--min-counts ~{filter_cells_min_counts} \
 			--min-genes ~{filter_cells_min_genes} \
 			--min-cells ~{filter_genes_min_cells} \
 			--mt-max-percent ~{filter_mt_max_percent} \
-			--adata-output ~{cohort_id}.filtered_normalized.h5ad
-	>>>
-
-	output {
-		File filtered_normalized_adata_object = "~{cohort_id}.filtered_normalized.h5ad"
-	}
-
-	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
-		cpu: 2
-		memory: "~{mem_gb} GB"
-		disks: "local-disk ~{disk_size} HDD"
-		preemptible: 3
-		bootDiskSizeGb: 30
-		zones: zones
-	}
-}
-
-task cluster {
-	input {
-		String cohort_id
-		File filtered_normalized_adata_object
-
-		Int n_top_genes
-
-		String raw_data_path
-		Array[Array[String]] workflow_info
-		String billing_project
-		String container_registry
-		String zones
-	}
-
-	Int mem_gb = ceil(size(filtered_normalized_adata_object, "GB") * 2 + 20)
-	Int disk_size = ceil(size(filtered_normalized_adata_object, "GB") * 2 + 50)
-
-	command <<<
-		set -euo pipefail
-
-		python3 /opt/scripts/dim_reduction_and_clustering.py \
-			--adata-input ~{filtered_normalized_adata_object} \
+			--target-sum ~{normalize_target_sum} \
 			--n-top-genes ~{n_top_genes} \
+			--n-comps ~{n_comps} \
 			--plots-prefix ~{cohort_id} \
-			--adata-output ~{cohort_id}.hvg_pca_neighbors_umap.h5ad
+			--adata-output ~{cohort_id}.processed.h5ad
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.hvg_dispersion.png" \
-			-o "~{cohort_id}.umap_cluster.png"
+			-o "~{cohort_id}.hvg_dispersion.png"
 	>>>
 
 	output {
-		File clustered_adata_object = "~{cohort_id}.hvg_pca_neighbors_umap.h5ad"
-		Array[String] hvg_and_cluster_plots_png = [
-			"~{raw_data_path}/~{cohort_id}.hvg_dispersion.png",
-			"~{raw_data_path}/~{cohort_id}.umap_cluster.png"
-		]
+		File processed_adata_object = "~{cohort_id}.processed.h5ad"
+		String hvg_plot_png = "~{raw_data_path}/~{cohort_id}.hvg_dispersion.png"
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
-		cpu: 2
+		docker: "~{container_registry}/spatial_py:1.0.0"
+		cpu: 4
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
@@ -354,7 +338,7 @@ task plot_spatial {
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
+		docker: "~{container_registry}/spatial_py:1.0.0"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"

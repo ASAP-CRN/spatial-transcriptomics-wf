@@ -396,7 +396,7 @@ task counts_to_adata {
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
+		docker: "~{container_registry}/spatial_py:1.0.0"
 		cpu: 2
 		memory: "16 GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -442,7 +442,7 @@ task qc {
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
+		docker: "~{container_registry}/spatial_py:1.0.0"
 		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"

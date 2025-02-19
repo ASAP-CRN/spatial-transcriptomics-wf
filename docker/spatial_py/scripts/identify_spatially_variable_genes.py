@@ -30,7 +30,7 @@ def main(args):
     top_10_variable_genes = adata.uns["moranI"].head(10)
 
     top_3_variable_gene_list = adata.uns["moranI"].head(3).index.tolist()
-    top_3_variable_gene_list.append("clusters")
+    top_3_variable_gene_list.append("leiden")
     sq.pl.spatial_scatter(
         adata,
         library_key="sample",
