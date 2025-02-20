@@ -244,7 +244,7 @@ task spaceranger_count {
 
 	Int threads = 16
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size(flatten([fastq_R1s, fastq_R2s]), "GB") + size([visium_brightfield_image, spaceranger_reference_data, visium_probe_set_csv], "GB") * 2 + 50)
+	Int disk_size = ceil(size(flatten([fastq_R1s, fastq_R2s]), "GB") + size([visium_brightfield_image, spaceranger_reference_data, visium_probe_set_csv], "GB") * 5 + 80)
 
 	command <<<
 		set -euo pipefail
