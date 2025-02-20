@@ -16,11 +16,11 @@ def main(args):
     adata.var["rb"] = adata.var_names.str.startswith(("RPS", "RPL"))
     adata.var["hb"] = adata.var_names.str.contains("^HB[^(P)]")
 
-    adata.obs["mt_frac"] = adata[:, adata.var["mt"]].X.sum(1).A.squeeze()/adata.obs["total_counts"]
-
     sc.pp.calculate_qc_metrics(
         adata, qc_vars=["mt", "rb", "hb"], inplace=True, log1p=True
     )
+
+    adata.obs["mt_frac"] = adata[:, adata.var["mt"]].X.sum(1).A.squeeze()/adata.obs["total_counts"]
 
     # Adata object must contain strings
     for col in adata.obs.columns:
