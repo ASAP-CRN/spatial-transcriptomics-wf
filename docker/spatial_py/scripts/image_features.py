@@ -59,7 +59,7 @@ def main(args):
     adata.obs["features_cluster"] = adata_tmp.obs["leiden"]
 
     # Save adata object
-    adata.write_h5ad(filename=args.adata_output)
+    adata.write_h5ad(filename=args.adata_output, compression="gzip")
 
 
 if __name__ == "__main__":

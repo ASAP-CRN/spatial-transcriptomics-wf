@@ -31,7 +31,7 @@ def main(args):
     plt.savefig(f"{args.plots_prefix}.umap_cluster.png", dpi=300, bbox_inches="tight")
 
     # Save outputs
-    adata.write_h5ad(filename=args.adata_output)
+    adata.write_h5ad(filename=args.adata_output, compression="gzip")
 
 
 if __name__ == "__main__":
