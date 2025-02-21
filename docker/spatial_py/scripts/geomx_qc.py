@@ -22,7 +22,7 @@ def main(args):
     with open("unassigned_ctrl_probes_percentage.txt", "w") as file:
         file.write(f"{unassigned_ctrl_probes_percentage}")
 
-    adata.write_h5ad(filename=args.qc_adata_output, compression="lzf")
+    adata.write_h5ad(filename=args.qc_adata_output, compression="gzip")
 
 
 if __name__ == "__main__":

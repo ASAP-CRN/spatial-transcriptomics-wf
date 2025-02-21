@@ -27,7 +27,7 @@ def main(args):
         if pd.api.types.is_object_dtype(adata.obs[col].dtype):
             adata.obs[col] = adata.obs[col].astype(str)
     
-    adata.write_h5ad(filename=args.qc_adata_output, compression="lzf")
+    adata.write_h5ad(filename=args.qc_adata_output, compression="gzip")
 
 
 if __name__ == "__main__":

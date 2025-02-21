@@ -19,7 +19,7 @@ def main(args):
     )
 
     # Save outputs
-    adata.write_h5ad(filename=args.adata_output, compression="lzf")
+    adata.write_h5ad(filename=args.adata_output, compression="gzip")
 
 
 if __name__ == "__main__":

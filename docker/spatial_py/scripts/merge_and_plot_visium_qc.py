@@ -68,7 +68,7 @@ def main(args):
     plt.savefig(f"{args.qc_plots_prefix}.qc_dist.png", dpi=300, bbox_inches="tight")
 
     # Save outputs
-    merged_adata.write_h5ad(filename=args.merged_adata_output, compression="lzf")
+    merged_adata.write_h5ad(filename=args.merged_adata_output, compression="gzip")
 
 
 if __name__ == "__main__":
