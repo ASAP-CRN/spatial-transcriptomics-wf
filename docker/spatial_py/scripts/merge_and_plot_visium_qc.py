@@ -18,7 +18,7 @@ def main(args):
         sample_id = adata.obs["sample"].unique()
         adatas[sample_id[0]] = adata
 
-    merged_adata = ad.concat(adatas, index_unique="_", merge="same", uns_merge="same")
+    merged_adata = ad.concat(adatas, index_unique="_", merge="same", uns_merge="unique")
 
 
     ##########
