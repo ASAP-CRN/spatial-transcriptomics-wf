@@ -20,6 +20,8 @@ def main(args):
 
     merged_adata = ad.concat(adatas, index_unique="_", merge="same", uns_merge="unique")
 
+    if not "spatial" in merged_adata.uns:
+        raise ValueError(f"adata.uns lost spatial information during merge. Exiting.")
 
     ##########
     ## PLOT ##
