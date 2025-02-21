@@ -21,7 +21,7 @@ def main(args):
     # Visualize two covariates (total counts per spot and number of genes by counts) in UMAP space
     sc.tl.leiden(
         adata,
-        resolution=args.leiden_resolution,
+        resolution=args.resolution,
     )
 
     sc.pl.umap(
