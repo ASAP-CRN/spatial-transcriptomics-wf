@@ -2,6 +2,7 @@ import argparse
 import pandas as pd
 import numpy as np
 import scanpy as sc
+import harmonypy as hm
 
 # https://stlearn.readthedocs.io/en/latest/tutorials/Integration_multiple_datasets.html
 
