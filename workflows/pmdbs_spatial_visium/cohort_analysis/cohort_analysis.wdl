@@ -145,7 +145,7 @@ workflow cohort_analysis {
 			integrate_data.umap_cluster_plots_png
 		],
 		[
-			plot_spatial.image_features_spatial_scatter_plot_png
+			plot_spatial.spatial_scatter_plot_png
 		],
 		[	
 			spatial_statistics.final_adata_object,
