@@ -66,7 +66,7 @@ task integrate_sample_data {
 
 		python3 /opt/scripts/integrate_harmony.py \
 			--adata-input ~{processed_adata_object} \
-			--batch_key ~{batch_key} \
+			--batch-key ~{batch_key} \
 			--adata-output ~{cohort_id}.harmony_integrated.h5ad
 	>>>
 
