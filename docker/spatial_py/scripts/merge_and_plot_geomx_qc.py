@@ -51,7 +51,7 @@ def main(args):
     plt.tight_layout()
     fig.savefig(args.qc_plots_output, dpi=300)
 
-    merged_adata.write_h5ad(filename=args.merged_adata_output, compression="gzip")
+    merged_adata.write_h5ad(filename=args.merged_adata_output, compression="lzf")
 
 
 if __name__ == "__main__":

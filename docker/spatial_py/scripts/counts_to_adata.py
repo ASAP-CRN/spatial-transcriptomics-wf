@@ -28,7 +28,7 @@ def main(args):
     adata.obs["batch_id"] = f"{args.team_id}_{args.dataset_id}_{args.batch}"
     
     # Save adata object
-    adata.write_h5ad(filename=args.adata_output, compression="gzip")
+    adata.write_h5ad(filename=args.adata_output, compression="lzf")
 
 
 if __name__ == "__main__":

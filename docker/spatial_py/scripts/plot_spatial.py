@@ -14,19 +14,19 @@ def main(args):
         library_key="sample",
         color=["total_counts", "n_genes_by_counts", "batch", "leiden"],
     )
-    plt.savefig(f"{args.plots_prefix}.image_features_spatial_scatter.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"{args.plots_prefix}.spatial_scatter.png", dpi=300, bbox_inches="tight")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Calculate image features (e.g. morphological, intensity-based, and texture-based features) to help describe spatial patterns that can be linked to gene expression or cell organization."
+        description="Plot spatial omics data with data overlayed on top"
     )
     parser.add_argument(
         "-i",
         "--adata-input",
         type=str,
         required=True,
-        help="Adata object to calculate image features on"
+        help="Adata object to plot"
     )
     parser.add_argument(
         "-p",

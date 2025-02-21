@@ -40,7 +40,7 @@ def main(args):
 
     # Save table and adata object
     top_10_variable_genes.to_csv(f"{args.cohort_id}.moran_top_10_variable_genes.csv")
-    adata.write_h5ad(filename=args.adata_output, compression="gzip")
+    adata.write_h5ad(filename=args.adata_output, compression="lzf")
 
 
 if __name__ == "__main__":
