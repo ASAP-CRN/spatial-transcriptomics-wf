@@ -180,7 +180,7 @@ workflow cohort_analysis {
 		File umap_cluster_plots_png = integrate_data.umap_cluster_plots_png
 
 		# Spatial plots
-		File image_features_spatial_scatter_plot_png = plot_spatial.image_features_spatial_scatter_plot_png #!FileCoercion
+		File spatial_scatter_plot_png = plot_spatial.spatial_scatter_plot_png #!FileCoercion
 
 		# Spatial statistics outputs
 		File final_adata_object = spatial_statistics.final_adata_object
@@ -330,11 +330,11 @@ task plot_spatial {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.image_features_spatial_scatter.png"
+			-o "~{cohort_id}.spatial_scatter.png"
 	>>>
 
 	output {
-		String image_features_spatial_scatter_plot_png = "~{raw_data_path}/~{cohort_id}.image_features_spatial_scatter.png"
+		String spatial_scatter_plot_png = "~{raw_data_path}/~{cohort_id}.spatial_scatter.png"
 	}
 
 	runtime {

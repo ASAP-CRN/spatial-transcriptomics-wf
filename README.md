@@ -38,15 +38,9 @@ Both workflows follow a similar structure, it is broken up into two main chunks:
 1. [Preprocessing](#preprocessing)
 2. [Cohort analysis](#cohort-analysis)
 
-The 10x Visium workflow has a step in between for [image analysis](#image-analysis).
-
 ## Preprocessing
 
 Run once per sample; only rerun when the preprocessing workflow version is updated. Preprocessing outputs are stored in the originating team's raw and staging data buckets.
-
-## Image analysis (10x Visium only)
-
-Run once per sample; only rerun when the image analysis workflow version is updated. Image analysis outputs are not saved, but instead, treated as intermediate outputs.
 
 ## Cohort analysis
 
@@ -205,10 +199,6 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset}
         │   └──${cohort_analysis_workflow_version}
         │      └── ${workflow_run_timestamp}
         │          └── <cohort_analysis outputs>
-        ├── image_analysis
-        │   └── image_features
-        │       └── ${image_features_task_version}
-        │           └── <image_features outputs>
         └── preprocess
             ├── spaceranger_count
             │   └── ${spaceranger_count_task_version}
@@ -262,7 +252,7 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
     │   ├── ${cohort_id}.qc_dist.png
     │   ├── ${cohort_id}.hvg_dispersion.png
     │   ├── ${cohort_id}.umap_cluster.png
-    │   ├── ${cohort_id}.image_features_spatial_scatter.png
+    │   ├── ${cohort_id}.spatial_scatter.png
     │   ├── ${cohort_id}.final_adata_object.h5ad
     │   ├── ${cohort_id}.moran_top_10_variable_genes.csv
     │   ├── ${cohort_id}.moran_top_3_variable_genes_spatial_scatter.png
@@ -359,7 +349,6 @@ docker
     └── scripts
         ├── counts_to_adata.py
         ├── visium_qc.py
-        ├── image_features.py
         ├── merge_and_plot_visium_qc.py
         ├── process.py
         ├── integrate_harmony.py

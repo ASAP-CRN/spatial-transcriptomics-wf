@@ -170,7 +170,7 @@ workflow pmdbs_spatial_visium_analysis {
 		Array[File?] project_umap_cluster_plots_png = project_cohort_analysis.umap_cluster_plots_png
 
 		# Image features outputs
-		Array[File?] project_image_features_spatial_scatter_plot_png = project_cohort_analysis.image_features_spatial_scatter_plot_png
+		Array[File?] project_spatial_scatter_plot_png = project_cohort_analysis.spatial_scatter_plot_png
 
 		# Spatial statistics outputs
 		Array[File?] project_final_adata_object = project_cohort_analysis.final_adata_object
@@ -194,7 +194,7 @@ workflow pmdbs_spatial_visium_analysis {
 		File? cohort_umap_cluster_plots_png = cross_team_cohort_analysis.umap_cluster_plots_png
 
 		# Spatial plots
-		File? cohort_image_features_spatial_scatter_plot_png = cross_team_cohort_analysis.image_features_spatial_scatter_plot_png
+		File? cohort_spatial_scatter_plot_png = cross_team_cohort_analysis.spatial_scatter_plot_png
 
 		# Spatial statistics outputs
 		File? cohort_final_adata_object = cross_team_cohort_analysis.final_adata_object
