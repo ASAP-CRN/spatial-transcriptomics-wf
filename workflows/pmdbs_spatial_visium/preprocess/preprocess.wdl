@@ -85,6 +85,8 @@ workflow preprocess {
 					fastq_I1s = sample.fastq_I1s,
 					fastq_I2s = sample.fastq_I2s,
 					visium_brightfield_image = select_first([sample.visium_brightfield_image]),
+					visium_slide_serial_number = select_first([sample.visium_slide_serial_number]),
+					visium_capture_area = select_first([sample.visium_capture_area]),
 					spaceranger_reference_data = spaceranger_reference_data,
 					visium_probe_set_csv = visium_probe_set_csv,
 					raw_data_path = spaceranger_raw_data_path,
@@ -227,6 +229,8 @@ task spaceranger_count {
 		Array[File] fastq_I1s
 		Array[File] fastq_I2s
 		File visium_brightfield_image
+		String visium_slide_serial_number
+		String visium_capture_area
 
 		File spaceranger_reference_data
 		File visium_probe_set_csv
@@ -240,7 +244,7 @@ task spaceranger_count {
 
 	Int threads = 16
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size(flatten([fastq_R1s, fastq_R2s]), "GB") + size([visium_brightfield_image, spaceranger_reference_data, visium_probe_set_csv], "GB") * 2 + 50)
+	Int disk_size = ceil(size(flatten([fastq_R1s, fastq_R2s]), "GB") + size([visium_brightfield_image, spaceranger_reference_data, visium_probe_set_csv], "GB") * 5 + 80)
 
 	command <<<
 		set -euo pipefail
@@ -276,7 +280,6 @@ task spaceranger_count {
 		## Rename image?
 		## Determine if CytAssist was used because it'll change the command options
 		## What version of Transcriptome v1 or v2
-		## Slide ID and capture area should be in metadata; temporarily hard-coded based on test data
 		/usr/bin/time \
 		spaceranger count \
 			--id=~{sample_id} \
@@ -284,8 +287,8 @@ task spaceranger_count {
 			--fastqs="$(pwd)/fastqs" \
 			--cytaimage=~{visium_brightfield_image} \
 			--probe-set=~{visium_probe_set_csv} \
-			--slide=V53M06-039 \
-			--area=A1 \
+			--slide=~{visium_slide_serial_number} \
+			--area=~{visium_capture_area} \
 			--localcores=~{threads} \
 			--localmem=~{mem_gb - 4} \
 			--create-bam=false
@@ -396,7 +399,7 @@ task counts_to_adata {
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
+		docker: "~{container_registry}/spatial_py:1.0.0"
 		cpu: 2
 		memory: "16 GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -442,7 +445,7 @@ task qc {
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
+		docker: "~{container_registry}/spatial_py:1.0.0"
 		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"

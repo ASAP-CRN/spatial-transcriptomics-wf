@@ -2,19 +2,18 @@ import argparse
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import scanpy as sc
+import squidpy as sq
 
-
-# https://scanpy.readthedocs.io/en/stable/tutorials/basics/clustering.html
 
 def main(args):
     #############################################
     ## GENERATE ADATA OBJECT WITH SPATIAL DATA ##
     #############################################
-    adata = sc.read_visium(
+    adata = sq.read.visium(
         path=args.spaceranger_spatial_dir,
-        library_id=args.sample_id, # TODO
+        counts_file="filtered_feature_bc_matrix.h5",
+        library_id=args.sample_id,
     )
 
     # Gene names is the index for adata.var, but there are duplicates genes so this will make it unique (e.g. TBCE vs. TBCE-1)
@@ -28,7 +27,7 @@ def main(args):
     adata.obs["batch_id"] = f"{args.team_id}_{args.dataset_id}_{args.batch}"
     
     # Save adata object
-    adata.write_h5ad(filename=args.adata_output)
+    adata.write_h5ad(filename=args.adata_output, compression="gzip")
 
 
 if __name__ == "__main__":

@@ -38,15 +38,9 @@ Both workflows follow a similar structure, it is broken up into two main chunks:
 1. [Preprocessing](#preprocessing)
 2. [Cohort analysis](#cohort-analysis)
 
-The 10x Visium workflow has a step in between for [image analysis](#image-analysis).
-
 ## Preprocessing
 
 Run once per sample; only rerun when the preprocessing workflow version is updated. Preprocessing outputs are stored in the originating team's raw and staging data buckets.
-
-## Image analysis (10x Visium only)
-
-Run once per sample; only rerun when the image analysis workflow version is updated. Image analysis outputs are not saved, but instead, treated as intermediate outputs.
 
 ## Cohort analysis
 
@@ -84,11 +78,14 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | File | spaceranger_reference_data | Space Ranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads and [10x Visium notes](#10x-visium-notes). |
 | File | visium_probe_set_csv | Visium probe-based assays target genes in Space Ranger transcriptome; see https://www.10xgenomics.com/support/software/space-ranger/downloads and [10x Visium notes](#10x-visium-notes). |
 | Int? | filter_cells_min_counts | Minimum number of counts required for a cell to pass filtering. [5000] |
+| Int? | filter_cells_min_genes | Minimum number of genes required for a cell to pass filtering. [3000] |
 | Int? | filter_genes_min_cells | Minimum number of cells expressed required for a gene to pass filtering. [10] |
-| String? | batch_key | Key in AnnData object for batch information so that highly-variable genes are selected within each batch separately and merged. ['batch_id'] |
-| String? | scvi_latent_key | Latent key to save the scVI latent to. ['X_scvi'] |
+| Float? | filter_mt_max_percent | Maximum percentage of mitochondrial read counts for a cell to pass filtering. [0.2] |
+| Float? | normalize_target_sum | The total count to which each cell's gene expression values will be normalized. [10000] |
 | Int? | n_top_genes | Number of highly-variable genes to keep. [3000] |
-| File? | cell_type_markers_list | CSV file containing a list of major cell type markers; used to annotate clusters. |
+| Int? | n_comps | Number of principal components to compute. [30] |
+| String? | batch_key | Key in AnnData object for batch information. ['batch_id'] |
+| Float? | leiden_resolution | Value controlling the coarseness of the Leiden clustering. [0.4] |
 | Boolean? | run_cross_team_cohort_analysis | Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps ( and generating the initial adata object(s)) will run for samples. [false] |
 | String | cohort_raw_data_bucket | Bucket to upload cross-team cohort analysis intermediate files to. |
 | Array[String] | cohort_staging_data_buckets | Buckets to upload cross-team cohort analysis outputs to. |
@@ -121,6 +118,8 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | File? | fastq_I1 | Optional fastq index 1. |
 | File? | fastq_I2 | Optional fastq index 2. |
 | File? | visium_brightfield_image | Optional 10x Visium brightfield image. This is required for the spatial transcriptomics 10x Visium pipeline. |
+| String? | visium_slide_serial_number | Optional 10x Visium slide serial number. This is required for the spatial transcriptomics 10x Visium pipeline. |
+| String? | visium_capture_area | Optional 10x Visium slide capture area. This is required for the spatial transcriptomics 10x Visium pipeline. |
 
 ## Generating the inputs JSON
 
@@ -200,10 +199,6 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset}
         │   └──${cohort_analysis_workflow_version}
         │      └── ${workflow_run_timestamp}
         │          └── <cohort_analysis outputs>
-        ├── image_analysis
-        │   └── image_features
-        │       └── ${image_features_task_version}
-        │           └── <image_features outputs>
         └── preprocess
             ├── spaceranger_count
             │   └── ${spaceranger_count_task_version}
@@ -254,17 +249,13 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
     │   ├── ${cohort_id}.sample_list.tsv
     │   ├──	${cohort_id}.merged_adata_object.h5ad
     │   ├── ${cohort_id}.qc_violin.png
-    │   ├── ${cohort_id}.qc_scatter.png
-    │   ├── ${cohort_id}.umap.png
-    │   ├── ${cohort_id}_scvi_model.tar.gz
-    │   ├── ${cohort_id}.cell_types.csv
-    │   ├── ${cohort_id}.features_umap.png
-    │   ├── ${cohort_id}.groups_umap.png
-    │   ├── ${cohort_id}.image_features_spatial_scatter.png
-    │   ├── ${cohort_id}.moran_top_10_variable_genes.csv
-    │   ├── ${cohort_id}.nhood_enrichment.png
+    │   ├── ${cohort_id}.qc_dist.png
+    │   ├── ${cohort_id}.hvg_dispersion.png
+    │   ├── ${cohort_id}.umap_cluster.png
+    │   ├── ${cohort_id}.spatial_scatter.png
     │   ├── ${cohort_id}.final_adata_object.h5ad
-    │   ├── ${cohort_id}.co_occurrence.png
+    │   ├── ${cohort_id}.moran_top_10_variable_genes.csv
+    │   ├── ${cohort_id}.moran_top_3_variable_genes_spatial_scatter.png
     │   └── MANIFEST.tsv
     └── preprocess
         ├── ${sampleA_id}.raw_feature_bc_matrix.h5
@@ -351,18 +342,19 @@ docker
 ├── geomxngs
 │   ├── build.env
 │   └── Dockerfile
-└── squidpy
+└── spatial_py
     ├── build.env
     ├── Dockerfile
     ├── requirements.txt
     └── scripts
-        ├── geomx_qc.py
-        ├── merge_and_plot_geomx_qc.py
-        ├── filter_and_normalize.py
+        ├── counts_to_adata.py
+        ├── visium_qc.py
+        ├── merge_and_plot_visium_qc.py
+        ├── process.py
+        ├── integrate_harmony.py
         ├── cluster.py
-        ├── neighbors_enrichment_analysis.py
-        ├── co_occurrence_probability.py
-        ├── moran_i_score.py
+        ├── plot_spatial.py
+        ├── identify_spatially_variable_genes.py
         └── ...
 ```
 
@@ -397,7 +389,7 @@ Docker images can be build using the [`build_docker_images`](https://github.com/
 | Image | Major tool versions | Links | Workflow |
 | :- | :- | :- | :- |
 | geomxngs | <ul><li>[geomxngs v3.1.1.6](https://nanostring.app.box.com/v/GeoMxSW3-1-0/folder/233772026049)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/geomxngs) | pmdbs_spatial_geomx |
-| squidpy | Python (v3.12.5) libraries: <ul><li>[squidpy v1.6.2](https://github.com/scverse/squidpy/releases/tag/v1.6.2)</li><li>[matplotlib v3.10.0](https://github.com/matplotlib/matplotlib/releases/tag/v3.10.0)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li><li>[scanpy v1.10.4](https://github.com/scverse/scanpy/releases/tag/1.10.4)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/squidpy) | both |
+| spatial_py | Python (v3.12.5) libraries: <ul><li>[squidpy v1.6.2](https://github.com/scverse/squidpy/releases/tag/v1.6.2)</li><li>[matplotlib v3.10.0](https://github.com/matplotlib/matplotlib/releases/tag/v3.10.0)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li><li>[harmonypy v0.0.10](https://github.com/slowkow/harmonypy/releases/tag/v0.0.10)</li><li>[scanpy v1.10.4](https://github.com/scverse/scanpy/releases/tag/1.10.4)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/spatial_py) | both |
 | spaceranger | <ul><li>[spaceranger v3.1.2](https://www.10xgenomics.com/support/software/space-ranger/latest/release-notes/release-notes-for-SR#v-3-1-2)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/spaceranger) | pmdbs_spatial_visium |
 | util | <ul><li>[google-cloud-cli 444.0.0-slim](https://cloud.google.com/sdk/docs/release-notes#44400_2023-08-22)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/util) | both |
 

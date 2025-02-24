@@ -2,7 +2,6 @@ import argparse
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import scanpy as sc
 
 
@@ -30,7 +29,7 @@ def main(args):
     plt.savefig(f"{args.cohort_id}.umap_cluster.png", dpi=300, bbox_inches="tight")
 
     # Save adata object
-    adata.write_h5ad(filename=args.adata_output)
+    adata.write_h5ad(filename=args.adata_output, compression="gzip")
 
 
 if __name__ == "__main__":

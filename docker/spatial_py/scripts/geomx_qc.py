@@ -2,7 +2,6 @@ import argparse
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import scanpy as sc
 
 
@@ -22,7 +21,7 @@ def main(args):
     with open("unassigned_ctrl_probes_percentage.txt", "w") as file:
         file.write(f"{unassigned_ctrl_probes_percentage}")
 
-    adata.write_h5ad(filename=args.qc_adata_output)
+    adata.write_h5ad(filename=args.qc_adata_output, compression="gzip")
 
 
 if __name__ == "__main__":
