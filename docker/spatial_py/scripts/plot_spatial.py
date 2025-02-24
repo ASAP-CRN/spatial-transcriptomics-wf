@@ -9,11 +9,15 @@ import squidpy as sq
 def main(args):
     adata = sc.read_h5ad(args.adata_input)
 
+    samples = adata.obs["sample"].unique().tolist()
+    colors = ["total_counts", "n_genes_by_counts", "batch", "leiden"]
+    titles = [f"{sample} - {color}" for sample in samples for color in colors]
+
     sq.pl.spatial_scatter(
         adata,
         library_key="sample",
-        color=["total_counts", "n_genes_by_counts", "batch", "leiden"],
-        title=adata.obs["sample"].unique().tolist(),
+        color=colors,
+        title=titles,
     )
     plt.savefig(f"{args.plots_prefix}.spatial_scatter.png", dpi=300, bbox_inches="tight")
 
