@@ -66,7 +66,7 @@ task spatially_variable_gene_analysis {
 	>>>
 
 	output {
-		String final_adata_object = "~{cohort_id}.final_adata_object.h5ad"
+		String final_adata_object = "~{raw_data_path}/~{cohort_id}.final_adata_object.h5ad"
 		String moran_top_10_variable_genes_csv = "~{raw_data_path}/~{cohort_id}.moran_top_10_variable_genes.csv"
 		String moran_top_3_variable_genes_spatial_scatter_plot_png = "~{raw_data_path}/~{cohort_id}.moran_top_3_variable_genes_spatial_scatter.png"
 	}
