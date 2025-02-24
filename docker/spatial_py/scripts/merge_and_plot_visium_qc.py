@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
-import seaborn as sb
+import seaborn as sns
 import scanpy as sc
 
 
@@ -38,29 +38,30 @@ def main(args):
         jitter=0.4,
         multi_panel=True,
     )
+    plt.title(f"QC violin plot - {args.qc_plots_prefix}")
     plt.savefig(f"{args.qc_plots_prefix}.qc_violin.png", dpi=300, bbox_inches="tight")
 
     # Total counts and n genes by counts distribution plots
     fig, axs = plt.subplots(1, 4, figsize=(15,4))
-    fig.suptitle("Covariates for filtering")
-    sb.distplot(
+    fig.suptitle(f"Covariates for filtering - {args.qc_plots_prefix}")
+    sns.distplot(
         merged_adata.obs["total_counts"],
         kde=False,
         ax=axs[0],
     )
-    sb.distplot(
+    sns.distplot(
         merged_adata.obs["total_counts"][merged_adata.obs["total_counts"]<10000],
         kde=False,
         bins=40,
         ax=axs[1],
     )
-    sb.distplot(
+    sns.distplot(
         merged_adata.obs["n_genes_by_counts"],
         kde=False,
         bins=60,
         ax=axs[2],
     )
-    sb.distplot(
+    sns.distplot(
         merged_adata.obs["n_genes_by_counts"][merged_adata.obs["n_genes_by_counts"]<4000],
         kde=False,
         bins=60,

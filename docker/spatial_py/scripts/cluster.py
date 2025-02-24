@@ -28,6 +28,7 @@ def main(args):
         adata,
         color=["total_counts", "n_genes_by_counts", "batch", "leiden"],
     )
+    plt.title(f"UMAP - {args.plots_prefix}")
     plt.savefig(f"{args.plots_prefix}.umap_cluster.png", dpi=300, bbox_inches="tight")
 
     # Save outputs

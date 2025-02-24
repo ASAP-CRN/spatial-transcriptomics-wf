@@ -13,6 +13,7 @@ def main(args):
         adata,
         library_key="sample",
         color=["total_counts", "n_genes_by_counts", "batch", "leiden"],
+        title=adata.obs["sample"].unique().tolist(),
     )
     plt.savefig(f"{args.plots_prefix}.spatial_scatter.png", dpi=300, bbox_inches="tight")
 
