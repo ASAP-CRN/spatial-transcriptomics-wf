@@ -38,7 +38,8 @@ def main(args):
         jitter=0.4,
         multi_panel=True,
     )
-    plt.title(f"QC violin plot - {args.qc_plots_prefix}")
+    fig = plt.gcf()
+    fig.suptitle(f"QC violin plot - {args.qc_plots_prefix}", va="center", ha="center", fontsize=16)
     plt.savefig(f"{args.qc_plots_prefix}.qc_violin.png", dpi=300, bbox_inches="tight")
 
     # Total counts and n genes by counts distribution plots

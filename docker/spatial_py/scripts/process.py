@@ -48,7 +48,8 @@ def main(args):
     sc.pl.highly_variable_genes(
         adata,
     )
-    plt.title(f"Highly variable genes dispersion plot - {args.plots_prefix}")
+    fig = plt.gcf()
+    fig.suptitle(f"Highly variable genes dispersion plot - {args.plots_prefix}", va="center", ha="center", fontsize=16)
     plt.savefig(f"{args.plots_prefix}.hvg_dispersion.png", dpi=300, bbox_inches="tight")
 
 
