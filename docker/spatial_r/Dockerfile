@@ -32,6 +32,7 @@ RUN wget https://cran.r-project.org/src/base/R-4/R-${R_VERSION}.tar.gz && \
 
 ENV PATH "${PATH}:/opt/R-${R_VERSION}"
 
+WORKDIR /opt/R-${R_VERSION}
 RUN ./configure --with-readline=no --with-x=no && \
 	make && \
 	make install
