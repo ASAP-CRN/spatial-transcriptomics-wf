@@ -6,7 +6,7 @@ library(dplyr)
 library(ggforce)
 library(networkD3)
 
-parser <- ArgumentParser(description = "Convert DCC files to a NanoStringGeoMxSet object")
+parser <- ArgumentParser(description = "Convert DCC files to a NanoStringGeoMxSet object (.rds)")
 
 add_argument(
 	parser,
