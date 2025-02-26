@@ -21,6 +21,13 @@ RUN apt-get -qq update \
 		liblzma-dev \
 		libpcre3-dev \
 		libcurl4-openssl-dev \
+		libpcre2 \
+		libxml2-dev \
+		libssl-dev \
+		libfontconfig1-dev \
+		libtiff-dev \
+		libharfbuzz-dev \
+		libfribidi-dev \
 	&& rm -rf /var/lib/apt/lists/*
 
 # R
@@ -38,7 +45,9 @@ RUN ./configure --with-readline=no --with-x=no && \
 	make install
 
 COPY ./requirements.txt /opt/requirements.txt
-RUN Rscript -e 'if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager"); packages <- readLines("/opt/requirements.txt"); BiocManager::install(packages)'
+RUN Rscript -e 'if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager", repos = "https://cran.r-project.org"); \
+  packages <- readLines("/opt/requirements.txt"); \
+  BiocManager::install(packages, ask = FALSE)'
 
 COPY scripts /opt/scripts
 ENV PATH "${PATH}:/opt/scripts"
