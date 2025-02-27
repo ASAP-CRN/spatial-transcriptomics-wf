@@ -12,8 +12,18 @@ workflow pmdbs_spatial_geomx_analysis {
 		String cohort_id
 		Array[Project] projects
 
-		File config_ini
 		File geomxngs_config_pkc
+
+		# QC parameters
+		Int min_segment_reads = 1000
+		Int min_percent_reads_trimmed = 80
+		Int min_percent_reads_stitched = 80
+		Int min_percent_reads_aligned = 80
+		Int min_saturation = 50
+		Int min_neg_ctrl_count = 10
+		Int max_ntc_count = 1000
+		Int min_nuclei = 100
+		Int min_segment_area = 5000
 
 		# Filter parameters
 		Int filter_cells_min_counts = 5000
@@ -46,8 +56,19 @@ workflow pmdbs_spatial_geomx_analysis {
 				team_id = project.team_id,
 				dataset_id = project.dataset_id,
 				samples = project.samples,
-				config_ini = config_ini,
+				project_sample_metadata_csv = project.project_sample_metadata_csv,
+				geomx_config_ini = project.geomx_config_ini,
+				geomx_lab_annotation_xlsx = project.geomx_lab_annotation_xlsx,
 				geomxngs_config_pkc = geomxngs_config_pkc,
+				min_segment_reads = min_segment_reads,
+				min_percent_reads_trimmed = min_percent_reads_trimmed,
+				min_percent_reads_stitched = min_percent_reads_stitched,
+				min_percent_reads_aligned = min_percent_reads_aligned,
+				min_saturation = min_saturation,
+				min_neg_ctrl_count = min_neg_ctrl_count,
+				max_ntc_count = max_ntc_count,
+				min_nuclei = min_nuclei,
+				min_segment_area = min_segment_area,
 				workflow_name = workflow_name,
 				workflow_version = workflow_version,
 				workflow_release = workflow_release,
@@ -175,6 +196,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		projects: {help: "The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis."}
 		config_ini: {help: "The configuration (.ini) file, containing pipeline processing parameters."}
 		geomxngs_config_pkc: {help: "The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers."}
+		lab_annotation_xlsx: {help: "The phenotypic excel data file. It is recommended to use the Lab Worksheet in the exact order samples are provided in."}
 		filter_cells_min_counts: {help: "Minimum number of counts required for a cell to pass filtering. [5000]"}
 		filter_genes_min_cells: {help: "Minimum number of cells expressed required for a gene to pass filtering. [10]"}
 		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (GeoMxNGSPipeline and generating the initial adata object(s)) will run for samples. [false]"}

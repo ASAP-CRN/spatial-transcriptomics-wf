@@ -2,11 +2,9 @@ library(argparse)
 library(NanoStringNCTools)
 library(GeomxTools)
 library(GeoMxWorkflows)
-library(dplyr)
-library(ggforce)
-library(networkD3)
+library(ggplot2)
 
-parser <- ArgumentParser(description = "Convert DCC files to a NanoStringGeoMxSet object")
+parser <- ArgumentParser(description = "Perform Segment and Probe QC on GeoMx data")
 
 add_argument(
 	parser,
@@ -16,104 +14,149 @@ add_argument(
 )
 add_argument(
 	parser,
-	"--dataset-id",
+	"--input",
 	required=TRUE,
-	help="Dataset ID"
+	help="The GeoMx data to perform QC on"
 )
 add_argument(
 	parser,
-	"--sample-id",
+	"--min-reads",
 	required=TRUE,
-	help="Sample ID"
+	help="Minimum number of reads [1000]"
 )
 add_argument(
 	parser,
-	"--batch",
+	"--percent-trimmed",
 	required=TRUE,
-	help="Batch from which the sample/dataset originated"
+	help="Minimum % of reads trimmed [80]"
 )
 add_argument(
 	parser,
-	"--dcc-dir",
+	"--percent-stitched",
 	required=TRUE,
-	help="Path to DCC files directory"
+	help="Minimum % of reads stitched [80]"
 )
 add_argument(
 	parser,
-	"--pkc-file",
+	"--percent-aligned",
 	required=TRUE,
-	help="Path to PKC file"
+	help="Minimum % of reads aligned [80]"
 )
 add_argument(
 	parser,
-	"--annotation-file",
+	"--percent-saturation",
 	required=TRUE,
-	help="Path to annotation file"
+	help="Minimum sequencing saturation [50]"
+)
+add_argument(
+	parser,
+	"--min-neg-count",
+	required=TRUE,
+	help="Minimum negative control counts [10]"
+)
+add_argument(
+	parser,
+	"--max-ntc-count",
+	required=TRUE,
+	help="Maximum counts observed in NTC well [1000]"
+)
+add_argument(
+	parser,
+	"--min-nuclei",
+	required=TRUE,
+	help="Minimum # of nuclei estimated [100]"
+)
+add_argument(
+	parser,
+	"--min-area",
+	required=TRUE,
+	help="Minimum segment area [5000]"
 )
 add_argument(
 	parser,
 	"--output",
 	required=TRUE,
-	help="Output file name for the NanoStringGeoMxSet object"
+	help="Output file name for the QC'ed RDS object"
 )
 
 args <- parser$parse_args()
 
 
-##########################################
-## GENERATE NANOSTRING GEOMX SET OBJECT ##
-##########################################
-dcc_files <- list.files(path = args$dcc_dir, full.names = TRUE)
+# Shift counts to one for downstream transformations
+geomxdata <- readRDS(args$input)
+geomxdata <- shiftCountsOne(geomxdata, useDALogic = TRUE)
 
-geomxdata <- readNanoStringGeoMxSet(dccFiles = dcc_files,
-									pkcFiles = args$pkc_file,
-									phenoDataFile = args$annotation_file,
-									phenoDataSheet = "Template", # TODO
-									phenoDataDccColName = "Sample_ID",
-									protocolDataColNames = c("aoi", "roi"),
-									experimentDataColNames = c("panel"))
-
-# Add metadata
-pData(geomxdata)$team <- args$team_id
-pData(geomxdata)$dataset <- args$dataset_id
-pData(geomxdata)$sample <- args$sample_id
-pData(geomxdata)$batch <- args$batch
-pData(geomxdata)$batch_id <- paste0(args$team_id, "_", args$dataset_id, "_", args$batch)
-
-
-#####################
-## SAMPLE OVERVIEW ##
-#####################
-sankey_cols <- c("source", "target", "value")
-
-link1 <- count(pData(geomxdata), `slide name`, class)
-link2 <- count(pData(geomxdata), class, region)
-link3 <- count(pData(geomxdata), region, segment)
-
-colnames(link1) <- sankey_cols
-colnames(link2) <- sankey_cols
-colnames(link3) <- sankey_cols
-
-links <- rbind(link1,link2,link3)
-nodes <- unique(data.frame(name=c(links$source, links$target)))
-
-# sankeyNetwork is 0 based, not 1 based
-links$source <- as.integer(match(links$source,nodes$name)-1)
-links$target <- as.integer(match(links$target,nodes$name)-1)
-
-sankey <- sankeyNetwork(
-	Links = links,
-	Nodes = nodes,
-	Source = "source",
-	Target = "target",
-	Value = "value",
-	NodeID = "name",
-	units = "TWh",
-	fontSize = 12,
-	nodeWidth = 30
+################
+## SEGMENT QC ##
+################
+qc_params <- list(
+	minSegmentReads = args$min_reads,				# Minimum number of reads (1000)
+	percentTrimmed = args$percent_trimmed,			# Minimum % of reads trimmed (80%)
+	percentStitched = args$percent_stitched,		# Minimum % of reads stitched (80%)
+	percentAligned = args$percent_aligned,			# Minimum % of reads aligned (80%)
+	percentSaturation = args$percent_saturation,	# Minimum sequencing saturation (50%)
+	minNegativeCount = args$min_neg_count,			# Minimum negative control counts (10)
+	maxNTCCount = args$max_ntc_count,				# Maximum counts observed in NTC well (1000)
+	minNuclei = args$min_nuclei,					# Minimum # of nuclei estimated (100)
+	minArea = args$min_area							# Minimum segment area (5000)
 )
 
-output_sankey_filename <- paste0(args$team_id, "_sankey_diagram.html")
-saveWidget(sankey, output_sankey_filename, selfcontained = FALSE)
+geomxdata <- setSegmentQCFlags(geomxdata, qcCutoffs = qc_params)
+
+# Collate QC Results
+qc_results <- protocolData(geomxdata)[["QCFlags"]]
+flag_columns <- colnames(qc_results)
+qc_summary_df <- data.frame(
+	Pass = colSums(!qc_results[, flag_columns]),
+	Warning = colSums(qc_results[, flag_columns])
+)
+qc_results$qc_status <- apply(qc_results, 1L, function(x) {
+	ifelse(sum(x) == 0L, "PASS", "WARNING")
+})
+qc_summary_df["TOTAL FLAGS", ] <-
+	c(sum(qc_results[, "QCStatus"] == "PASS"),
+	sum(qc_results[, "QCStatus"] == "WARNING"))
+
+qc_summary_output = paste0(args$team_id + ".segment_qc_summary.csv")
+write.csv(qc_summary_df, qc_summary_output, row.names = FALSE)
+
+# Remove flagged segments
+geomxdata <- geomxdata[, qc_results$QCStatus == "PASS"]
+
+
+##############
+## PROBE QC ##
+##############
+# Generally keep the qcCutoffs parameters unchanged
+# https://www.bioconductor.org/packages/release/workflows/vignettes/GeoMxWorkflows/inst/doc/GeomxTools_RNA-NGS_Analysis.html#421_Set_Probe_QC_Flags
+geomxdata <- setBioProbeQCFlags(
+	geomxdata,
+	qcCutoffs = list(
+		minProbeRatio = 0.1,
+		percentFailGrubbs = 20
+	),
+	removeLocalOutliers = TRUE
+)
+
+probe_qc_results <- fData(geomxdata)[["QCFlags"]]
+
+probe_qc_df <- data.frame(
+	Passed = sum(rowSums(probe_qc_results[, -1]) == 0),
+	Global = sum(probe_qc_results$GlobalGrubbsOutlier),
+	Local = sum(rowSums(probe_qc_results[, -2:-1]) > 0
+		& !probe_qc_results$GlobalGrubbsOutlier)
+)
+
+probe_qc_output = paste0(args$team_id + ".probe_qc_summary.csv")
+write.csv(probe_qc_df, probe_qc_output, row.names = FALSE)
+
+# Exclude outlier probes
+probe_qc_passed <-  subset(
+	geomxdata,
+	fData(geomxdata)[["QCFlags"]][,c("LowProbeRatio")] == FALSE &
+		fData(geomxdata)[["QCFlags"]][,c("GlobalGrubbsOutlier")] == FALSE
+)
+
+geomxdata <- probe_qc_passed 
 
 saveRDS(geomxdata, file = args$output)

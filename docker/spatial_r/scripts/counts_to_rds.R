@@ -22,15 +22,9 @@ add_argument(
 )
 add_argument(
 	parser,
-	"--sample-id",
+	"--sample-csv",
 	required=TRUE,
-	help="Sample ID"
-)
-add_argument(
-	parser,
-	"--batch",
-	required=TRUE,
-	help="Batch from which the sample/dataset originated"
+	help="Project SAMPLE.csv with sample_id, batch, etc. information"
 )
 add_argument(
 	parser,
@@ -113,7 +107,7 @@ sankey <- sankeyNetwork(
 	nodeWidth = 30
 )
 
-output_sankey_filename <- paste0(args$team_id, "_sankey_diagram.html")
+output_sankey_filename <- paste0(args$team_id, ".sankey_diagram.html")
 saveWidget(sankey, output_sankey_filename, selfcontained = FALSE)
 
 saveRDS(geomxdata, file = args$output)

@@ -1,6 +1,6 @@
 version 1.0
 
-# Generate a QC'ed AnnData object by converting FASTQ files to DCC (digital count conversion) files to count matrices
+# Generate a QC'ed RDS object by converting FASTQ files to DCC (digital count conversion) files to a NanoStringGeoMxSet object
 
 import "../../../wf-common/wdl/structs.wdl"
 
@@ -10,8 +10,21 @@ workflow preprocess {
 		String dataset_id
 		Array[Sample] samples
 
-		File config_ini
+		File project_sample_metadata_csv
+
+		File geomx_geomx_config_ini
+		File geomx_geomx_lab_annotation_xlsx
 		File geomxngs_config_pkc
+
+		Int min_segment_reads
+		Int min_percent_reads_trimmed
+		Int min_percent_reads_stitched
+		Int min_percent_reads_aligned
+		Int min_saturation
+		Int min_neg_ctrl_count
+		Int max_ntc_count
+		Int min_nuclei
+		Int min_segment_area
 
 		String workflow_name
 		String workflow_version
@@ -70,7 +83,7 @@ workflow preprocess {
 					sample_id = sample.sample_id,
 					fastq_R1s = sample.fastq_R1s,
 					fastq_R2s = sample.fastq_R2s,
-					config_ini = config_ini,
+					geomx_config_ini = geomx_config_ini,
 					raw_data_path = dcc_raw_data_path,
 					workflow_info = workflow_info,
 					billing_project = billing_project,
@@ -82,17 +95,16 @@ workflow preprocess {
 		File geomxngs_dcc_zip_output = select_first([fastq_to_dcc.geomxngs_dcc_zip, fastq_to_dcc_geomxngs_dcc_zip]) #!FileCoercion
 		File geomxngs_output_tar_gz_output = select_first([fastq_to_dcc.geomxngs_output_tar_gz, fastq_to_dcc_geomxngs_output_tar_gz]) #!FileCoercion
 
-		String dcc_to_adata_object = "~{adata_raw_data_path}/~{sample.sample_id}.initial_adata_object.h5ad"
+		String dcc_to_rds_object = "~{adata_raw_data_path}/~{sample.sample_id}.NanoStringGeoMxSet.rds"
 
 		if (dcc_to_adata_complete == "false") {
-			call dcc_to_adata {
+			call dcc_to_rds {
 				input:
 					team_id = team_id,
 					dataset_id = dataset_id,
-					sample_id = sample.sample_id,
-					batch = select_first([sample.batch]),
+					project_sample_metadata_csv = project_sample_metadata_csv,
 					geomxngs_dcc_zip = geomxngs_dcc_zip_output,
-					config_ini = config_ini,
+					geomx_lab_annotation_xlsx = geomx_lab_annotation_xlsx,
 					geomxngs_config_pkc = geomxngs_config_pkc,
 					raw_data_path = adata_raw_data_path,
 					workflow_info = workflow_info,
@@ -102,15 +114,24 @@ workflow preprocess {
 			}
 		}
 
-		File initial_adata_object_output = select_first([dcc_to_adata.initial_adata_object, dcc_to_adata_object]) #!FileCoercion
+		File initial_rds_object_output = select_first([dcc_to_adata.initial_rds_object, dcc_to_rds_object]) #!FileCoercion
 
-		String qc_metrics_adata_object = "~{qc_raw_data_path}/~{sample.sample_id}.qc.h5ad"
+		String qc_metrics_rds_object = "~{qc_raw_data_path}/~{sample.sample_id}.qc.rds"
 
 		if (qc_complete == "false") {
 			call qc {
 				input:
 					sample_id = sample.sample_id,
-					initial_adata_object = initial_adata_object_output,
+					initial_rds_object = initial_rds_object_output,
+					min_segment_reads = min_segment_reads,
+					min_percent_reads_trimmed = min_percent_reads_trimmed,
+					min_percent_reads_stitched = min_percent_reads_stitched,
+					min_percent_reads_aligned = min_percent_reads_aligned,
+					min_saturation = min_saturation,
+					min_neg_ctrl_count = min_neg_ctrl_count,
+					max_ntc_count = max_ntc_count,
+					min_nuclei = min_nuclei,
+					min_segment_area = min_segment_area,
 					raw_data_path = qc_raw_data_path,
 					workflow_info = workflow_info,
 					billing_project = billing_project,
@@ -119,7 +140,7 @@ workflow preprocess {
 			}
 		}
 
-		File qc_adata_object_output = select_first([qc.qc_adata_object, qc_metrics_adata_object]) #!FileCoercion
+		File qc_rds_object_output = select_first([qc.qc_rds_object, qc_metrics_rds_object]) #!FileCoercion
 	}
 
 	output {
@@ -130,12 +151,11 @@ workflow preprocess {
 		Array[File] geomxngs_dcc_zip = geomxngs_dcc_zip_output #!FileCoercion
 		Array[File] geomxngs_output_tar_gz = geomxngs_output_tar_gz_output #!FileCoercion
 
-		# Initial adata object
-		Array[File] initial_adata_object = initial_adata_object_output #!FileCoercion
+		# Initial RDS object
+		Array[File] initial_rds_object = initial_rds_object_output #!FileCoercion
 
-		# QC adata object
-		Array[File] qc_adata_object = qc_adata_object_output #!FileCoercion
-		Array[Float?] qc_unassigned_ctrl_probes_percentage = qc.qc_unassigned_ctrl_probes_percentage
+		# QC RDS object
+		Array[File] qc_rds_object = qc_rds_object_output #!FileCoercion
 	}
 }
 
@@ -198,7 +218,7 @@ task fastq_to_dcc {
 		Array[File] fastq_R1s
 		Array[File] fastq_R2s
 
-		File config_ini
+		File geomx_config_ini
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -225,7 +245,7 @@ task fastq_to_dcc {
 		expect <<EOF
 		set timeout -1
 		spawn geomxngspipeline \
-			--ini=~{config_ini} \
+			--ini=~{geomx_config_ini} \
 			--in="$(pwd)/fastqs" \
 			--out="~{sample_id}_geomxngs_out_dir" \
 			--check-illumina-naming=false
@@ -263,17 +283,17 @@ task fastq_to_dcc {
 	}
 }
 
-task dcc_to_adata {
+task dcc_to_rds {
 	input {
 		String team_id
-		String dataset_id
-		String sample_id
-		String batch
+		String dataset_id 
 
 		File geomxngs_dcc_zip
 
-		File config_ini
+		File project_sample_metadata_csv
+
 		File geomxngs_config_pkc
+		File geomx_lab_annotation_xlsx
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -284,36 +304,37 @@ task dcc_to_adata {
 
 	Int threads = 4
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size([geomxngs_dcc_zip, config_ini, geomxngs_config_pkc], "GB") * 2 + 30)
+	Int disk_size = ceil(size([geomxngs_dcc_zip, geomxngs_config_pkc, geomx_lab_annotation_xlsx], "GB") * 2 + 30)
 
 	command <<<
 		set -euo pipefail
 
 		unzip -d ./dcc_files_dir ~{geomxngs_dcc_zip}
 
-		python3 /opt/scripts/dcc_to_adata.py \
-			--team ~{team_id} \
-			--dataset ~{dataset_id} \
-			--sample-id ~{sample_id} \
-			--batch ~{batch} \
-			--dcc-files-dir-input ./dcc_files_dir \
-			--ini ~{config_ini} \
-			--pkc ~{geomxngs_config_pkc} \
-			--adata-output ~{sample_id}.initial_adata_object.h5ad
+		Rscript /opt/scripts/counts_to_rds.R \
+			--team-id ~{team_id} \
+			--dataset-id ~{dataset_id} \
+			--sample-csv ~{project_sample_metadata_csv} \
+			--dcc-dir ./dcc_files_dir \
+			--pkc-file ~{geomxngs_config_pkc} \
+			--annotation-file ~{geomx_lab_annotation_xlsx} \
+			--output ~{team_id}.NanoStringGeoMxSet.rds
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{sample_id}.initial_adata_object.h5ad"
+			-o "~{team_id}.NanoStringGeoMxSet.rds" \
+			-o "~{team_id}.sankey_diagram.html"
 	>>>
 
 	output {
-		String initial_adata_object = "~{raw_data_path}/~{sample_id}.initial_adata_object.h5ad"
+		String initial_rds_object = "~{raw_data_path}/~{team_id}.NanoStringGeoMxSet.rds"
+		String sample_overview_sankey_html = "~{raw_data_path}/~{team_id}.sankey_diagram.html"
 	}
 
 	runtime {
-		docker: "~{container_registry}/geomx_ngs:3.1.1.6"
+		docker: "~{container_registry}/spatial_r:1.0.0"
 		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -327,7 +348,17 @@ task qc {
 	input {
 		String sample_id
 
-		File initial_adata_object
+		File initial_rds_object
+
+		Int min_segment_reads
+		Int min_percent_reads_trimmed
+		Int min_percent_reads_stitched
+		Int min_percent_reads_aligned
+		Int min_saturation
+		Int min_neg_ctrl_count
+		Int max_ntc_count
+		Int min_nuclei
+		Int min_segment_area
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -338,29 +369,42 @@ task qc {
 
 	Int threads = 4
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size(initial_adata_object, "GB") * 2 + 30)
+	Int disk_size = ceil(size(initial_rds_object, "GB") * 2 + 30)
 
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/geomx_qc.py \
-			--adata-input ~{initial_adata_object} \
-			--qc-adata-output ~{sample_id}.qc.h5ad
+		Rscript /opt/scripts/geomx_qc.R \
+			--team-id ~{team_id} \
+			--input ~{initial_adata_object} \
+			--min-reads ~{min_segment_reads} \
+			--percent-trimmed ~{min_percent_reads_trimmed} \
+			--percent-stitched ~{min_percent_reads_stitched} \
+			--percent-aligned ~{min_percent_reads_aligned} \
+			--percent-saturation ~{min_saturation} \
+			--min-neg-count ~{min_neg_ctrl_count} \
+			--max-ntc-count ~{max_ntc_count} \
+			--min-nuclei ~{min_nuclei} \
+			--min-area ~{min_segment_area} \
+			--output ~{team_id}.qc.rds
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{sample_id}.qc.h5ad"
+			-o "~{team_id}.qc.rds" \
+			-o "~{team_id}.segment_qc_summary.csv" \
+			-o "~{team_id}.probe_qc_summary.csv"
 	>>>
 
 	output {
-		String qc_adata_object = "~{raw_data_path}/~{sample_id}.qc.h5ad"
-		Float qc_unassigned_ctrl_probes_percentage = read_float("unassigned_ctrl_probes_percentage.txt")
+		String qc_adata_object = "~{raw_data_path}/~{team_id}.qc.rds"
+		String segment_qc_summary_csv = "~{raw_data_path}/~{team_id}.segment_qc_summary.csv"
+		String probe_qc_summary_csv = "~{raw_data_path}/~{team_id}.probe_qc_summary.csv"
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
+		docker: "~{container_registry}/spatial_r:1.0.0"
 		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
