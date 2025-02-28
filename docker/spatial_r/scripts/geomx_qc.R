@@ -168,25 +168,4 @@ gene_count <- data.frame(exprs(target_geomxdata))
 gene_count_output = paste0(args$team_id + ".gene_count.csv")
 write.csv(gene_count, "test.csv", row.names = FALSE)
 
-
-#############################
-## LIMIT OF QUANTIFICATION ##
-#############################
-# Define LOQ SD threshold and minimum value
-cutoff <- 2
-minLOQ <- 2
-
-pkc <- annotation(geomxdata)
-module <- gsub(".pkc", "", pkc)
-
-LOQ <- data.frame(row.names = colnames(target_geomxdata))
-vars <- paste0(c("NegGeoMean_", "NegGeoSD_"), module)
-if(all(vars[1:2] %in% colnames(pData(target_geomxdata)))) {
-	LOQ[, module] <-
-		pmax(minLOQ,
-			pData(target_geomxdata)[, vars[1]] * 
-				pData(target_geomxdata)[, vars[2]] ^ cutoff)
-}
-pData(target_geomxdata)$LOQ <- LOQ
-
-saveRDS(geomxdata, file = args$output)
+saveRDS(target_geomxdata, file = args$output)
