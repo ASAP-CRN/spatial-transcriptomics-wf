@@ -70,9 +70,21 @@ geomxdata <- readNanoStringGeoMxSet(dccFiles = dcc_files,
 # Add metadata
 pData(geomxdata)$team <- args$team_id
 pData(geomxdata)$dataset <- args$dataset_id
-pData(geomxdata)$sample <- args$sample_id
-pData(geomxdata)$batch <- args$batch
-pData(geomxdata)$batch_id <- paste0(args$team_id, "_", args$dataset_id, "_", args$batch)
+
+sample_info <- read.csv(args$sample_csv, header = TRUE, stringsAsFactors = FALSE)
+sample_info_subset <- sample_info[, c("ASAP_sample_id", "sample_id", "batch")]
+colnames(sample_info_subset)[colnames(sample_info_subset) == "ASAP_sample_id"] <- "sample"
+pData(geomxdata) <- merge(
+	pData(geomxdata),
+	sample_info_subset,
+	by.x = "Sample_ID",
+	by.y = "sample_id",
+	all.x = TRUE
+)
+pData(geomxdata)$batch_id <- paste(pData(geomxdata)$team_id,
+								pData(geomxdata)$dataset_id,
+								pData(geomxdata)$batch,
+								sep = "_")
 
 
 #####################
