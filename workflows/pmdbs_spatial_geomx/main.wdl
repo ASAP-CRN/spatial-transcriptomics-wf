@@ -82,8 +82,12 @@ workflow pmdbs_spatial_geomx_analysis {
 		Array[String] preprocessing_output_file_paths = flatten([
 			preprocess.geomxngs_dcc_zip,
 			preprocess.geomxngs_output_tar_gz,
-			preprocess.initial_adata_object,
-			preprocess.qc_adata_object
+			preprocess.initial_rds_object,
+			preprocess.sample_overview_sankey_html,
+			preprocess.qc_rds_object,
+			preprocess.segment_qc_summary_csv,
+			preprocess.probe_qc_summary_csv,
+			preprocess.gene_count_csv
 		]) #!StringCoercion
 
 		if (project.run_project_cohort_analysis) {
@@ -91,7 +95,7 @@ workflow pmdbs_spatial_geomx_analysis {
 				input:
 					cohort_id = project.team_id,
 					project_sample_ids = preprocess.project_sample_ids,
-					preprocessed_adata_objects = preprocess.qc_adata_object,
+					preprocessed_rds_objects = preprocess.qc_rds_object,
 					preprocessing_output_file_paths = preprocessing_output_file_paths,
 					filter_cells_min_counts = filter_cells_min_counts,
 					filter_genes_min_cells = filter_genes_min_cells,
@@ -115,7 +119,7 @@ workflow pmdbs_spatial_geomx_analysis {
 			input:
 				cohort_id = cohort_id,
 				project_sample_ids = flatten(preprocess.project_sample_ids),
-				preprocessed_adata_objects = flatten(preprocess.qc_adata_object),
+				preprocessed_rds_objects = flatten(preprocess.qc_rds_object),
 				preprocessing_output_file_paths = flatten(preprocessing_output_file_paths),
 				filter_cells_min_counts = filter_cells_min_counts,
 				filter_genes_min_cells = filter_genes_min_cells,
@@ -151,9 +155,8 @@ workflow pmdbs_spatial_geomx_analysis {
 		## List of samples included in the cohort
 		Array[File?] project_cohort_sample_list = project_cohort_analysis.cohort_sample_list
 
-		# Merged adata objects, filtered and normalized adata objects, clustered adata objects, and plots
-		Array[File?] project_merged_adata_object = project_cohort_analysis.merged_adata_object
-		Array[File?] project_qc_plots_png = project_cohort_analysis.qc_plots_png
+		# Merged RDS objects, filtered and normalized RDS objects, clustered adata objects, and plots
+		Array[File?] project_merged_rds_object = project_cohort_analysis.merged_rds_object
 		Array[File?] project_filtered_normalized_adata_object = project_cohort_analysis.filtered_normalized_adata_object
 		Array[File?] project_umap_cluster_adata_object = project_cohort_analysis.umap_cluster_adata_object
 		Array[File?] project_umap_cluster_plot_png = project_cohort_analysis.umap_cluster_plot_png
@@ -173,9 +176,8 @@ workflow pmdbs_spatial_geomx_analysis {
 		## List of samples included in the cohort
 		File? cohort_cohort_sample_list = cross_team_cohort_analysis.cohort_sample_list
 
-		# Merged adata objects, filtered and normalized adata objects, clustered adata objects, and plots
-		File? cohort_merged_adata_object = cross_team_cohort_analysis.merged_adata_object
-		File? cohort_qc_plots_png = cross_team_cohort_analysis.qc_plots_png
+		# Merged RDS objects, filtered and normalized RDS objects, clustered adata objects, and plots
+		File? cohort_merged_rds_object = cross_team_cohort_analysis.merged_rds_object
 		File? cohort_filtered_normalized_adata_object = cross_team_cohort_analysis.filtered_normalized_adata_object
 		File? cohort_umap_cluster_adata_object = cross_team_cohort_analysis.umap_cluster_adata_object
 		File? cohort_umap_cluster_plot_png = cross_team_cohort_analysis.umap_cluster_plot_png

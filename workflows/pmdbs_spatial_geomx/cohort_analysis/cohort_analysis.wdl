@@ -1,16 +1,15 @@
 version 1.0
 
-# Merge and process adata object with QC, filtering, normalization, and clustering
+# Merge and process RDS object with QC, filtering, and normalization, and convert to adata object and cluster
 
 import "../../../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
-import "../../spatial_statistics/spatial_statistics.wdl" as SpatialStatistics
 import "../../../wf-common/wdl/tasks/upload_final_outputs.wdl" as UploadFinalOutputs
 
 workflow cohort_analysis {
 	input {
 		String cohort_id
 		Array[Array[String]] project_sample_ids
-		Array[File] preprocessed_adata_objects
+		Array[File] preprocessed_rds_objects
 
 		# If provided, these files will be uploaded to the staging bucket alongside other intermediate files made by this workflow
 		Array[String] preprocessing_output_file_paths = []
@@ -48,10 +47,10 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call merge_and_plot_qc_metrics {
+	call merge {
 		input:
 			cohort_id = cohort_id,
-			preprocessed_adata_objects = preprocessed_adata_objects,
+			preprocessed_rds_objects = preprocessed_rds_objects,
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -62,7 +61,7 @@ workflow cohort_analysis {
 	call filter_and_normalize {
 		input:
 			cohort_id = cohort_id,
-			merged_adata_object = merge_and_plot_qc_metrics.merged_adata_object, #!FileCoercion
+			merged_rds_object = merge.merged_rds_object, #!FileCoercion
 			filter_cells_min_counts = filter_cells_min_counts,
 			filter_genes_min_cells = filter_genes_min_cells,
 			raw_data_path = raw_data_path,
@@ -134,9 +133,8 @@ workflow cohort_analysis {
 	output {
 		File cohort_sample_list = write_cohort_sample_list.cohort_sample_list #!FileCoercion
 
-		# Merged adata objects and QC plots
-		File merged_adata_object = merge_and_plot_qc_metrics.merged_adata_object #!FileCoercion
-		File qc_plots_png = merge_and_plot_qc_metrics.qc_plots_png #!FileCoercion
+		# Merged RDS objects
+		File merged_rds_object = merge.merged_rds_object #!FileCoercion
 
 		# Filtered and normalized adata object
 		File filtered_normalized_adata_object = filter_and_normalize.filtered_normalized_adata_object #!FileCoercion
@@ -158,10 +156,10 @@ workflow cohort_analysis {
 	}
 }
 
-task merge_and_plot_qc_metrics {
+task merge {
 	input {
 		String cohort_id
-		Array[File] preprocessed_adata_objects
+		Array[File] preprocessed_rds_objects
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -170,32 +168,29 @@ task merge_and_plot_qc_metrics {
 		String zones
 	}
 
-	Int mem_gb = ceil(size(preprocessed_adata_objects, "GB") * 2 + 20)
-	Int disk_size = ceil(size(preprocessed_adata_objects, "GB") * 2 + 50)
+	Int mem_gb = ceil(size(preprocessed_rds_objects, "GB") * 2 + 20)
+	Int disk_size = ceil(size(preprocessed_rds_objects, "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/merge_and_plot_geomx_qc.py \
-			--adata-paths-input ~{sep=' ' preprocessed_adata_objects} \
-			--merged-adata-output ~{cohort_id}.merged_adata_object.h5ad \
-			--qc-plots-output ~{cohort_id}.qc_hist.png
+		Rscript /opt/scripts/merge_rds.R \
+			--paths-input ~{sep=' ' preprocessed_rds_objects} \
+			--output ~{cohort_id}.merged_rds_object.rds
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.merged_adata_object.h5ad" \
-			-o "~{cohort_id}.qc_hist.png"
+			-o "~{cohort_id}.merged_rds_object.rds"
 	>>>
 
 	output {
-		String merged_adata_object = "~{raw_data_path}/~{cohort_id}.merged_adata_object.h5ad"
-		String qc_plots_png = "~{raw_data_path}/~{cohort_id}.qc_hist.png"
+		String merged_rds_object = "~{raw_data_path}/~{cohort_id}.merged_rds_object.rds"
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
+		docker: "~{container_registry}/spatial_r:1:0:0"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -208,7 +203,7 @@ task merge_and_plot_qc_metrics {
 task filter_and_normalize {
 	input {
 		String cohort_id
-		File merged_adata_object
+		File merged_rds_object
 
 		Int filter_cells_min_counts
 		Int filter_genes_min_cells
@@ -220,8 +215,8 @@ task filter_and_normalize {
 		String zones
 	}
 
-	Int mem_gb = ceil(size(merged_adata_object, "GB") * 2 + 20)
-	Int disk_size = ceil(size(merged_adata_object, "GB") * 2 + 50)
+	Int mem_gb = ceil(size(merged_rds_object, "GB") * 2 + 20)
+	Int disk_size = ceil(size(merged_rds_object, "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail
