@@ -15,10 +15,15 @@ add_argument(
 )
 add_argument(
 	parser,
-	"--paths-input",
-	nargs="+",
+	"--input",
 	required=TRUE,
 	help="List of RDS objects to merge"
+)
+add_argument(
+	parser,
+	"--celltype-markers",
+	required=TRUE,
+	help="Cell type marker list"
 )
 add_argument(
 	parser,
@@ -89,5 +94,16 @@ ggsave(segment_gene_detection_plot_output, plot = segment_gene_detection_plot, w
 # Remove segments with less than 10% of the genes detected
 target_geomxdata <- target_geomxdata[, pData(target_geomxdata)$GeneDetectionRate >= .1]
 
+LOQ_mat <- LOQ_mat[, colnames(target_geomxdata)]
+fData(target_geomxdata)$DetectedSegments <- rowSums(LOQ_mat, na.rm = TRUE)
+fData(target_geomxdata)$DetectionRate <-
+    fData(target_geomxdata)$DetectedSegments / nrow(pData(target_geomxdata))
+
+cell_type_markers <- read.csv(args$celltype_markers, header = TRUE, stringsAsFactors = FALSE)
+gene_list <- as.list(cell_type_markers$marker)
+gene_list_df <- data.frame(
+	Gene = gene_list,
+	Number = fData(target_geomxdata)[gene_list, "DetectedSegments"],
+	DetectionRate = percent(fData(target_geomxdata)[gene_list, "DetectionRate"]))
 
 saveRDS(target_geomxdata, file = args$output)
