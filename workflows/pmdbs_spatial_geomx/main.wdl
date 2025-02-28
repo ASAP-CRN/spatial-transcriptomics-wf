@@ -136,12 +136,15 @@ workflow pmdbs_spatial_geomx_analysis {
 		## Sample list
 		Array[Array[Array[String]]] project_sample_ids = preprocess.project_sample_ids
 
-		## Preprocess
+		## Preprocess - sample-level
 		Array[Array[File]] geomxngs_dcc_zip = preprocess.geomxngs_dcc_zip
 		Array[Array[File]] geomxngs_output_tar_gz = preprocess.geomxngs_output_tar_gz
-		Array[Array[File]] initial_adata_object = preprocess.initial_adata_object
-		Array[Array[File]] qc_adata_object = preprocess.qc_adata_object
-		Array[Array[Float?]] qc_unassigned_ctrl_probes_percentage = preprocess.qc_unassigned_ctrl_probes_percentage
+		## Preprocess - team-level
+		Array[File] initial_rds_object = preprocess.initial_rds_object
+		Array[File] sample_overview_sankey_html = preprocess.sample_overview_sankey_html
+		Array[File] qc_rds_object = preprocess.qc_rds_object
+		Array[File] segment_qc_summary_csv = preprocess.segment_qc_summary_csv
+		Array[File] probe_qc_summary_csv = preprocess.probe_qc_summary_csv
 
 		# Project cohort analysis outputs
 		## List of samples included in the cohort
@@ -194,9 +197,17 @@ workflow pmdbs_spatial_geomx_analysis {
 	parameter_meta {
 		cohort_id: {help: "Name of the cohort; used to name output files during cross-team downstream analysis."}
 		projects: {help: "The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis."}
-		config_ini: {help: "The configuration (.ini) file, containing pipeline processing parameters."}
 		geomxngs_config_pkc: {help: "The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers."}
-		lab_annotation_xlsx: {help: "The phenotypic excel data file. It is recommended to use the Lab Worksheet in the exact order samples are provided in."}
+		min_segment_reads: {help: "Minimum number of segment reads. [1000]"}
+		min_percent_reads_trimmed: {help: "Minimum % of reads trimmed. [80]"}
+		min_percent_reads_stitched: {help: "Minimum % of reads stitched. [80]"}
+		min_percent_reads_aligned: {help: "Minimum % of reads aligned. [80]"}
+		min_saturation: {help: "Minimum sequencing saturation. [50]"}
+		min_neg_ctrl_count: {help: "Minimum negative control counts. [10]"}
+		max_ntc_count: {help: "Maximum counts observed in NTC well. [1000]"}
+		min_nuclei: {help: "Minimum # of nuclei estimated. [100]"}
+		min_segment_area: {help: "Minimum segment area. [5000]"}
+		
 		filter_cells_min_counts: {help: "Minimum number of counts required for a cell to pass filtering. [5000]"}
 		filter_genes_min_cells: {help: "Minimum number of cells expressed required for a gene to pass filtering. [10]"}
 		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (GeoMxNGSPipeline and generating the initial adata object(s)) will run for samples. [false]"}
