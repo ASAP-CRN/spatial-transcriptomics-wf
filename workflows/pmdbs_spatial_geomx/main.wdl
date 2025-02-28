@@ -145,6 +145,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		Array[File] qc_rds_object = preprocess.qc_rds_object
 		Array[File] segment_qc_summary_csv = preprocess.segment_qc_summary_csv
 		Array[File] probe_qc_summary_csv = preprocess.probe_qc_summary_csv
+		Array[File] gene_count_csv = preprocess.gene_count_csv
 
 		# Project cohort analysis outputs
 		## List of samples included in the cohort

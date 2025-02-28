@@ -132,6 +132,7 @@ workflow preprocess {
 	String qc_metrics_rds_object = "~{qc_raw_data_path}/~{team_id}.qc.rds"
 	String qc_segment_summary_csv = "~{qc_raw_data_path}/~{team_id}.segment_qc_summary.csv"
 	String qc_probe_summary_csv = "~{qc_raw_data_path}/~{team_id}.probe_qc_summary.csv"
+	String qc_gene_count_csv = "~{qc_raw_data_path}/~{team_id}.gene_count.csv"
 
 	if (qc_complete == "false") {
 		call qc {
@@ -158,6 +159,7 @@ workflow preprocess {
 	File qc_rds_object_output = select_first([qc.qc_rds_object, qc_metrics_rds_object]) #!FileCoercion
 	File segment_qc_summary_csv_output = select_first([qc.segment_qc_summary_csv, qc_segment_summary_csv]) #!FileCoercion
 	File probe_qc_summary_csv_output = select_first([qc.probe_qc_summary_csv, qc_probe_summary_csv]) #!FileCoercion
+	File gene_count_csv_output = select_first([qc.gene_count_csv, qc_gene_count_csv]) #!FileCoercion
 
 	output {
 		# Sample list
@@ -175,6 +177,7 @@ workflow preprocess {
 		File qc_rds_object = qc_rds_object_output #!FileCoercion
 		File segment_qc_summary_csv = segment_qc_summary_csv_output #!FileCoercion
 		File probe_qc_summary_csv = probe_qc_summary_csv_output #!FileCoercion
+		File gene_count_csv = gene_count_csv_output #!FileCoercion
 	}
 }
 
@@ -453,6 +456,7 @@ task qc {
 		String qc_rds_object = "~{raw_data_path}/~{team_id}.qc.rds"
 		String segment_qc_summary_csv = "~{raw_data_path}/~{team_id}.segment_qc_summary.csv"
 		String probe_qc_summary_csv = "~{raw_data_path}/~{team_id}.probe_qc_summary.csv"
+		String gene_count_csv = "~{raw_data_path}/~{team_id}.gene_count.csv"
 	}
 
 	runtime {
