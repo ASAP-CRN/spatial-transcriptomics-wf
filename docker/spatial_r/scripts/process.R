@@ -9,15 +9,15 @@ parser <- ArgumentParser(description = "Process merged RDS object by filtering a
 
 add_argument(
 	parser,
-	"--team-id",
+	"--cohort-id",
 	required=TRUE,
-	help="Team ID"
+	help="Cohort ID"
 )
 add_argument(
 	parser,
 	"--input",
 	required=TRUE,
-	help="List of RDS objects to merge"
+	help="The GeoMx data to filter and normalize"
 )
 add_argument(
 	parser,
@@ -29,7 +29,7 @@ add_argument(
 	parser,
 	"--output",
 	required=TRUE,
-	help="Output file name for the merged RDS object"
+	help="Output file name for the processed RDS object"
 )
 
 args <- parser$parse_args()
@@ -88,7 +88,7 @@ segment_gene_detection_plot <- ggplot(pData(target_geomxdata), aes(x = Detection
 		y = "Segments, #",
 		fill = "Segment Type")
 
-segment_gene_detection_plot_output = paste0(args$team_id + ".segment_gene_detection_plot.png")
+segment_gene_detection_plot_output <- paste0(args$cohort_id + ".segment_gene_detection_plot.png")
 ggsave(segment_gene_detection_plot_output, plot = segment_gene_detection_plot, width = 6, height = 4, dpi = 300)
 
 # Remove segments with less than 10% of the genes detected
@@ -105,5 +105,7 @@ gene_list_df <- data.frame(
 	Gene = gene_list,
 	Number = fData(target_geomxdata)[gene_list, "DetectedSegments"],
 	DetectionRate = percent(fData(target_geomxdata)[gene_list, "DetectionRate"]))
+gene_list_df_output <- paste0(args$cohort_id + ".gene_detection_rate.csv")
+write.csv(gene_list_df, gene_list_df_output, row.names = FALSE)
 
 saveRDS(target_geomxdata, file = args$output)

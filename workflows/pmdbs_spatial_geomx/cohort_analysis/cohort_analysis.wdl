@@ -14,9 +14,7 @@ workflow cohort_analysis {
 		# If provided, these files will be uploaded to the staging bucket alongside other intermediate files made by this workflow
 		Array[String] preprocessing_output_file_paths = []
 
-		# Filter parameters
-		Int filter_cells_min_counts
-		Int filter_genes_min_cells
+		File cell_type_markers_list
 
 		String workflow_name
 		String workflow_version
@@ -58,12 +56,11 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call filter_and_normalize {
+	call process {
 		input:
 			cohort_id = cohort_id,
 			merged_rds_object = merge.merged_rds_object, #!FileCoercion
-			filter_cells_min_counts = filter_cells_min_counts,
-			filter_genes_min_cells = filter_genes_min_cells,
+			cell_type_markers_list = cell_type_markers_list,
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -136,8 +133,10 @@ workflow cohort_analysis {
 		# Merged RDS objects
 		File merged_rds_object = merge.merged_rds_object #!FileCoercion
 
-		# Filtered and normalized adata object
-		File filtered_normalized_adata_object = filter_and_normalize.filtered_normalized_adata_object #!FileCoercion
+		# Processed RDS object
+		File processed_rds_object = process.processed_rds_object
+		File segment_gene_detection_plot_png = process.segment_gene_detection_plot_png #!FileCoercion
+		File gene_detection_rate_csv = process.gene_detection_rate_csv #!FileCoercion
 
 		# Leiden clustered adata object and UMAP and spatial coordinates plots
 		File umap_cluster_adata_object = cluster.umap_cluster_adata_object #!FileCoercion
@@ -200,13 +199,12 @@ task merge {
 	}
 }
 
-task filter_and_normalize {
+task process {
 	input {
 		String cohort_id
 		File merged_rds_object
 
-		Int filter_cells_min_counts
-		Int filter_genes_min_cells
+		File cell_type_markers_list
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -215,31 +213,34 @@ task filter_and_normalize {
 		String zones
 	}
 
-	Int mem_gb = ceil(size(merged_rds_object, "GB") * 2 + 20)
-	Int disk_size = ceil(size(merged_rds_object, "GB") * 2 + 50)
+	Int mem_gb = ceil(size([merged_rds_object, cell_type_markers_list], "GB") * 2 + 20)
+	Int disk_size = ceil(size(merged_rds_object, cell_type_markers_list], "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/filter_and_normalize.py \
-			--adata-input ~{merged_adata_object} \
-			--min-counts ~{filter_cells_min_counts} \
-			--min-cells ~{filter_genes_min_cells} \
-			--adata-output ~{cohort_id}.filtered_normalized.h5ad
+		Rscript /opt/scripts/process.R \
+			--cohort-id ~{cohort_id} \
+			--input ~{merged_rds_object} \
+			--celltype-markers ~{cell_type_markers_list} \
+			--output ~{cohort_id}.processed.rds
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.filtered_normalized.h5ad"
+			-o "~{cohort_id}.segment_gene_detection_plot.png" \
+			-o "~{cohort_id}.gene_detection_rate.csv"
 	>>>
 
 	output {
-		String filtered_normalized_adata_object = "~{raw_data_path}/~{cohort_id}.filtered_normalized.h5ad"
+		File processed_rds_object = "~{cohort_id}.processed.rds"
+		String segment_gene_detection_plot_png = "~{raw_data_path}/~{cohort_id}.segment_gene_detection_plot.png"
+		String gene_detection_rate_csv = "~{raw_data_path}/~{cohort_id}.gene_detection_rate.csv"
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
+		docker: "~{container_registry}/spatial_r:1:0:0"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"

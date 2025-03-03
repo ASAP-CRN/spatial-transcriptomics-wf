@@ -7,12 +7,6 @@ parser <- ArgumentParser(description = "Merge GeoMx data RDS objects into one")
 
 add_argument(
 	parser,
-	"--team-id",
-	required=TRUE,
-	help="Team ID"
-)
-add_argument(
-	parser,
 	"--paths-input",
 	nargs="+",
 	required=TRUE,

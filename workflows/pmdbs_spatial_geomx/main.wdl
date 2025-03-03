@@ -25,9 +25,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		Int min_nuclei = 100
 		Int min_segment_area = 5000
 
-		# Filter parameters
-		Int filter_cells_min_counts = 5000
-		Int filter_genes_min_cells = 10
+		File cell_type_markers_list
 
 		# Cohort analysis
 		Boolean run_cross_team_cohort_analysis = false
@@ -97,8 +95,7 @@ workflow pmdbs_spatial_geomx_analysis {
 					project_sample_ids = preprocess.project_sample_ids,
 					preprocessed_rds_objects = preprocess.qc_rds_object,
 					preprocessing_output_file_paths = preprocessing_output_file_paths,
-					filter_cells_min_counts = filter_cells_min_counts,
-					filter_genes_min_cells = filter_genes_min_cells,
+					cell_type_markers_list = cell_type_markers_list,
 					workflow_name = workflow_name,
 					workflow_version = workflow_version,
 					workflow_release = workflow_release,
@@ -121,8 +118,7 @@ workflow pmdbs_spatial_geomx_analysis {
 				project_sample_ids = flatten(preprocess.project_sample_ids),
 				preprocessed_rds_objects = flatten(preprocess.qc_rds_object),
 				preprocessing_output_file_paths = flatten(preprocessing_output_file_paths),
-				filter_cells_min_counts = filter_cells_min_counts,
-				filter_genes_min_cells = filter_genes_min_cells,
+				cell_type_markers_list = cell_type_markers_list,
 				workflow_name = workflow_name,
 				workflow_version = workflow_version,
 				workflow_release = workflow_release,
