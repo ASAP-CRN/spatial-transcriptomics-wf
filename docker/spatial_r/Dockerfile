@@ -27,6 +27,8 @@ RUN apt-get -qq update \
 		libtiff-dev \
 		libharfbuzz-dev \
 		libfribidi-dev \
+		libhdf5-dev \
+		hdf5-tools \
 	&& rm -rf /var/lib/apt/lists/*
 
 # R
@@ -47,11 +49,10 @@ COPY ./requirements.txt /opt/requirements.txt
 RUN Rscript -e 'if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager", repos = "https://cran.r-project.org"); \
   packages <- readLines("/opt/requirements.txt"); \
   BiocManager::install(packages, ask = FALSE)'
+RUN Rscript -e 'install.packages("hdf5r", repos="http://cran.r-project.org")'
 RUN Rscript -e 'install.packages("remotes", repos="http://cran.r-project.org")'
 RUN Rscript -e 'remotes::install_github("satijalab/seurat", "seurat5", quiet = TRUE)'
 RUN Rscript -e 'remotes::install_github("satijalab/seurat-data", "seurat5", quiet = TRUE)'
-RUN Rscript -e 'remotes::install_github("satijalab/azimuth", "seurat5", quiet = TRUE)'
-RUN Rscript -e 'remotes::install_github("satijalab/seurat-wrappers", "seurat5", quiet = TRUE)'
 RUN Rscript -e 'remotes::install_github("mojaveazure/seurat-disk")'
 
 COPY scripts /opt/scripts
