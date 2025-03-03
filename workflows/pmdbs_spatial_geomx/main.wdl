@@ -25,10 +25,14 @@ workflow pmdbs_spatial_geomx_analysis {
 		Int min_nuclei = 100
 		Int min_segment_area = 5000
 
-		File cell_type_markers_list
-
 		# Filtering parameters
+		File cell_type_markers_list
 		Float min_genes_detected_in_percent_segment = 0.1
+
+		# Integrate and cluster parameters
+		Int n_comps = 30
+		String batch_key = "batch_id"
+		Float leiden_resolution = 0.4
 
 		# Cohort analysis
 		Boolean run_cross_team_cohort_analysis = false
@@ -57,9 +61,9 @@ workflow pmdbs_spatial_geomx_analysis {
 				team_id = project.team_id,
 				dataset_id = project.dataset_id,
 				samples = project.samples,
-				project_sample_metadata_csv = project.project_sample_metadata_csv,
-				geomx_config_ini = project.geomx_config_ini,
-				geomx_lab_annotation_xlsx = project.geomx_lab_annotation_xlsx,
+				project_sample_metadata_csv = select_first([project.project_sample_metadata_csv]),
+				geomx_config_ini = select_first([project.geomx_config_ini]),
+				geomx_lab_annotation_xlsx = select_first([project.geomx_lab_annotation_xlsx]),
 				geomxngs_config_pkc = geomxngs_config_pkc,
 				min_segment_reads = min_segment_reads,
 				min_percent_reads_trimmed = min_percent_reads_trimmed,
@@ -83,12 +87,14 @@ workflow pmdbs_spatial_geomx_analysis {
 		Array[String] preprocessing_output_file_paths = flatten([
 			preprocess.geomxngs_dcc_zip,
 			preprocess.geomxngs_output_tar_gz,
-			preprocess.initial_rds_object,
-			preprocess.sample_overview_sankey_html,
-			preprocess.qc_rds_object,
-			preprocess.segment_qc_summary_csv,
-			preprocess.probe_qc_summary_csv,
-			preprocess.gene_count_csv
+			[
+				preprocess.initial_rds_object,
+				preprocess.sample_overview_sankey_html,
+				preprocess.qc_rds_object,
+				preprocess.segment_qc_summary_csv,
+				preprocess.probe_qc_summary_csv,
+				preprocess.gene_count_csv
+			]
 		]) #!StringCoercion
 
 		if (project.run_project_cohort_analysis) {
@@ -96,10 +102,13 @@ workflow pmdbs_spatial_geomx_analysis {
 				input:
 					cohort_id = project.team_id,
 					project_sample_ids = preprocess.project_sample_ids,
-					preprocessed_rds_objects = preprocess.qc_rds_object,
+					preprocessed_rds_objects = [preprocess.qc_rds_object],
 					preprocessing_output_file_paths = preprocessing_output_file_paths,
 					cell_type_markers_list = cell_type_markers_list,
 					min_genes_detected_in_percent_segment = min_genes_detected_in_percent_segment,
+					n_comps = n_comps,
+					batch_key = batch_key,
+					leiden_resolution = leiden_resolution,
 					workflow_name = workflow_name,
 					workflow_version = workflow_version,
 					workflow_release = workflow_release,
@@ -120,10 +129,13 @@ workflow pmdbs_spatial_geomx_analysis {
 			input:
 				cohort_id = cohort_id,
 				project_sample_ids = flatten(preprocess.project_sample_ids),
-				preprocessed_rds_objects = flatten(preprocess.qc_rds_object),
+				preprocessed_rds_objects = preprocess.qc_rds_object,
 				preprocessing_output_file_paths = flatten(preprocessing_output_file_paths),
 				cell_type_markers_list = cell_type_markers_list,
 				min_genes_detected_in_percent_segment = min_genes_detected_in_percent_segment,
+				n_comps = n_comps,
+				batch_key = batch_key,
+				leiden_resolution = leiden_resolution,
 				workflow_name = workflow_name,
 				workflow_version = workflow_version,
 				workflow_release = workflow_release,
@@ -156,7 +168,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		## List of samples included in the cohort
 		Array[File?] project_cohort_sample_list = project_cohort_analysis.cohort_sample_list
 
-		# Merged RDS objects, processed (filtered and normalized) RDS objects and plots, converted AnnData object
+		# Merged RDS objects, processed (filtered and normalized) RDS objects, converted integrated and clustered adata objects, and plots
 		Array[File?] project_merged_rds_object = project_cohort_analysis.merged_rds_object
 		Array[File?] project_processed_rds_object = project_cohort_analysis.processed_rds_object
 		Array[File?] project_segment_gene_detection_plot_png = project_cohort_analysis.segment_gene_detection_plot_png
@@ -164,14 +176,14 @@ workflow pmdbs_spatial_geomx_analysis {
 		Array[File?] project_q3_negprobe_plot_png = project_cohort_analysis.q3_negprobe_plot_png
 		Array[File?] project_normalization_plot_png = project_cohort_analysis.normalization_plot_png
 		Array[File?] project_processed_adata_object = project_cohort_analysis.processed_adata_object
+		Array[File?] project_integrated_adata_object = project_cohort_analysis.integrated_adata_object
+		Array[File?] project_clustered_adata_object = project_cohort_analysis.clustered_adata_object
+		Array[File?] project_umap_cluster_plots_png = project_cohort_analysis.umap_cluster_plots_png
 
 		# Spatial statistics outputs
-		Array[File?] project_moran_adata_object = project_cohort_analysis.moran_adata_object
-		Array[File?] project_moran_top_10_variable_genes_csv = project_cohort_analysis.moran_top_10_variable_genes_csv
-		Array[File?] project_nhood_enrichment_adata_object = project_cohort_analysis.nhood_enrichment_adata_object
-		Array[File?] project_nhood_enrichment_plot_png = project_cohort_analysis.nhood_enrichment_plot_png
 		Array[File?] project_final_adata_object = project_cohort_analysis.final_adata_object
-		Array[File?] project_co_occurrence_plot_png = project_cohort_analysis.co_occurrence_plot_png
+		Array[File?] project_moran_top_10_variable_genes_csv = project_cohort_analysis.moran_top_10_variable_genes_csv
+		Array[File?] project_moran_top_3_variable_genes_spatial_scatter_plot_png = project_cohort_analysis.moran_top_3_variable_genes_spatial_scatter_plot_png
 
 		Array[Array[File]?] preprocess_manifests = project_cohort_analysis.preprocess_manifest_tsvs
 		Array[Array[File]?] project_manifests = project_cohort_analysis.cohort_analysis_manifest_tsvs
@@ -180,7 +192,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		## List of samples included in the cohort
 		File? cohort_cohort_sample_list = cross_team_cohort_analysis.cohort_sample_list
 
-		# Merged RDS objects, processed (filtered and normalized) RDS objects and plots, converted AnnData object
+		# Merged RDS objects, processed (filtered and normalized) RDS objects, converted integrated and clustered adata objects, and plots
 		File? cohort_merged_rds_object = cross_team_cohort_analysis.merged_rds_object
 		File? cohort_processed_rds_object = cross_team_cohort_analysis.processed_rds_object
 		File? cohort_segment_gene_detection_plot_png = cross_team_cohort_analysis.segment_gene_detection_plot_png
@@ -188,14 +200,14 @@ workflow pmdbs_spatial_geomx_analysis {
 		File? cohort_q3_negprobe_plot_png = cross_team_cohort_analysis.q3_negprobe_plot_png
 		File? cohort_normalization_plot_png = cross_team_cohort_analysis.normalization_plot_png
 		File? cohort_processed_adata_object = cross_team_cohort_analysis.processed_adata_object
+		File? cohort_integrated_adata_object = cross_team_cohort_analysis.integrated_adata_object
+		File? cohort_clustered_adata_object = cross_team_cohort_analysis.clustered_adata_object
+		File? cohort_umap_cluster_plots_png = cross_team_cohort_analysis.umap_cluster_plots_png
 
 		# Spatial statistics outputs
-		File? cohort_moran_adata_object = cross_team_cohort_analysis.moran_adata_object
-		File? cohort_moran_top_10_variable_genes_csv = cross_team_cohort_analysis.moran_top_10_variable_genes_csv
-		File? cohort_nhood_enrichment_adata_object = cross_team_cohort_analysis.nhood_enrichment_adata_object
-		File? cohort_nhood_enrichment_plot_png = cross_team_cohort_analysis.nhood_enrichment_plot_png
 		File? cohort_final_adata_object = cross_team_cohort_analysis.final_adata_object
-		File? cohort_co_occurrence_plot_png = cross_team_cohort_analysis.co_occurrence_plot_png
+		File? cohort_moran_top_10_variable_genes_csv = cross_team_cohort_analysis.moran_top_10_variable_genes_csv
+		File? cohort_moran_top_3_variable_genes_spatial_scatter_plot_png = cross_team_cohort_analysis.moran_top_3_variable_genes_spatial_scatter_plot_png
 
 		Array[File]? cohort_manifests = cross_team_cohort_analysis.cohort_analysis_manifest_tsvs
 	}
@@ -218,6 +230,9 @@ workflow pmdbs_spatial_geomx_analysis {
 		min_nuclei: {help: "Minimum # of nuclei estimated. [100]"}
 		min_segment_area: {help: "Minimum segment area. [5000]"}
 		min_genes_detected_in_percent_segment: {help: "Minimum % of segments that detect the genes. [0.1]"}
+		n_comps: {help: "Number of principal components to compute. [30]"}
+		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}
+		leiden_resolution: {help: "Value controlling the coarseness of the Leiden clustering. [0.4]"}
 		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (GeoMxNGSPipeline and generating the initial adata object(s)) will run for samples. [false]"}
 		cohort_raw_data_bucket: {help: "Bucket to upload cross-team downstream intermediate files to."}
 		cohort_staging_data_buckets: {help: "Set of buckets to stage cross-team downstream analysis outputs in."}

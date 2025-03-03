@@ -1,8 +1,10 @@
 version 1.0
 
-# Merge and process RDS object with QC, filtering, and normalization, and convert to adata object and cluster
+# Merge and process RDS object with QC, filtering, and normalization, and convert to adata object, integrate and cluster
 
 import "../../../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
+import "../../integrate_data/integrate_data.wdl" as IntegrateData
+import "../../spatial_statistics/spatial_statistics.wdl" as SpatialStatistics
 import "../../../wf-common/wdl/tasks/upload_final_outputs.wdl" as UploadFinalOutputs
 
 workflow cohort_analysis {
@@ -14,10 +16,14 @@ workflow cohort_analysis {
 		# If provided, these files will be uploaded to the staging bucket alongside other intermediate files made by this workflow
 		Array[String] preprocessing_output_file_paths = []
 
-		File cell_type_markers_list
-
 		# Filtering parameters
-		Int min_genes_detected_in_percent_segment
+		File cell_type_markers_list
+		Float min_genes_detected_in_percent_segment
+
+		# Integrate and cluster parameters
+		Int n_comps
+		String batch_key
+		Float leiden_resolution
 
 		String workflow_name
 		String workflow_version
@@ -48,21 +54,23 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call merge {
-		input:
-			cohort_id = cohort_id,
-			preprocessed_rds_objects = preprocessed_rds_objects,
-			raw_data_path = raw_data_path,
-			workflow_info = workflow_info,
-			billing_project = billing_project,
-			container_registry = container_registry,
-			zones = zones
+	if (size(preprocessed_rds_objects) > 1) {
+		call merge {
+			input:
+				cohort_id = cohort_id,
+				preprocessed_rds_objects = preprocessed_rds_objects,
+				raw_data_path = raw_data_path,
+				workflow_info = workflow_info,
+				billing_project = billing_project,
+				container_registry = container_registry,
+				zones = zones
+		}
 	}
 
 	call process {
 		input:
 			cohort_id = cohort_id,
-			merged_rds_object = merge.merged_rds_object, #!FileCoercion
+			merged_rds_object = select_first([merge.merged_rds_object, preprocessed_rds_objects[0]]),
 			cell_type_markers_list = cell_type_markers_list,
 			min_genes_detected_in_percent_segment = min_genes_detected_in_percent_segment,
 			raw_data_path = raw_data_path,
@@ -86,7 +94,7 @@ workflow cohort_analysis {
 	call IntegrateData.integrate_data {
 		input:
 			cohort_id = cohort_id,
-			processed_adata_object = process.processed_adata_object, #!FileCoercion
+			processed_adata_object = rds_to_adata.processed_adata_object, #!FileCoercion
 			n_comps = n_comps,
 			batch_key = batch_key,
 			leiden_resolution = leiden_resolution,
@@ -97,21 +105,10 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call plot_spatial {
-		input:
-			cohort_id = cohort_id,
-			clustered_adata_object = integrate_data.clustered_adata_object, #!FileCoercion
-			raw_data_path = raw_data_path,
-			workflow_info = workflow_info,
-			billing_project = billing_project,
-			container_registry = container_registry,
-			zones = zones
-	}
-
 	call SpatialStatistics.spatial_statistics {
 		input:
 			cohort_id = cohort_id,
-			clustered_adata_object = cluster.umap_cluster_adata_object, #!FileCoercion
+			clustered_adata_object = integrate_data.clustered_adata_object, #!FileCoercion
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -132,18 +129,25 @@ workflow cohort_analysis {
 		[
 			write_cohort_sample_list.cohort_sample_list
 		],
+		select_all([
+			merge.merged_rds_object
+		]),
 		[
-			merge_and_plot_qc_metrics.merged_adata_object,
-			merge_and_plot_qc_metrics.qc_plots_png
+			process.segment_gene_detection_plot_png,
+			process.gene_detection_rate_csv,
+			process.q3_negprobe_plot_png,
+			process.normalization_plot_png
 		],
 		[
-			cluster.umap_cluster_plot_png,
+			rds_to_adata.processed_adata_object
 		],
 		[
-			spatial_statistics.moran_top_10_variable_genes_csv,
-			spatial_statistics.nhood_enrichment_plot_png,
+			integrate_data.umap_cluster_plots_png
+		],
+		[	
 			spatial_statistics.final_adata_object,
-			spatial_statistics.co_occurrence_plot_png
+			spatial_statistics.moran_top_10_variable_genes_csv,
+			spatial_statistics.moran_top_3_variable_genes_spatial_scatter_plot_png
 		]
 	]) #!StringCoercion
 
@@ -160,7 +164,7 @@ workflow cohort_analysis {
 		File cohort_sample_list = write_cohort_sample_list.cohort_sample_list #!FileCoercion
 
 		# Merged RDS objects
-		File merged_rds_object = merge.merged_rds_object #!FileCoercion
+		File? merged_rds_object = merge.merged_rds_object #!FileCoercion
 
 		# Processed RDS object and plots
 		File processed_rds_object = process.processed_rds_object
@@ -172,17 +176,15 @@ workflow cohort_analysis {
 		# Converted AnnData object
 		File processed_adata_object = rds_to_adata.processed_adata_object #!FileCoercion
 
-		# Leiden clustered adata object and UMAP and spatial coordinates plots
-		File umap_cluster_adata_object = cluster.umap_cluster_adata_object #!FileCoercion
-		File umap_cluster_plot_png = cluster.umap_cluster_plot_png #!FileCoercion
+		# Integrate data outputs
+		File integrated_adata_object = integrate_data.integrated_adata_object
+		File clustered_adata_object = integrate_data.clustered_adata_object
+		File umap_cluster_plots_png = integrate_data.umap_cluster_plots_png
 
 		# Spatial statistics outputs
-		File moran_adata_object = spatial_statistics.moran_adata_object
-		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
-		File nhood_enrichment_adata_object = spatial_statistics.nhood_enrichment_adata_object
-		File nhood_enrichment_plot_png = spatial_statistics.nhood_enrichment_plot_png
 		File final_adata_object = spatial_statistics.final_adata_object
-		File co_occurrence_plot_png = spatial_statistics.co_occurrence_plot_png
+		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
+		File moran_top_3_variable_genes_spatial_scatter_plot_png = spatial_statistics.moran_top_3_variable_genes_spatial_scatter_plot_png
 
 		Array[File] preprocess_manifest_tsvs = upload_preprocess_files.manifests #!FileCoercion
 		Array[File] cohort_analysis_manifest_tsvs = upload_cohort_analysis_files.manifests #!FileCoercion
@@ -199,6 +201,9 @@ task merge {
 		String billing_project
 		String container_registry
 		String zones
+
+		# Purposefully unset
+		String? my_none
 	}
 
 	Int mem_gb = ceil(size(preprocessed_rds_objects, "GB") * 2 + 20)
@@ -219,7 +224,7 @@ task merge {
 	>>>
 
 	output {
-		String merged_rds_object = "~{raw_data_path}/~{cohort_id}.merged_rds_object.rds"
+		String? merged_rds_object = if (size(preprocessed_rds_objects) > 1) then "~{raw_data_path}/~{cohort_id}.merged_rds_object.rds" else my_none
 	}
 
 	runtime {
@@ -240,7 +245,7 @@ task process {
 
 		File cell_type_markers_list
 
-		Int min_genes_detected_in_percent_segment
+		Float min_genes_detected_in_percent_segment
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
