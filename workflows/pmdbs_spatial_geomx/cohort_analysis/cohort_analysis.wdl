@@ -72,10 +72,35 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call cluster {
+	call rds_to_adata {
 		input:
 			cohort_id = cohort_id,
-			filtered_normalized_adata_object = filter_and_normalize.filtered_normalized_adata_object, #!FileCoercion
+			processed_rds_object = process.processed_rds_object,
+			raw_data_path = raw_data_path,
+			workflow_info = workflow_info,
+			billing_project = billing_project,
+			container_registry = container_registry,
+			zones = zones
+	}
+
+	call IntegrateData.integrate_data {
+		input:
+			cohort_id = cohort_id,
+			processed_adata_object = process.processed_adata_object, #!FileCoercion
+			n_comps = n_comps,
+			batch_key = batch_key,
+			leiden_resolution = leiden_resolution,
+			raw_data_path = raw_data_path,
+			workflow_info = workflow_info,
+			billing_project = billing_project,
+			container_registry = container_registry,
+			zones = zones
+	}
+
+	call plot_spatial {
+		input:
+			cohort_id = cohort_id,
+			clustered_adata_object = integrate_data.clustered_adata_object, #!FileCoercion
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -143,6 +168,9 @@ workflow cohort_analysis {
 		File gene_detection_rate_csv = process.gene_detection_rate_csv #!FileCoercion
 		File q3_negprobe_plot_png = process.q3_negprobe_plot_png #!FileCoercion
 		File normalization_plot_png = process.normalization_plot_png #!FileCoercion
+
+		# Converted AnnData object
+		File processed_adata_object = rds_to_adata.processed_adata_object #!FileCoercion
 
 		# Leiden clustered adata object and UMAP and spatial coordinates plots
 		File umap_cluster_adata_object = cluster.umap_cluster_adata_object #!FileCoercion
@@ -222,7 +250,7 @@ task process {
 	}
 
 	Int mem_gb = ceil(size([merged_rds_object, cell_type_markers_list], "GB") * 2 + 20)
-	Int disk_size = ceil(size(merged_rds_object, cell_type_markers_list], "GB") * 2 + 50)
+	Int disk_size = ceil(size([merged_rds_object, cell_type_markers_list], "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail
@@ -263,10 +291,10 @@ task process {
 	}
 }
 
-task cluster {
+task rds_to_adata {
 	input {
 		String cohort_id
-		File filtered_normalized_adata_object
+		File processed_rds_object
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -275,32 +303,29 @@ task cluster {
 		String zones
 	}
 
-	Int mem_gb = ceil(size(filtered_normalized_adata_object, "GB") * 2 + 20)
-	Int disk_size = ceil(size(filtered_normalized_adata_object, "GB") * 2 + 50)
+	Int mem_gb = ceil(size(processed_rds_object, "GB") * 2 + 20)
+	Int disk_size = ceil(size(processed_rds_object, "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/cluster.py \
-			--cohort-id ~{cohort_id} \
-			--adata-input ~{filtered_normalized_adata_object} \
-			--adata-output ~{cohort_id}.umap_cluster.h5ad
+		Rscript /opt/scripts/rds_to_adata.R \
+			--input ~{processed_rds_object} \
+			--output ~{cohort_id}.processed.h5ad
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.umap_cluster.h5ad" \
-			-o "~{cohort_id}.umap_cluster.png"
+			-o "~{cohort_id}.processed.h5ad"
 	>>>
 
 	output {
-		String umap_cluster_adata_object = "~{raw_data_path}/~{cohort_id}.umap_cluster.h5ad"
-		String umap_cluster_plot_png = "~{raw_data_path}/~{cohort_id}.umap_cluster.png"
+		String processed_adata_object = "~{raw_data_path}/~{cohort_id}.processed.h5ad"
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
+		docker: "~{container_registry}/spatial_r:1:0:0"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"

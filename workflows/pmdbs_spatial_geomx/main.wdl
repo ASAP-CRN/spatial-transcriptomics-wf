@@ -156,13 +156,14 @@ workflow pmdbs_spatial_geomx_analysis {
 		## List of samples included in the cohort
 		Array[File?] project_cohort_sample_list = project_cohort_analysis.cohort_sample_list
 
-		# Merged RDS objects, processed (filtered and normalized) RDS objects and plots
+		# Merged RDS objects, processed (filtered and normalized) RDS objects and plots, converted AnnData object
 		Array[File?] project_merged_rds_object = project_cohort_analysis.merged_rds_object
 		Array[File?] project_processed_rds_object = project_cohort_analysis.processed_rds_object
 		Array[File?] project_segment_gene_detection_plot_png = project_cohort_analysis.segment_gene_detection_plot_png
 		Array[File?] project_gene_detection_rate_csv = project_cohort_analysis.gene_detection_rate_csv
 		Array[File?] project_q3_negprobe_plot_png = project_cohort_analysis.q3_negprobe_plot_png
 		Array[File?] project_normalization_plot_png = project_cohort_analysis.normalization_plot_png
+		Array[File?] project_processed_adata_object = project_cohort_analysis.processed_adata_object
 
 		# Spatial statistics outputs
 		Array[File?] project_moran_adata_object = project_cohort_analysis.moran_adata_object
@@ -179,13 +180,14 @@ workflow pmdbs_spatial_geomx_analysis {
 		## List of samples included in the cohort
 		File? cohort_cohort_sample_list = cross_team_cohort_analysis.cohort_sample_list
 
-		# Merged RDS objects, processed (filtered and normalized) RDS objects and plots
+		# Merged RDS objects, processed (filtered and normalized) RDS objects and plots, converted AnnData object
 		File? cohort_merged_rds_object = cross_team_cohort_analysis.merged_rds_object
 		File? cohort_processed_rds_object = cross_team_cohort_analysis.processed_rds_object
 		File? cohort_segment_gene_detection_plot_png = cross_team_cohort_analysis.segment_gene_detection_plot_png
 		File? cohort_gene_detection_rate_csv = cross_team_cohort_analysis.gene_detection_rate_csv
 		File? cohort_q3_negprobe_plot_png = cross_team_cohort_analysis.q3_negprobe_plot_png
 		File? cohort_normalization_plot_png = cross_team_cohort_analysis.normalization_plot_png
+		File? cohort_processed_adata_object = cross_team_cohort_analysis.processed_adata_object
 
 		# Spatial statistics outputs
 		File? cohort_moran_adata_object = cross_team_cohort_analysis.moran_adata_object
@@ -216,7 +218,6 @@ workflow pmdbs_spatial_geomx_analysis {
 		min_nuclei: {help: "Minimum # of nuclei estimated. [100]"}
 		min_segment_area: {help: "Minimum segment area. [5000]"}
 		min_genes_detected_in_percent_segment: {help: "Minimum % of segments that detect the genes. [0.1]"}
-		
 		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (GeoMxNGSPipeline and generating the initial adata object(s)) will run for samples. [false]"}
 		cohort_raw_data_bucket: {help: "Bucket to upload cross-team downstream intermediate files to."}
 		cohort_staging_data_buckets: {help: "Set of buckets to stage cross-team downstream analysis outputs in."}
