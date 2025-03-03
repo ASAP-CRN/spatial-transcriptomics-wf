@@ -21,7 +21,6 @@ RUN apt-get -qq update \
 		liblzma-dev \
 		libpcre3-dev \
 		libcurl4-openssl-dev \
-		libpcre2 \
 		libxml2-dev \
 		libssl-dev \
 		libfontconfig1-dev \
