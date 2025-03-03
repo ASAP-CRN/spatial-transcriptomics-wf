@@ -16,6 +16,9 @@ workflow cohort_analysis {
 
 		File cell_type_markers_list
 
+		# Filtering parameters
+		Int min_genes_detected_in_percent_segment
+
 		String workflow_name
 		String workflow_version
 		String workflow_release
@@ -61,6 +64,7 @@ workflow cohort_analysis {
 			cohort_id = cohort_id,
 			merged_rds_object = merge.merged_rds_object, #!FileCoercion
 			cell_type_markers_list = cell_type_markers_list,
+			min_genes_detected_in_percent_segment = min_genes_detected_in_percent_segment,
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -133,10 +137,12 @@ workflow cohort_analysis {
 		# Merged RDS objects
 		File merged_rds_object = merge.merged_rds_object #!FileCoercion
 
-		# Processed RDS object
+		# Processed RDS object and plots
 		File processed_rds_object = process.processed_rds_object
 		File segment_gene_detection_plot_png = process.segment_gene_detection_plot_png #!FileCoercion
 		File gene_detection_rate_csv = process.gene_detection_rate_csv #!FileCoercion
+		File q3_negprobe_plot_png = process.q3_negprobe_plot_png #!FileCoercion
+		File normalization_plot_png = process.normalization_plot_png #!FileCoercion
 
 		# Leiden clustered adata object and UMAP and spatial coordinates plots
 		File umap_cluster_adata_object = cluster.umap_cluster_adata_object #!FileCoercion
@@ -206,6 +212,8 @@ task process {
 
 		File cell_type_markers_list
 
+		Int min_genes_detected_in_percent_segment
+
 		String raw_data_path
 		Array[Array[String]] workflow_info
 		String billing_project
@@ -223,6 +231,7 @@ task process {
 			--cohort-id ~{cohort_id} \
 			--input ~{merged_rds_object} \
 			--celltype-markers ~{cell_type_markers_list} \
+			--min-segment ~{min_genes_detected_in_percent_segment} \
 			--output ~{cohort_id}.processed.rds
 
 		upload_outputs \
@@ -230,13 +239,17 @@ task process {
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
 			-o "~{cohort_id}.segment_gene_detection_plot.png" \
-			-o "~{cohort_id}.gene_detection_rate.csv"
+			-o "~{cohort_id}.gene_detection_rate.csv" \
+			-o "~{cohort_id}.q3_negprobe_plot.png" \
+			-o "~{cohort_id}.normalization_plot.png"
 	>>>
 
 	output {
 		File processed_rds_object = "~{cohort_id}.processed.rds"
 		String segment_gene_detection_plot_png = "~{raw_data_path}/~{cohort_id}.segment_gene_detection_plot.png"
 		String gene_detection_rate_csv = "~{raw_data_path}/~{cohort_id}.gene_detection_rate.csv"
+		String q3_negprobe_plot_png = "~{raw_data_path}/~{cohort_id}.q3_negprobe_plot.png"
+		String normalization_plot_png = "~{raw_data_path}/~{cohort_id}.normalization_plot.png.png"
 	}
 
 	runtime {

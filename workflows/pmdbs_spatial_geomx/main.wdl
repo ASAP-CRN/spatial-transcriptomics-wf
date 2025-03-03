@@ -27,6 +27,9 @@ workflow pmdbs_spatial_geomx_analysis {
 
 		File cell_type_markers_list
 
+		# Filtering parameters
+		Float min_genes_detected_in_percent_segment = 0.1
+
 		# Cohort analysis
 		Boolean run_cross_team_cohort_analysis = false
 		String cohort_raw_data_bucket
@@ -96,6 +99,7 @@ workflow pmdbs_spatial_geomx_analysis {
 					preprocessed_rds_objects = preprocess.qc_rds_object,
 					preprocessing_output_file_paths = preprocessing_output_file_paths,
 					cell_type_markers_list = cell_type_markers_list,
+					min_genes_detected_in_percent_segment = min_genes_detected_in_percent_segment,
 					workflow_name = workflow_name,
 					workflow_version = workflow_version,
 					workflow_release = workflow_release,
@@ -119,6 +123,7 @@ workflow pmdbs_spatial_geomx_analysis {
 				preprocessed_rds_objects = flatten(preprocess.qc_rds_object),
 				preprocessing_output_file_paths = flatten(preprocessing_output_file_paths),
 				cell_type_markers_list = cell_type_markers_list,
+				min_genes_detected_in_percent_segment = min_genes_detected_in_percent_segment,
 				workflow_name = workflow_name,
 				workflow_version = workflow_version,
 				workflow_release = workflow_release,
@@ -151,11 +156,13 @@ workflow pmdbs_spatial_geomx_analysis {
 		## List of samples included in the cohort
 		Array[File?] project_cohort_sample_list = project_cohort_analysis.cohort_sample_list
 
-		# Merged RDS objects, filtered and normalized RDS objects, clustered adata objects, and plots
+		# Merged RDS objects, processed (filtered and normalized) RDS objects and plots
 		Array[File?] project_merged_rds_object = project_cohort_analysis.merged_rds_object
-		Array[File?] project_filtered_normalized_adata_object = project_cohort_analysis.filtered_normalized_adata_object
-		Array[File?] project_umap_cluster_adata_object = project_cohort_analysis.umap_cluster_adata_object
-		Array[File?] project_umap_cluster_plot_png = project_cohort_analysis.umap_cluster_plot_png
+		Array[File?] project_processed_rds_object = project_cohort_analysis.processed_rds_object
+		Array[File?] project_segment_gene_detection_plot_png = project_cohort_analysis.segment_gene_detection_plot_png
+		Array[File?] project_gene_detection_rate_csv = project_cohort_analysis.gene_detection_rate_csv
+		Array[File?] project_q3_negprobe_plot_png = project_cohort_analysis.q3_negprobe_plot_png
+		Array[File?] project_normalization_plot_png = project_cohort_analysis.normalization_plot_png
 
 		# Spatial statistics outputs
 		Array[File?] project_moran_adata_object = project_cohort_analysis.moran_adata_object
@@ -172,11 +179,13 @@ workflow pmdbs_spatial_geomx_analysis {
 		## List of samples included in the cohort
 		File? cohort_cohort_sample_list = cross_team_cohort_analysis.cohort_sample_list
 
-		# Merged RDS objects, filtered and normalized RDS objects, clustered adata objects, and plots
+		# Merged RDS objects, processed (filtered and normalized) RDS objects and plots
 		File? cohort_merged_rds_object = cross_team_cohort_analysis.merged_rds_object
-		File? cohort_filtered_normalized_adata_object = cross_team_cohort_analysis.filtered_normalized_adata_object
-		File? cohort_umap_cluster_adata_object = cross_team_cohort_analysis.umap_cluster_adata_object
-		File? cohort_umap_cluster_plot_png = cross_team_cohort_analysis.umap_cluster_plot_png
+		File? cohort_processed_rds_object = cross_team_cohort_analysis.processed_rds_object
+		File? cohort_segment_gene_detection_plot_png = cross_team_cohort_analysis.segment_gene_detection_plot_png
+		File? cohort_gene_detection_rate_csv = cross_team_cohort_analysis.gene_detection_rate_csv
+		File? cohort_q3_negprobe_plot_png = cross_team_cohort_analysis.q3_negprobe_plot_png
+		File? cohort_normalization_plot_png = cross_team_cohort_analysis.normalization_plot_png
 
 		# Spatial statistics outputs
 		File? cohort_moran_adata_object = cross_team_cohort_analysis.moran_adata_object
@@ -206,9 +215,8 @@ workflow pmdbs_spatial_geomx_analysis {
 		max_ntc_count: {help: "Maximum counts observed in NTC well. [1000]"}
 		min_nuclei: {help: "Minimum # of nuclei estimated. [100]"}
 		min_segment_area: {help: "Minimum segment area. [5000]"}
+		min_genes_detected_in_percent_segment: {help: "Minimum % of segments that detect the genes. [0.1]"}
 		
-		filter_cells_min_counts: {help: "Minimum number of counts required for a cell to pass filtering. [5000]"}
-		filter_genes_min_cells: {help: "Minimum number of cells expressed required for a gene to pass filtering. [10]"}
 		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (GeoMxNGSPipeline and generating the initial adata object(s)) will run for samples. [false]"}
 		cohort_raw_data_bucket: {help: "Bucket to upload cross-team downstream intermediate files to."}
 		cohort_staging_data_buckets: {help: "Set of buckets to stage cross-team downstream analysis outputs in."}
