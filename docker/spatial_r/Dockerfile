@@ -50,8 +50,7 @@ RUN Rscript -e 'if (!requireNamespace("BiocManager", quietly = TRUE)) install.pa
 RUN Rscript -e 'install.packages("remotes", repos="http://cran.r-project.org")'
 RUN Rscript -e 'remotes::install_github("satijalab/seurat", "seurat5", quiet = TRUE)'
 RUN Rscript -e 'remotes::install_github("satijalab/seurat-data", "seurat5", quiet = TRUE)'
-RUN Rscript -e 'if (!requireNamespace("remotes", quietly = TRUE)) {install.packages("remotes"); \
-	remotes::install_github("mojaveazure/seurat-disk")'
+RUN Rscript -e 'remotes::install_github("mojaveazure/seurat-disk", "seurat5", quiet = TRUE)'
 
 COPY scripts /opt/scripts
 ENV PATH "${PATH}:/opt/scripts"
