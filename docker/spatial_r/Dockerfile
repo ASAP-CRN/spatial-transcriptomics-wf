@@ -13,6 +13,7 @@ ENV GCLOUD_CLI_VERSION "${GCLOUD_CLI_VERSION}"
 RUN apt-get -qq update \
 	&& apt-get -qq install \
 		build-essential \
+		unzip \
 		time \
 		wget \
 		gfortran \
