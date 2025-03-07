@@ -54,23 +54,21 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	if (size(preprocessed_rds_objects) > 1) {
-		call merge {
-			input:
-				cohort_id = cohort_id,
-				preprocessed_rds_objects = preprocessed_rds_objects,
-				raw_data_path = raw_data_path,
-				workflow_info = workflow_info,
-				billing_project = billing_project,
-				container_registry = container_registry,
-				zones = zones
-		}
+	call merge {
+		input:
+			cohort_id = cohort_id,
+			preprocessed_rds_objects = preprocessed_rds_objects,
+			raw_data_path = raw_data_path,
+			workflow_info = workflow_info,
+			billing_project = billing_project,
+			container_registry = container_registry,
+			zones = zones
 	}
 
 	call process {
 		input:
 			cohort_id = cohort_id,
-			merged_rds_object = select_first([merge.merged_rds_object, preprocessed_rds_objects[0]]),
+			merged_rds_object = merge.merged_rds_object, #!FileCoercion
 			cell_type_markers_list = cell_type_markers_list,
 			min_genes_detected_in_percent_segment = min_genes_detected_in_percent_segment,
 			raw_data_path = raw_data_path,
@@ -129,9 +127,9 @@ workflow cohort_analysis {
 		[
 			write_cohort_sample_list.cohort_sample_list
 		],
-		select_all([
+		[
 			merge.merged_rds_object
-		]),
+		],
 		[
 			process.segment_gene_detection_plot_png,
 			process.gene_detection_rate_csv,
@@ -164,7 +162,7 @@ workflow cohort_analysis {
 		File cohort_sample_list = write_cohort_sample_list.cohort_sample_list #!FileCoercion
 
 		# Merged RDS objects
-		File? merged_rds_object = merge.merged_rds_object #!FileCoercion
+		File merged_rds_object = merge.merged_rds_object #!FileCoercion
 
 		# Processed RDS object and plots
 		File processed_rds_object = process.processed_rds_object
@@ -201,9 +199,6 @@ task merge {
 		String billing_project
 		String container_registry
 		String zones
-
-		# Purposefully unset
-		String? my_none
 	}
 
 	Int mem_gb = ceil(size(preprocessed_rds_objects, "GB") * 2 + 20)
@@ -224,7 +219,7 @@ task merge {
 	>>>
 
 	output {
-		String? merged_rds_object = if (size(preprocessed_rds_objects) > 1) then "~{raw_data_path}/~{cohort_id}.merged_rds_object.rds" else my_none
+		String merged_rds_object = "~{raw_data_path}/~{cohort_id}.merged_rds_object.rds"
 	}
 
 	runtime {

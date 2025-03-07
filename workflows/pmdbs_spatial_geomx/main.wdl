@@ -61,9 +61,7 @@ workflow pmdbs_spatial_geomx_analysis {
 				team_id = project.team_id,
 				dataset_id = project.dataset_id,
 				samples = project.samples,
-				project_sample_metadata_csv = select_first([project.project_sample_metadata_csv]),
 				geomx_config_ini = select_first([project.geomx_config_ini]),
-				geomx_lab_annotation_xlsx = select_first([project.geomx_lab_annotation_xlsx]),
 				geomxngs_config_pkc = geomxngs_config_pkc,
 				min_segment_reads = min_segment_reads,
 				min_percent_reads_trimmed = min_percent_reads_trimmed,
@@ -102,7 +100,7 @@ workflow pmdbs_spatial_geomx_analysis {
 				input:
 					cohort_id = project.team_id,
 					project_sample_ids = preprocess.project_sample_ids,
-					preprocessed_rds_objects = [preprocess.qc_rds_object],
+					preprocessed_rds_objects = preprocess.qc_rds_object,
 					preprocessing_output_file_paths = preprocessing_output_file_paths,
 					cell_type_markers_list = cell_type_markers_list,
 					min_genes_detected_in_percent_segment = min_genes_detected_in_percent_segment,
@@ -129,7 +127,7 @@ workflow pmdbs_spatial_geomx_analysis {
 			input:
 				cohort_id = cohort_id,
 				project_sample_ids = flatten(preprocess.project_sample_ids),
-				preprocessed_rds_objects = preprocess.qc_rds_object,
+				preprocessed_rds_objects = flatten(preprocess.qc_rds_object),
 				preprocessing_output_file_paths = flatten(preprocessing_output_file_paths),
 				cell_type_markers_list = cell_type_markers_list,
 				min_genes_detected_in_percent_segment = min_genes_detected_in_percent_segment,
@@ -153,16 +151,15 @@ workflow pmdbs_spatial_geomx_analysis {
 		## Sample list
 		Array[Array[Array[String]]] project_sample_ids = preprocess.project_sample_ids
 
-		## Preprocess - sample-level
+		## Preprocess
 		Array[Array[File]] geomxngs_dcc_zip = preprocess.geomxngs_dcc_zip
 		Array[Array[File]] geomxngs_output_tar_gz = preprocess.geomxngs_output_tar_gz
-		## Preprocess - team-level
-		Array[File] initial_rds_object = preprocess.initial_rds_object
-		Array[File] sample_overview_sankey_html = preprocess.sample_overview_sankey_html
-		Array[File] qc_rds_object = preprocess.qc_rds_object
-		Array[File] segment_qc_summary_csv = preprocess.segment_qc_summary_csv
-		Array[File] probe_qc_summary_csv = preprocess.probe_qc_summary_csv
-		Array[File] gene_count_csv = preprocess.gene_count_csv
+		Array[Array[File]] initial_rds_object = preprocess.initial_rds_object
+		Array[Array[File]] sample_overview_sankey_html = preprocess.sample_overview_sankey_html
+		Array[Array[File]] qc_rds_object = preprocess.qc_rds_object
+		Array[Array[File]] segment_qc_summary_csv = preprocess.segment_qc_summary_csv
+		Array[Array[File]] probe_qc_summary_csv = preprocess.probe_qc_summary_csv
+		Array[Array[File]] gene_count_csv = preprocess.gene_count_csv
 
 		# Project cohort analysis outputs
 		## List of samples included in the cohort
