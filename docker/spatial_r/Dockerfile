@@ -50,6 +50,7 @@ COPY ./requirements.txt /opt/requirements.txt
 RUN Rscript -e 'if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager", repos = "https://cran.r-project.org"); \
   packages <- readLines("/opt/requirements.txt"); \
   BiocManager::install(packages, ask = FALSE)'
+RUN Rscript -e 'install.packages("argparse", repos="http://cran.r-project.org")'
 RUN Rscript -e 'install.packages("hdf5r", repos="http://cran.r-project.org")'
 RUN Rscript -e 'install.packages("remotes", repos="http://cran.r-project.org")'
 RUN Rscript -e 'remotes::install_github("satijalab/seurat", "seurat5", quiet = TRUE)'
