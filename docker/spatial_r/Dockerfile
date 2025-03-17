@@ -16,7 +16,10 @@ RUN apt-get -qq update \
 		unzip \
 		time \
 		wget \
+		cmake \
 		gfortran \
+		openjdk-17-jdk \
+		default-jdk \
 		zlib1g-dev \
 		libbz2-dev \
 		liblzma-dev \
@@ -55,7 +58,7 @@ RUN Rscript -e 'install.packages("hdf5r", repos="http://cran.r-project.org")'
 RUN Rscript -e 'install.packages("remotes", repos="http://cran.r-project.org")'
 RUN Rscript -e 'remotes::install_github("satijalab/seurat", "seurat5", quiet = TRUE)'
 RUN Rscript -e 'remotes::install_github("satijalab/seurat-data", "seurat5", quiet = TRUE)'
-RUN Rscript -e 'remotes::install_github("mojaveazure/seurat-disk")'
+RUN Rscript -e 'remotes::install_github("mojaveazure/seurat-disk", quiet = TRUE)'
 
 COPY scripts /opt/scripts
 ENV PATH "${PATH}:/opt/scripts"
