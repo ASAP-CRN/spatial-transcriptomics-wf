@@ -263,17 +263,17 @@ task fastq_to_dcc {
 		expect eof
 		EOF
 
-		# DCC zip file is automatically named following format: DCC-<YYYYMMDD>.zip
-		dcc_file_to_rename=$(find ./~{sample_id}_geomxngs_out_dir -type f -name 'DCC-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].zip')
 		# Only keep the sample that was processed or else all samples in the config (.ini) file is processed with zero RTS_ID count causing errors downstream
+		mkdir ~{sample_id}.DCC
 		touch sample_names.txt
 		while read -r file || [[ -n "${file}" ]]; do
 			basename "$file" | cut -d '_' -f 1-4 | grep "^DSP"
-		done < <(ls "$fastqs") > sample_names.txt
+		done < <(ls fastqs) > sample_names.txt
 		sed 's/$/.dcc/' sample_names.txt > sample_names_with_dcc.txt
 		while read -r file || [[ -n "${file}" ]]; do
-			cp "$file" ./~{sample_id}.DCC.zip
+			cp ~{sample_id}_geomxngs_out_dir/"$file" ./~{sample_id}.DCC/
 		done < sample_names_with_dcc.txt
+		zip ~{sample_id}.DCC
 
 		tar -czvf "~{sample_id}.geomxngs_out_dir.tar.gz" "~{sample_id}_geomxngs_out_dir"
 
