@@ -265,7 +265,15 @@ task fastq_to_dcc {
 
 		# DCC zip file is automatically named following format: DCC-<YYYYMMDD>.zip
 		dcc_file_to_rename=$(find ./~{sample_id}_geomxngs_out_dir -type f -name 'DCC-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].zip')
-		cp "${dcc_file_to_rename}" ./~{sample_id}.DCC.zip
+		# Only keep the sample that was processed or else all samples in the config (.ini) file is processed with zero RTS_ID count causing errors downstream
+		touch sample_names.txt
+		while read -r file || [[ -n "${file}" ]]; do
+			basename "$file" | cut -d '_' -f 1-4 | grep "^DSP"
+		done < <(ls "$fastqs") > sample_names.txt
+		sed 's/$/.dcc/' sample_names.txt > sample_names_with_dcc.txt
+		while read -r file || [[ -n "${file}" ]]; do
+			cp "$file" ./~{sample_id}.DCC.zip
+		done < sample_names_with_dcc.txt
 
 		tar -czvf "~{sample_id}.geomxngs_out_dir.tar.gz" "~{sample_id}_geomxngs_out_dir"
 
@@ -312,6 +320,8 @@ task dcc_to_rds {
 		String zones
 	}
 
+	String geomx_lab_annotation_sheet_name = sub(basename(geomx_lab_annotation_xlsx), ".xlsx", ".txt")
+
 	Int threads = 4
 	Int mem_gb = ceil(threads * 2)
 	Int disk_size = ceil(size([geomxngs_dcc_zip, geomx_lab_annotation_xlsx, geomxngs_config_pkc], "GB") * 4 + 30)
@@ -329,6 +339,7 @@ task dcc_to_rds {
 			--dcc-dir ./dcc_files_dir \
 			--pkc-file ~{geomxngs_config_pkc} \
 			--annotation-file ~{geomx_lab_annotation_xlsx} \
+			--annotation-sheet-name ~{geomx_lab_annotation_sheet_name} \
 			--output ~{sample_id}.NanoStringGeoMxSet.rds
 
 		upload_outputs \

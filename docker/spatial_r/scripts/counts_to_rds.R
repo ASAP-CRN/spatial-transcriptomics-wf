@@ -52,6 +52,12 @@ add_argument(
 )
 add_argument(
 	parser,
+	"--annotation-sheet-name",
+	required=TRUE,
+	help="Data sheet name in annotation file"
+)
+add_argument(
+	parser,
 	"--output",
 	required=TRUE,
 	help="Output file name for the NanoStringGeoMxSet object"
@@ -68,7 +74,7 @@ dcc_files <- list.files(path = args$dcc_dir, full.names = TRUE)
 geomxdata <- readNanoStringGeoMxSet(dccFiles = dcc_files,
 									pkcFiles = args$pkc_file,
 									phenoDataFile = args$annotation_file,
-									phenoDataSheet = "Template", # TODO
+									phenoDataSheet = args$annotation_sheet_name,
 									phenoDataDccColName = "Sample_ID",
 									protocolDataColNames = c("aoi", "roi"),
 									experimentDataColNames = c("panel"))
