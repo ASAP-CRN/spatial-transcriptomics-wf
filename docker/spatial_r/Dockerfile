@@ -14,6 +14,7 @@ RUN apt-get -qq update \
 	&& apt-get -qq install \
 		build-essential \
 		unzip \
+		zip \
 		time \
 		wget \
 		cmake \
