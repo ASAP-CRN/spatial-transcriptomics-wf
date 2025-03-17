@@ -6,74 +6,62 @@ library(ggplot2)
 
 parser <- ArgumentParser(description = "Perform Segment and Probe QC on GeoMx data")
 
-add_argument(
-	parser,
+parser$add_argument(
 	"--sample-id",
 	required=TRUE,
 	help="Sample ID"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--input",
 	required=TRUE,
 	help="The GeoMx data to perform QC on"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--min-reads",
 	required=TRUE,
 	help="Minimum number of reads [1000]"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--percent-trimmed",
 	required=TRUE,
 	help="Minimum % of reads trimmed [80]"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--percent-stitched",
 	required=TRUE,
 	help="Minimum % of reads stitched [80]"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--percent-aligned",
 	required=TRUE,
 	help="Minimum % of reads aligned [80]"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--percent-saturation",
 	required=TRUE,
 	help="Minimum sequencing saturation [50]"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--min-neg-count",
 	required=TRUE,
 	help="Minimum negative control counts [10]"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--max-ntc-count",
 	required=TRUE,
 	help="Maximum counts observed in NTC well [1000]"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--min-nuclei",
 	required=TRUE,
 	help="Minimum # of nuclei estimated [100]"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--min-area",
 	required=TRUE,
 	help="Minimum segment area [5000]"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--output",
 	required=TRUE,
 	help="Output file name for the QC'ed RDS object"

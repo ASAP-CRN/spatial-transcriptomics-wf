@@ -9,32 +9,27 @@ library(cowplot)
 
 parser <- ArgumentParser(description = "Process merged RDS object by filtering and normalization")
 
-add_argument(
-	parser,
+parser$add_argument(
 	"--cohort-id",
 	required=TRUE,
 	help="Cohort ID"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--input",
 	required=TRUE,
 	help="The GeoMx data to filter and normalize"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--celltype-markers",
 	required=TRUE,
 	help="Cell type marker list"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--min-segment",
 	required=TRUE,
 	help="Minimum % of segments that detect the genes [0.1]"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--output",
 	required=TRUE,
 	help="Output file name for the processed RDS object"

@@ -5,15 +5,13 @@ library(GeoMxWorkflows)
 
 parser <- ArgumentParser(description = "Merge GeoMx data RDS objects into one")
 
-add_argument(
-	parser,
+parser$add_argument(
 	"--paths-input",
 	nargs="+",
 	required=TRUE,
 	help="List of RDS objects to merge"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--output",
 	required=TRUE,
 	help="Output file name for the merged RDS object"

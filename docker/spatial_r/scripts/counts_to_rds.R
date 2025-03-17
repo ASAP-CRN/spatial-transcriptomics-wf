@@ -8,56 +8,47 @@ library(networkD3)
 
 parser <- ArgumentParser(description = "Convert DCC files to a NanoStringGeoMxSet object (.rds)")
 
-add_argument(
-	parser,
+parser$add_argument(
 	"--team-id",
 	required=TRUE,
 	help="Team ID"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--dataset-id",
 	required=TRUE,
 	help="Dataset ID"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--sample-id",
 	required=TRUE,
 	help="Sample ID"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--batch",
 	required=TRUE,
 	help="Batch"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--dcc-dir",
 	required=TRUE,
 	help="Path to DCC files directory"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--pkc-file",
 	required=TRUE,
 	help="Path to PKC file"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--annotation-file",
 	required=TRUE,
 	help="Path to annotation file"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--annotation-sheet-name",
 	required=TRUE,
 	help="Data sheet name in annotation file"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--output",
 	required=TRUE,
 	help="Output file name for the NanoStringGeoMxSet object"

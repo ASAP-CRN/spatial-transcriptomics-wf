@@ -8,14 +8,12 @@ library(SeuratDisk)
 
 parser <- ArgumentParser(description = "Convert processed RDS object to AnnData object")
 
-add_argument(
-	parser,
+parser$add_argument(
 	"--input",
 	required=TRUE,
 	help="The RDS object to convert"
 )
-add_argument(
-	parser,
+parser$add_argument(
 	"--output",
 	required=TRUE,
 	help="Output file name for the AnnData object"
