@@ -273,7 +273,7 @@ task fastq_to_dcc {
 		while read -r file || [[ -n "${file}" ]]; do
 			cp ~{sample_id}_geomxngs_out_dir/"$file" ./~{sample_id}.DCC/
 		done < sample_names_with_dcc.txt
-		zip ~{sample_id}.DCC
+		zip -r ~{sample_id}.DCC.zip ~{sample_id}.DCC
 
 		tar -czvf "~{sample_id}.geomxngs_out_dir.tar.gz" "~{sample_id}_geomxngs_out_dir"
 
