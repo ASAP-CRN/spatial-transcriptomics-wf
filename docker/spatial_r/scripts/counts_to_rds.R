@@ -68,6 +68,7 @@ mod_annotation_file <- "modified_annotation_file.xlsx"
 write.xlsx(original_annotation_file_df, mod_annotation_file)
 mod_annotation_sheet_name <- getSheetNames(mod_annotation_file)
 
+# Fastq_Sample_ID does not get saved
 geomxdata <- readNanoStringGeoMxSet(dccFiles = dcc_files,
 									pkcFiles = args$pkc_file,
 									phenoDataFile = mod_annotation_file,
