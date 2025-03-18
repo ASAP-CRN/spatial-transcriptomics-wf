@@ -63,7 +63,7 @@ An input template file can be found at [workflows/pmdbs_spatial_geomx/inputs.jso
 | Int? | min_percent_reads_stitched | Minimum % of reads stitched. [80] |
 | Int? | min_percent_reads_aligned | Minimum % of reads aligned. [80] |
 | Int? | min_saturation | Minimum sequencing saturation. [50] |
-| Int? | min_neg_ctrl_count | Minimum negative control counts. [10] |
+| Int? | min_neg_ctrl_count | Minimum negative control counts. [1] |
 | Int? | max_ntc_count | Maximum counts observed in NTC well. [1000] |
 | Int? | min_nuclei | Minimum # of nuclei estimated. [100] |
 | Int? | min_segment_area | Minimum segment area. [5000] |

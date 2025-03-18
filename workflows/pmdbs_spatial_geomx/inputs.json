@@ -7,7 +7,7 @@
   "pmdbs_spatial_geomx_analysis.min_percent_reads_stitched": "Int (optional, default = 80)",
   "pmdbs_spatial_geomx_analysis.min_percent_reads_aligned": "Int (optional, default = 80)",
   "pmdbs_spatial_geomx_analysis.min_saturation": "Int (optional, default = 50)",
-  "pmdbs_spatial_geomx_analysis.min_neg_ctrl_count": "Int (optional, default = 10)",
+  "pmdbs_spatial_geomx_analysis.min_neg_ctrl_count": "Int (optional, default = 1)",
   "pmdbs_spatial_geomx_analysis.max_ntc_count": "Int (optional, default = 1000)",
   "pmdbs_spatial_geomx_analysis.min_nuclei": "Int (optional, default = 100)",
   "pmdbs_spatial_geomx_analysis.min_segment_area": "Int (optional, default = 5000)",

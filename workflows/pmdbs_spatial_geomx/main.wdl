@@ -20,7 +20,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		Int min_percent_reads_stitched = 80
 		Int min_percent_reads_aligned = 80
 		Int min_saturation = 50
-		Int min_neg_ctrl_count = 10
+		Int min_neg_ctrl_count = 1
 		Int max_ntc_count = 1000
 		Int min_nuclei = 100
 		Int min_segment_area = 5000
@@ -220,7 +220,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		min_percent_reads_stitched: {help: "Minimum % of reads stitched. [80]"}
 		min_percent_reads_aligned: {help: "Minimum % of reads aligned. [80]"}
 		min_saturation: {help: "Minimum sequencing saturation. [50]"}
-		min_neg_ctrl_count: {help: "Minimum negative control counts. [10]"}
+		min_neg_ctrl_count: {help: "Minimum negative control counts. [1]"}
 		max_ntc_count: {help: "Maximum counts observed in NTC well. [1000]"}
 		min_nuclei: {help: "Minimum # of nuclei estimated. [100]"}
 		min_segment_area: {help: "Minimum segment area. [5000]"}

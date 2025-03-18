@@ -44,7 +44,7 @@ parser$add_argument(
 parser$add_argument(
 	"--min-neg-count",
 	required=TRUE,
-	help="Minimum negative control counts [10]"
+	help="Minimum negative control counts [1]"
 )
 parser$add_argument(
 	"--max-ntc-count",
@@ -77,13 +77,14 @@ geomxdata <- shiftCountsOne(geomxdata, useDALogic = TRUE)
 ################
 ## SEGMENT QC ##
 ################
+# https://www.bioconductor.org/packages/release/workflows/vignettes/GeoMxWorkflows/inst/doc/GeomxTools_RNA-NGS_Analysis.html#411_Select_Segment_QC
 qc_params <- list(
 	minSegmentReads = args$min_reads,				# Minimum number of reads (1000)
 	percentTrimmed = args$percent_trimmed,			# Minimum % of reads trimmed (80%)
 	percentStitched = args$percent_stitched,		# Minimum % of reads stitched (80%)
 	percentAligned = args$percent_aligned,			# Minimum % of reads aligned (80%)
 	percentSaturation = args$percent_saturation,	# Minimum sequencing saturation (50%)
-	minNegativeCount = args$min_neg_count,			# Minimum negative control counts (10)
+	minNegativeCount = args$min_neg_count,			# Minimum negative control counts (10) - chose 1
 	maxNTCCount = args$max_ntc_count,				# Maximum counts observed in NTC well (1000)
 	minNuclei = args$min_nuclei,					# Minimum # of nuclei estimated (100)
 	minArea = args$min_area							# Minimum segment area (5000)
@@ -98,14 +99,14 @@ qc_summary_df <- data.frame(
 	Pass = colSums(!qc_results[, flag_columns]),
 	Warning = colSums(qc_results[, flag_columns])
 )
-qc_results$qc_status <- apply(qc_results, 1L, function(x) {
+qc_results$QCStatus <- apply(qc_results, 1L, function(x) {
 	ifelse(sum(x) == 0L, "PASS", "WARNING")
 })
 qc_summary_df["TOTAL FLAGS", ] <-
 	c(sum(qc_results[, "QCStatus"] == "PASS"),
 	sum(qc_results[, "QCStatus"] == "WARNING"))
 
-qc_summary_output = paste0(args$sample_id + ".segment_qc_summary.csv")
+qc_summary_output = paste0(args$sample_id, ".segment_qc_summary.csv")
 write.csv(qc_summary_df, qc_summary_output, row.names = FALSE)
 
 # Remove flagged segments
