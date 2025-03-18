@@ -27,5 +27,5 @@ args <- parser$parse_args()
 ################
 geomxdata <- readRDS(args$input)
 
-SaveH5Seurat(geomxdata, filename = "processed.h5Seurat")
+SaveH5Seurat(geomxdata, filename = "processed.h5Seurat", verbose = TRUE)
 Convert("processed.h5Seurat", dest = "h5ad")

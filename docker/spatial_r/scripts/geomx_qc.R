@@ -136,7 +136,7 @@ probe_qc_df <- data.frame(
 		& !probe_qc_results$GlobalGrubbsOutlier)
 )
 
-probe_qc_output = paste0(args$sample_id + ".probe_qc_summary.csv")
+probe_qc_output = paste0(args$sample_id, ".probe_qc_summary.csv")
 write.csv(probe_qc_df, probe_qc_output, row.names = FALSE)
 
 # Exclude outlier probes
@@ -154,7 +154,7 @@ geomxdata <- probe_qc_passed
 ###########################
 target_geomxdata <- aggregateCounts(geomxdata)
 gene_count <- data.frame(exprs(target_geomxdata))
-gene_count_output = paste0(args$sample_id + ".gene_count.csv")
-write.csv(gene_count, "test.csv", row.names = FALSE)
+gene_count_output = paste0(args$sample_id, ".gene_count.csv")
+write.csv(gene_count, gene_count_output, row.names = FALSE)
 
 saveRDS(target_geomxdata, file = args$output)

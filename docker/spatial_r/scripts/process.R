@@ -3,6 +3,7 @@ library(NanoStringNCTools)
 library(GeomxTools)
 library(GeoMxWorkflows)
 library(ggplot2)
+library(ragg)
 library(scales)
 library(reshape2)
 library(cowplot) 
@@ -83,19 +84,25 @@ pData(target_geomxdata)$DetectionThreshold <- cut(
 )
 
 segment_gene_detection_plot <- ggplot(pData(target_geomxdata), aes(x = DetectionThreshold)) +
-	geom_bar(aes(fill = region)) + 
-	geom_text(stat = "count", aes(label = ..count..), vjust = -0.5) +
+	geom_text(stat = "count", aes(label = after_stat(count)), vjust = -0.5) +
 	theme_bw() +
 	scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
 	labs(x = "Gene Detection Rate",
 		y = "Segments, #",
 		fill = "Segment Type")
 
-segment_gene_detection_plot_output <- paste0(args$cohort_id + ".segment_gene_detection_plot.png")
-ggsave(segment_gene_detection_plot_output, plot = segment_gene_detection_plot, width = 6, height = 4, dpi = 300)
+segment_gene_detection_plot_output <- paste0(args$cohort_id, ".segment_gene_detection_plot.png")
+ggsave(
+	segment_gene_detection_plot_output,
+	plot = segment_gene_detection_plot,
+	width = 6,
+	height = 4,
+	dpi = 300,
+	device = ragg::agg_png
+)
 
 # Remove segments with less than 10% of the genes detected
-target_geomxdata <- target_geomxdata[, pData(target_geomxdata)$GeneDetectionRate >= .1]
+target_geomxdata <- target_geomxdata[, pData(target_geomxdata)$GeneDetectionRate >= args$min_segment]
 
 LOQ_mat <- LOQ_mat[, colnames(target_geomxdata)]
 fData(target_geomxdata)$DetectedSegments <- rowSums(LOQ_mat, na.rm = TRUE)
@@ -108,7 +115,7 @@ gene_list_df <- data.frame(
 	Gene = gene_list,
 	Number = fData(target_geomxdata)[gene_list, "DetectedSegments"],
 	DetectionRate = percent(fData(target_geomxdata)[gene_list, "DetectionRate"]))
-gene_list_df_output <- paste0(args$cohort_id + ".gene_detection_rate.csv")
+gene_list_df_output <- paste0(args$cohort_id, ".gene_detection_rate.csv")
 write.csv(gene_list_df, gene_list_df_output, row.names = FALSE)
 
 neg_probe_fData <- subset(fData(target_geomxdata), CodeClass == "Negative")
@@ -117,17 +124,17 @@ target_geomxdata <- target_geomxdata[fData(target_geomxdata)$DetectionRate >= ar
 					fData(target_geomxdata)$TargetName %in% neg_probes, ]
 
 # Retain only detected genes of interest
-# gene_list <- gene_list[gene_list %in% rownames(target_geomxdata)]
+#gene_list <- gene_list[gene_list %in% rownames(target_geomxdata)]
 
 
 ###################
 ## NORMALIZATION ##
 ###################
 # Graph Q3 value vs negGeoMean of Negatives
-ann_of_interest <- "region"
+#ann_of_interest <- "region"
 stat_data <- data.frame(row.names = colnames(exprs(target_geomxdata)),
 						Segment = colnames(exprs(target_geomxdata)),
-						Annotation = pData(target_geomxdata)[, ann_of_interest],
+						#Annotation = pData(target_geomxdata)[, ann_of_interest],
 						Q3 = unlist(apply(exprs(target_geomxdata), 2,
 							quantile, 0.75, na.rm = TRUE)),
 						NegProbe = exprs(target_geomxdata)[neg_probes, ])
@@ -138,12 +145,12 @@ plt1 <- ggplot(stat_data_m,
 			aes(x = Value, fill = Statistic)) +
 			geom_histogram(bins = 40) + theme_bw() +
 			scale_x_continuous(trans = "log2") +
-			facet_wrap(~Annotation, nrow = 1) + 
+			#facet_wrap(~Annotation, nrow = 1) + 
 			scale_fill_brewer(palette = 3, type = "qual") +
 			labs(x = "Counts", y = "Segments, #")
 
 plt2 <- ggplot(stat_data,
-			aes(x = NegProbe, y = Q3, color = Annotation)) +
+			aes(x = NegProbe, y = Q3)) +
 			geom_abline(intercept = 0, slope = 1, lty = "dashed", color = "darkgray") +
 			geom_point() + guides(color = "none") + theme_bw() +
 			scale_x_continuous(trans = "log2") + 
@@ -152,7 +159,7 @@ plt2 <- ggplot(stat_data,
 			labs(x = "Negative Probe GeoMean, Counts", y = "Q3 Value, Counts")
 
 plt3 <- ggplot(stat_data,
-			aes(x = NegProbe, y = Q3 / NegProbe, color = Annotation)) +
+			aes(x = NegProbe, y = Q3 / NegProbe)) +
 			geom_hline(yintercept = 1, lty = "dashed", color = "darkgray") +
 			geom_point() + theme_bw() +
 			scale_x_continuous(trans = "log2") + 
@@ -163,8 +170,15 @@ plt3 <- ggplot(stat_data,
 btm_row <- plot_grid(plt2, plt3, nrow = 1, labels = c("B", ""),
 			rel_widths = c(0.43,0.57))
 combined_plt <- plot_grid(plt1, btm_row, ncol = 1, labels = c("A", ""))
-combined_plot_output <- paste0(args$cohort_id + ".q3_negprobe_plot.png")
-ggsave(combined_plot_output, plot = combined_plt, width = 8, height = 6, dpi = 300)
+combined_plot_output <- paste0(args$cohort_id, ".q3_negprobe_plot.png")
+ggsave(
+	combined_plot_output,
+	plot = combined_plt,
+	width = 8,
+	height = 6,
+	dpi = 300,
+	device = ragg::agg_png
+)
 
 # Q3 norm (75th percentile) for WTA/CTA with or without custom spike-ins
 target_geomxdata <- normalize(
@@ -178,31 +192,38 @@ target_geomxdata <- normalize(
 target_geomxdata <- normalize(
 	target_geomxdata,
 	norm_method = "neg",
-	romElt = "exprs",
+	fromElt = "exprs",
 	toElt = "neg_norm"
 )
 
 saveRDS(target_geomxdata, file = args$output)
 
-# Visualize the first 10 segments with each normalization method
-normalization_plot_output <- paste0(args$cohort_id + ".normalization_plot.png")
-png(normalization_plot_output, width = 800, height = 600, res = 300)
+# Visualize at least the first 10 samples with each normalization method
+normalization_plot_output <- paste0(args$cohort_id, ".normalization_plot.png")
+agg_png(
+	normalization_plot_output,
+	width = 800,
+	height = 600,
+	res = 300
+)
 
 par(mfrow = c(1, 3))
 
-boxplot(exprs(target_geomxdata)[,1:10],
+n_cols <- ncol(exprs(target_geomxdata))
+max_cols <- ifelse(n_cols > 10, 10, n_cols)
+boxplot(exprs(target_geomxdata)[,1:max_cols],
 		col = "#9EDAE5", main = "Raw Counts",
-		log = "y", names = 1:10, xlab = "Segment",
+		log = "y", names = 1:max_cols, xlab = "Segment",
 		ylab = "Counts, Raw")
 
-boxplot(assayDataElement(target_geomxdata[,1:10], elt = "q_norm"),
+boxplot(assayDataElement(target_geomxdata[,1:max_cols], elt = "q_norm"),
 		col = "#2CA02C", main = "Q3 Norm Counts",
-		log = "y", names = 1:10, xlab = "Segment",
+		log = "y", names = 1:max_cols, xlab = "Segment",
 		ylab = "Counts, Q3 Normalized")
 
-boxplot(assayDataElement(target_geomxdata[,1:10], elt = "neg_norm"),
+boxplot(assayDataElement(target_geomxdata[,1:max_cols], elt = "neg_norm"),
 		col = "#FF7F0E", main = "Neg Norm Counts",
-		log = "y", names = 1:10, xlab = "Segment",
+		log = "y", names = 1:max_cols, xlab = "Segment",
 		ylab = "Counts, Neg. Normalized")
 
 dev.off()

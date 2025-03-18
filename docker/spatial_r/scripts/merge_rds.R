@@ -2,6 +2,7 @@ library(argparse)
 library(NanoStringNCTools)
 library(GeomxTools)
 library(GeoMxWorkflows)
+library(purrr)
 
 parser <- ArgumentParser(description = "Merge GeoMx data RDS objects into one")
 
@@ -21,6 +22,9 @@ args <- parser$parse_args()
 
 
 geomx_data_list <- lapply(args$paths_input, readRDS)
-combined_geomx_data <- do.call(combine, geomx_data_list)
+combined_geomx_data  <- map_dfr(geomx_data_list, readRDS)
+
+combined_geomx_data <- lapply(geomx_data_list, readRDS)
+raster_stack_combined_geomx_data <- stack(combined_geomx_data)
 
 saveRDS(combined_geomx_data, file = args$output)

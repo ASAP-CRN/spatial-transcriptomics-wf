@@ -1,3 +1,5 @@
-NanoStringNCTools
-GeomxTools
-GeoMxWorkflows
+argparse
+hdf5r
+openxlsx
+ragg
+remotes
