@@ -320,8 +320,6 @@ task dcc_to_rds {
 		String zones
 	}
 
-	String geomx_lab_annotation_sheet_name = sub(basename(geomx_lab_annotation_xlsx), ".xlsx", ".txt")
-
 	Int threads = 4
 	Int mem_gb = ceil(threads * 2)
 	Int disk_size = ceil(size([geomxngs_dcc_zip, geomx_lab_annotation_xlsx, geomxngs_config_pkc], "GB") * 4 + 30)
@@ -339,7 +337,6 @@ task dcc_to_rds {
 			--dcc-dir ./dcc_files_dir \
 			--pkc-file ~{geomxngs_config_pkc} \
 			--annotation-file ~{geomx_lab_annotation_xlsx} \
-			--annotation-sheet-name ~{geomx_lab_annotation_sheet_name} \
 			--output ~{sample_id}.NanoStringGeoMxSet.rds
 
 		upload_outputs \
