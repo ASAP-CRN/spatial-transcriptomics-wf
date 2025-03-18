@@ -21,6 +21,7 @@ workflow cohort_analysis {
 		Float min_genes_detected_in_percent_segment
 
 		# Integrate and cluster parameters
+		Int n_top_genes
 		Int n_comps
 		String batch_key
 		Float leiden_resolution
@@ -54,34 +55,35 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call merge {
-		input:
-			cohort_id = cohort_id,
-			preprocessed_rds_objects = preprocessed_rds_objects,
-			raw_data_path = raw_data_path,
-			workflow_info = workflow_info,
-			billing_project = billing_project,
-			container_registry = container_registry,
-			zones = zones
+	scatter (preprocessed_rds_object in preprocessed_rds_objects) {
+		call process {
+			input:
+				cohort_id = cohort_id,
+				preprocessed_rds_object = preprocessed_rds_object,
+				cell_type_markers_list = cell_type_markers_list,
+				min_genes_detected_in_percent_segment = min_genes_detected_in_percent_segment,
+				raw_data_path = raw_data_path,
+				workflow_info = workflow_info,
+				billing_project = billing_project,
+				container_registry = container_registry,
+				zones = zones
+		}
+
+		call rds_to_adata {
+			input:
+				cohort_id = cohort_id,
+				processed_rds_object = process.processed_rds_object,
+				container_registry = container_registry,
+				zones = zones
+		}
 	}
 
-	call process {
+	call merge_and_prep {
 		input:
 			cohort_id = cohort_id,
-			merged_rds_object = merge.merged_rds_object, #!FileCoercion
-			cell_type_markers_list = cell_type_markers_list,
-			min_genes_detected_in_percent_segment = min_genes_detected_in_percent_segment,
-			raw_data_path = raw_data_path,
-			workflow_info = workflow_info,
-			billing_project = billing_project,
-			container_registry = container_registry,
-			zones = zones
-	}
-
-	call rds_to_adata {
-		input:
-			cohort_id = cohort_id,
-			processed_rds_object = process.processed_rds_object,
+			processed_adata_objects = rds_to_adata.processed_adata_object,
+			n_top_genes = n_top_genes,
+			n_comps = n_comps,
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -92,7 +94,7 @@ workflow cohort_analysis {
 	call IntegrateData.integrate_data {
 		input:
 			cohort_id = cohort_id,
-			processed_adata_object = rds_to_adata.processed_adata_object, #!FileCoercion
+			processed_adata_object = merge_and_prep.merged_adata_object, #!FileCoercion
 			n_comps = n_comps,
 			batch_key = batch_key,
 			leiden_resolution = leiden_resolution,
@@ -127,17 +129,13 @@ workflow cohort_analysis {
 		[
 			write_cohort_sample_list.cohort_sample_list
 		],
+		process.segment_gene_detection_plot_png,
+		process.gene_detection_rate_csv,
+		process.q3_negprobe_plot_png,
+		process.normalization_plot_png,
+		rds_to_adata.processed_adata_object,
 		[
-			merge.merged_rds_object
-		],
-		[
-			process.segment_gene_detection_plot_png,
-			process.gene_detection_rate_csv,
-			process.q3_negprobe_plot_png,
-			process.normalization_plot_png
-		],
-		[
-			rds_to_adata.processed_adata_object
+			merge_and_prep.merged_adata_object
 		],
 		[
 			integrate_data.umap_cluster_plots_png
@@ -161,18 +159,18 @@ workflow cohort_analysis {
 	output {
 		File cohort_sample_list = write_cohort_sample_list.cohort_sample_list #!FileCoercion
 
-		# Merged RDS objects
-		File merged_rds_object = merge.merged_rds_object #!FileCoercion
-
 		# Processed RDS object and plots
-		File processed_rds_object = process.processed_rds_object
-		File segment_gene_detection_plot_png = process.segment_gene_detection_plot_png #!FileCoercion
-		File gene_detection_rate_csv = process.gene_detection_rate_csv #!FileCoercion
-		File q3_negprobe_plot_png = process.q3_negprobe_plot_png #!FileCoercion
-		File normalization_plot_png = process.normalization_plot_png #!FileCoercion
+		Array[File] processed_rds_object = process.processed_rds_object
+		Array[File] segment_gene_detection_plot_png = process.segment_gene_detection_plot_png #!FileCoercion
+		Array[File] gene_detection_rate_csv = process.gene_detection_rate_csv #!FileCoercion
+		Array[File] q3_negprobe_plot_png = process.q3_negprobe_plot_png #!FileCoercion
+		Array[File] normalization_plot_png = process.normalization_plot_png #!FileCoercion
 
 		# Converted AnnData object
-		File processed_adata_object = rds_to_adata.processed_adata_object #!FileCoercion
+		Array[File] processed_adata_object = rds_to_adata.processed_adata_object
+
+		# Merged and prepped AnnData object
+		File merged_adata_object = merge_and_prep.merged_adata_object #!FileCoercion
 
 		# Integrate data outputs
 		File integrated_adata_object = integrate_data.integrated_adata_object
@@ -189,54 +187,10 @@ workflow cohort_analysis {
 	}
 }
 
-task merge {
-	input {
-		String cohort_id
-		Array[File] preprocessed_rds_objects
-
-		String raw_data_path
-		Array[Array[String]] workflow_info
-		String billing_project
-		String container_registry
-		String zones
-	}
-
-	Int mem_gb = ceil(size(preprocessed_rds_objects, "GB") * 2 + 20)
-	Int disk_size = ceil(size(preprocessed_rds_objects, "GB") * 2 + 50)
-
-	command <<<
-		set -euo pipefail
-
-		Rscript /opt/scripts/merge_rds.R \
-			--paths-input ~{sep=' ' preprocessed_rds_objects} \
-			--output ~{cohort_id}.merged_rds_object.rds
-
-		upload_outputs \
-			-b ~{billing_project} \
-			-d ~{raw_data_path} \
-			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.merged_rds_object.rds"
-	>>>
-
-	output {
-		String merged_rds_object = "~{raw_data_path}/~{cohort_id}.merged_rds_object.rds"
-	}
-
-	runtime {
-		docker: "~{container_registry}/spatial_r:1:0:0"
-		cpu: 2
-		memory: "~{mem_gb} GB"
-		disks: "local-disk ~{disk_size} HDD"
-		preemptible: 3
-		bootDiskSizeGb: 30
-		zones: zones
-	}
-}
-
 task process {
 	input {
 		String cohort_id
-		File merged_rds_object
+		File preprocessed_rds_object
 
 		File cell_type_markers_list
 
@@ -249,15 +203,15 @@ task process {
 		String zones
 	}
 
-	Int mem_gb = ceil(size([merged_rds_object, cell_type_markers_list], "GB") * 2 + 20)
-	Int disk_size = ceil(size([merged_rds_object, cell_type_markers_list], "GB") * 2 + 50)
+	Int mem_gb = ceil(size([preprocessed_rds_object, cell_type_markers_list], "GB") * 2 + 20)
+	Int disk_size = ceil(size([preprocessed_rds_object, cell_type_markers_list], "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail
 
 		Rscript /opt/scripts/process.R \
 			--cohort-id ~{cohort_id} \
-			--input ~{merged_rds_object} \
+			--input ~{preprocessed_rds_object} \
 			--celltype-markers ~{cell_type_markers_list} \
 			--min-segment ~{min_genes_detected_in_percent_segment} \
 			--output ~{cohort_id}.processed.rds
@@ -296,9 +250,6 @@ task rds_to_adata {
 		String cohort_id
 		File processed_rds_object
 
-		String raw_data_path
-		Array[Array[String]] workflow_info
-		String billing_project
 		String container_registry
 		String zones
 	}
@@ -312,20 +263,64 @@ task rds_to_adata {
 		Rscript /opt/scripts/rds_to_adata.R \
 			--input ~{processed_rds_object} \
 			--output-prefix ~{cohort_id}.processed
+	>>>
+
+	output {
+		File processed_adata_object = "~{cohort_id}.processed.h5ad"
+	}
+
+	runtime {
+		docker: "~{container_registry}/spatial_r:1:0:0"
+		cpu: 2
+		memory: "~{mem_gb} GB"
+		disks: "local-disk ~{disk_size} HDD"
+		preemptible: 3
+		bootDiskSizeGb: 30
+		zones: zones
+	}
+}
+
+task merge_and_prep {
+	input {
+		String cohort_id
+		Array[File] processed_adata_objects
+
+		Int n_top_genes
+		Int n_comps
+
+		String raw_data_path
+		Array[Array[String]] workflow_info
+		String billing_project
+		String container_registry
+		String zones
+	}
+
+	Int mem_gb = ceil(size(processed_adata_objects, "GB") * 2 + 20)
+	Int disk_size = ceil(size(processed_adata_objects, "GB") * 2 + 50)
+
+	command <<<
+		set -euo pipefail
+
+		python3 /opt/scripts/merge_and_prep_geomx.py \
+			--adata-paths-input ~{sep=' ' processed_adata_objects} \
+			--n-top-genes ~{n_top_genes} \
+			--n-comps ~{n_comps} \
+			--plots-prefix ~{cohort_id} \
+			--adata-output ~{cohort_id}.merged.h5ad
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.processed.h5ad"
+			-o "~{cohort_id}.merged.h5ad"
 	>>>
 
 	output {
-		String processed_adata_object = "~{raw_data_path}/~{cohort_id}.processed.h5ad"
+		String merged_adata_object = "~{raw_data_path}/~{cohort_id}.merged.h5ad"
 	}
 
 	runtime {
-		docker: "~{container_registry}/spatial_r:1:0:0"
+		docker: "~{container_registry}/spatial_py:1:0:0"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
