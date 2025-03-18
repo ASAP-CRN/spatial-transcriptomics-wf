@@ -4,8 +4,6 @@ library(GeomxTools)
 library(GeoMxWorkflows)
 library(openxlsx)
 library(dplyr)
-library(ggforce)
-library(networkD3)
 
 parser <- ArgumentParser(description = "Convert DCC files to a NanoStringGeoMxSet object (.rds)")
 
@@ -84,41 +82,5 @@ pData(geomxdata)$dataset <- args$dataset_id
 pData(geomxdata)$sample <- args$sample_id
 pData(geomxdata)$batch <- args$batch
 pData(geomxdata)$batch_id <- paste0(args$team_id, "_", args$dataset_id, "_", args$batch)
-
-
-#####################
-## SAMPLE OVERVIEW ##
-#####################
-sankey_cols <- c("source", "target", "value")
-
-link1 <- count(pData(geomxdata), `slide name`, class)
-link2 <- count(pData(geomxdata), class, region)
-link3 <- count(pData(geomxdata), region, segment)
-
-colnames(link1) <- sankey_cols
-colnames(link2) <- sankey_cols
-colnames(link3) <- sankey_cols
-
-links <- rbind(link1,link2,link3)
-nodes <- unique(data.frame(name=c(links$source, links$target)))
-
-# sankeyNetwork is 0 based, not 1 based
-links$source <- as.integer(match(links$source,nodes$name)-1)
-links$target <- as.integer(match(links$target,nodes$name)-1)
-
-sankey <- sankeyNetwork(
-	Links = links,
-	Nodes = nodes,
-	Source = "source",
-	Target = "target",
-	Value = "value",
-	NodeID = "name",
-	units = "TWh",
-	fontSize = 12,
-	nodeWidth = 30
-)
-
-output_sankey_filename <- paste0(args$sample_id, ".sankey_diagram.html")
-saveWidget(sankey, output_sankey_filename, selfcontained = FALSE)
 
 saveRDS(geomxdata, file = args$output)

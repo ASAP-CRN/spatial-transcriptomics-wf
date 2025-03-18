@@ -87,7 +87,6 @@ workflow pmdbs_spatial_geomx_analysis {
 			preprocess.geomxngs_output_tar_gz,
 			[
 				preprocess.initial_rds_object,
-				preprocess.sample_overview_sankey_html,
 				preprocess.qc_rds_object,
 				preprocess.segment_qc_summary_csv,
 				preprocess.probe_qc_summary_csv,
@@ -155,7 +154,6 @@ workflow pmdbs_spatial_geomx_analysis {
 		Array[Array[File]] geomxngs_dcc_zip = preprocess.geomxngs_dcc_zip
 		Array[Array[File]] geomxngs_output_tar_gz = preprocess.geomxngs_output_tar_gz
 		Array[Array[File]] initial_rds_object = preprocess.initial_rds_object
-		Array[Array[File]] sample_overview_sankey_html = preprocess.sample_overview_sankey_html
 		Array[Array[File]] qc_rds_object = preprocess.qc_rds_object
 		Array[Array[File]] segment_qc_summary_csv = preprocess.segment_qc_summary_csv
 		Array[Array[File]] probe_qc_summary_csv = preprocess.probe_qc_summary_csv

@@ -93,7 +93,6 @@ workflow preprocess {
 		File geomxngs_output_tar_gz_output = select_first([fastq_to_dcc.geomxngs_output_tar_gz, fastq_to_dcc_geomxngs_output_tar_gz]) #!FileCoercion
 
 		String dcc_to_rds_object = "~{rds_raw_data_path}/~{sample.sample_id}.NanoStringGeoMxSet.rds"
-		String dcc_to_rds_sankey_html = "~{rds_raw_data_path}/~{sample.sample_id}.sankey_diagram.html"
 
 		if (dcc_to_rds_complete == "false") {
 			call dcc_to_rds {
@@ -114,7 +113,6 @@ workflow preprocess {
 		}
 
 		File initial_rds_object_output = select_first([dcc_to_rds.initial_rds_object, dcc_to_rds_object]) #!FileCoercion
-		File sample_overview_sankey_html_output = select_first([dcc_to_rds.sample_overview_sankey_html, dcc_to_rds_sankey_html]) #!FileCoercion
 
 		String qc_metrics_rds_object = "~{qc_raw_data_path}/~{sample.sample_id}.qc.rds"
 		String qc_segment_summary_csv = "~{qc_raw_data_path}/~{sample.sample_id}.segment_qc_summary.csv"
@@ -157,9 +155,8 @@ workflow preprocess {
 		Array[File] geomxngs_dcc_zip = geomxngs_dcc_zip_output #!FileCoercion
 		Array[File] geomxngs_output_tar_gz = geomxngs_output_tar_gz_output #!FileCoercion
 
-		# Initial RDS object and sample overview
+		# Initial RDS object
 		Array[File] initial_rds_object = initial_rds_object_output #!FileCoercion
-		Array[File] sample_overview_sankey_html = sample_overview_sankey_html_output #!FileCoercion
 
 		# QC RDS object and tables
 		Array[File] qc_rds_object = qc_rds_object_output #!FileCoercion
@@ -343,13 +340,11 @@ task dcc_to_rds {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{sample_id}.NanoStringGeoMxSet.rds" \
-			-o "~{sample_id}.sankey_diagram.html"
+			-o "~{sample_id}.NanoStringGeoMxSet.rds"
 	>>>
 
 	output {
 		String initial_rds_object = "~{raw_data_path}/~{sample_id}.NanoStringGeoMxSet.rds"
-		String sample_overview_sankey_html = "~{raw_data_path}/~{sample_id}.sankey_diagram.html"
 	}
 
 	runtime {
