@@ -14,9 +14,9 @@ parser$add_argument(
 	help="The RDS object to convert"
 )
 parser$add_argument(
-	"--output",
+	"--output-prefix",
 	required=TRUE,
-	help="Output file name for the AnnData object"
+	help="Output file name prefix for the AnnData object"
 )
 
 args <- parser$parse_args()
@@ -25,7 +25,22 @@ args <- parser$parse_args()
 ################
 ## CONVERSION ##
 ################
-geomxdata <- readRDS(args$input)
+target_geomxdata <- readRDS(args$input)
 
-SaveH5Seurat(geomxdata, filename = "processed.h5Seurat", verbose = TRUE)
-Convert("processed.h5Seurat", dest = "h5ad")
+# https://www.bioconductor.org/packages/release/bioc/vignettes/GeomxTools/inst/doc/GeomxSet_coercions.html
+target_geomxdata_seurat <- as.Seurat(
+	x = target_geomxdata,
+	counts = "counts",
+	data = "data",
+	normData = "q_norm",
+	verbose = TRUE
+)
+saveRDS(target_geomxdata_seurat, file = "processed_seurat_object.rds")
+
+target_geomxdata_seurat_read_in <- future.apply::future_lapply(list("processed_seurat_object.rds"), readRDS)
+target_geomxdata_seurat_cleaned <- merge(x=target_geomxdata_seurat_read_in[[1]], y=target_geomxdata_seurat_read_in[-1])
+
+target_geomxdata_seurat_cleaned[["RNA3"]] <- as(object = target_geomxdata_seurat_cleaned[["GeoMx"]], Class = "Assay")
+seurat_filename <- paste0(args$output_prefix, ".h5Seurat")
+SaveH5Seurat(target_geomxdata_seurat_cleaned, filename = seurat_filename, overwrite = TRUE, verbose = TRUE)
+Convert(seurat_filename, dest = "h5ad", assay = "RNA3", overwrite = TRUE, verbose = TRUE)

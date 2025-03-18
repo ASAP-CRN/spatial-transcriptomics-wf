@@ -8,7 +8,7 @@ library(scales)
 library(reshape2)
 library(cowplot) 
 
-parser <- ArgumentParser(description = "Process merged RDS object by filtering and normalization")
+parser <- ArgumentParser(description = "Process GeoMx data RDS objects by filtering and normalization")
 
 parser$add_argument(
 	"--cohort-id",

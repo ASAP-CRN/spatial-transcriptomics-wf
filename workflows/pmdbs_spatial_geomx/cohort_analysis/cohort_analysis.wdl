@@ -311,7 +311,7 @@ task rds_to_adata {
 
 		Rscript /opt/scripts/rds_to_adata.R \
 			--input ~{processed_rds_object} \
-			--output ~{cohort_id}.processed.h5ad
+			--output-prefix ~{cohort_id}.processed
 
 		upload_outputs \
 			-b ~{billing_project} \
