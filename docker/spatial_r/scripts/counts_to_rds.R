@@ -2,6 +2,7 @@ library(argparse)
 library(NanoStringNCTools)
 library(GeomxTools)
 library(GeoMxWorkflows)
+library(readxl)
 library(openxlsx)
 library(dplyr)
 
@@ -57,7 +58,7 @@ args <- parser$parse_args()
 dcc_files <- list.files(path = args$dcc_dir, full.names = TRUE)
 
 # The Sample ID in the annotation file and Sample ID in the FASTQ file name are different (dashes vs. underscores)
-original_annotation_file_df <- read.xlsx(args$annotation_file)
+original_annotation_file_df <- read_excel(args$annotation_file)
 if ("Sample_ID" %in% colnames(original_annotation_file_df)) {
 	original_annotation_file_df$Fastq_Sample_ID <- gsub("-", "_", original_annotation_file_df$Sample_ID)
 } else {
