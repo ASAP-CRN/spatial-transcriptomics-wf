@@ -27,6 +27,7 @@ parser$add_argument(
 )
 parser$add_argument(
 	"--min-segment",
+	type = "integer",
 	required=TRUE,
 	help="Minimum % of segments that detect the genes [0.1]"
 )

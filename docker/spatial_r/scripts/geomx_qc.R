@@ -18,46 +18,55 @@ parser$add_argument(
 )
 parser$add_argument(
 	"--min-reads",
+	type = "integer",
 	required=TRUE,
 	help="Minimum number of reads [1000]"
 )
 parser$add_argument(
 	"--percent-trimmed",
+	type = "integer",
 	required=TRUE,
 	help="Minimum % of reads trimmed [80]"
 )
 parser$add_argument(
 	"--percent-stitched",
+	type = "integer",
 	required=TRUE,
 	help="Minimum % of reads stitched [80]"
 )
 parser$add_argument(
 	"--percent-aligned",
+	type = "integer",
 	required=TRUE,
 	help="Minimum % of reads aligned [80]"
 )
 parser$add_argument(
 	"--percent-saturation",
+	type = "integer",
 	required=TRUE,
 	help="Minimum sequencing saturation [50]"
 )
 parser$add_argument(
 	"--min-neg-count",
+	type = "integer",
 	required=TRUE,
 	help="Minimum negative control counts [1]"
 )
 parser$add_argument(
 	"--max-ntc-count",
+	type = "integer",
 	required=TRUE,
 	help="Maximum counts observed in NTC well [1000]"
 )
 parser$add_argument(
 	"--min-nuclei",
+	type = "integer",
 	required=TRUE,
 	help="Minimum # of nuclei estimated [100]"
 )
 parser$add_argument(
 	"--min-area",
+	type = "integer",
 	required=TRUE,
 	help="Minimum segment area [5000]"
 )
