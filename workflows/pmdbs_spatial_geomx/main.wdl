@@ -86,13 +86,11 @@ workflow pmdbs_spatial_geomx_analysis {
 		Array[String] preprocessing_output_file_paths = flatten([
 			preprocess.geomxngs_dcc_zip,
 			preprocess.geomxngs_output_tar_gz,
-			[
-				preprocess.initial_rds_object,
-				preprocess.qc_rds_object,
-				preprocess.segment_qc_summary_csv,
-				preprocess.probe_qc_summary_csv,
-				preprocess.gene_count_csv
-			]
+			preprocess.initial_rds_object,
+			preprocess.qc_rds_object,
+			preprocess.segment_qc_summary_csv,
+			preprocess.probe_qc_summary_csv,
+			preprocess.gene_count_csv
 		]) #!StringCoercion
 
 		if (project.run_project_cohort_analysis) {
