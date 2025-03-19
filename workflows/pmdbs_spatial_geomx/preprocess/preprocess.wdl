@@ -324,7 +324,7 @@ task dcc_to_rds {
 	command <<<
 		set -euo pipefail
 
-		unzip -d ./dcc_files_dir ~{geomxngs_dcc_zip}
+		unzip -d ./dcc_files_dir -j ~{geomxngs_dcc_zip}
 
 		Rscript /opt/scripts/counts_to_rds.R \
 			--team-id ~{team_id} \
