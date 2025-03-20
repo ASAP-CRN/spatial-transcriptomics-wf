@@ -408,7 +408,8 @@ task qc {
 			-i ~{write_tsv(workflow_info)} \
 			-o "~{sample_id}.qc.rds" \
 			-o "~{sample_id}.segment_qc_summary.csv" \
-			-o "~{sample_id}.probe_qc_summary.csv"
+			-o "~{sample_id}.probe_qc_summary.csv" \
+			-o "~{sample_id}.gene_count.csv"
 	>>>
 
 	output {
