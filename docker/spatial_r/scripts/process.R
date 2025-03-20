@@ -27,7 +27,7 @@ parser$add_argument(
 )
 parser$add_argument(
 	"--min-segment",
-	type = "integer",
+	type = "double",
 	required=TRUE,
 	help="Minimum % of segments that detect the genes [0.1]"
 )
@@ -59,6 +59,7 @@ if(all(vars[1:2] %in% colnames(pData(target_geomxdata)))) {
 			pData(target_geomxdata)[, vars[1]] * 
 				pData(target_geomxdata)[, vars[2]] ^ cutoff)
 }
+message("[INFO] Adding LOQ to object")
 pData(target_geomxdata)$LOQ <- LOQ
 
 
@@ -74,7 +75,7 @@ mat_i <- t(esApply(target_geomxdata[ind, ], MARGIN = 1,
 LOQ_mat <- rbind(LOQ_mat, mat_i)
 LOQ_mat <- LOQ_mat[fData(target_geomxdata)$TargetName, ]
 
-# Save detection rate information to pheno data
+message("[INFO] Saving detection rate information to pheno data")
 pData(target_geomxdata)$GenesDetected <- colSums(LOQ_mat, na.rm = TRUE)
 pData(target_geomxdata)$GeneDetectionRate <- pData(target_geomxdata)$GenesDetected / nrow(target_geomxdata)
 
@@ -126,6 +127,8 @@ target_geomxdata <- target_geomxdata[fData(target_geomxdata)$DetectionRate >= ar
 
 # Retain only detected genes of interest
 #gene_list <- gene_list[gene_list %in% rownames(target_geomxdata)]
+
+message("[INFO] Filtering complete")
 
 
 ###################
@@ -196,6 +199,8 @@ target_geomxdata <- normalize(
 	fromElt = "exprs",
 	toElt = "neg_norm"
 )
+
+message("[INFO] Normalization complete")
 
 saveRDS(target_geomxdata, file = args$output)
 
