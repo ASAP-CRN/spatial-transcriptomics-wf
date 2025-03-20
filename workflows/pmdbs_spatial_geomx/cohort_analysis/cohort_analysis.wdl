@@ -235,7 +235,7 @@ task process {
 	}
 
 	runtime {
-		docker: "~{container_registry}/spatial_r:1:0:0"
+		docker: "~{container_registry}/spatial_r:1.0.0"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -270,7 +270,7 @@ task rds_to_adata {
 	}
 
 	runtime {
-		docker: "~{container_registry}/spatial_r:1:0:0"
+		docker: "~{container_registry}/spatial_r:1.0.0"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -320,7 +320,7 @@ task merge_and_prep {
 	}
 
 	runtime {
-		docker: "~{container_registry}/spatial_py:1:0:0"
+		docker: "~{container_registry}/spatial_py:1.0.0"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
