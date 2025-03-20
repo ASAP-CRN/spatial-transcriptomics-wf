@@ -112,7 +112,7 @@ fData(target_geomxdata)$DetectionRate <-
     fData(target_geomxdata)$DetectedSegments / nrow(pData(target_geomxdata))
 
 cell_type_markers <- read.csv(args$celltype_markers, header = TRUE, stringsAsFactors = FALSE)
-gene_list <- as.list(cell_type_markers$marker)
+gene_list <- as.vector(cell_type_markers$marker)
 gene_list_df <- data.frame(
 	Gene = gene_list,
 	Number = fData(target_geomxdata)[gene_list, "DetectedSegments"],
