@@ -58,7 +58,6 @@ workflow cohort_analysis {
 	scatter (preprocessed_rds_object in preprocessed_rds_objects) {
 		call process {
 			input:
-				cohort_id = cohort_id,
 				preprocessed_rds_object = preprocessed_rds_object,
 				cell_type_markers_list = cell_type_markers_list,
 				min_genes_detected_in_percent_segment = min_genes_detected_in_percent_segment,
@@ -71,7 +70,6 @@ workflow cohort_analysis {
 
 		call rds_to_adata {
 			input:
-				cohort_id = cohort_id,
 				processed_rds_object = process.processed_rds_object,
 				container_registry = container_registry,
 				zones = zones
@@ -189,7 +187,6 @@ workflow cohort_analysis {
 
 task process {
 	input {
-		String cohort_id
 		File preprocessed_rds_object
 
 		File cell_type_markers_list
@@ -209,29 +206,31 @@ task process {
 	command <<<
 		set -euo pipefail
 
+		sample_id=$(basename ~{preprocessed_rds_object} | cut -d '.' -f 1)
+
 		Rscript /opt/scripts/process.R \
-			--cohort-id ~{cohort_id} \
+			--sample-id "$sample_id" \
 			--input ~{preprocessed_rds_object} \
 			--celltype-markers ~{cell_type_markers_list} \
 			--min-segment ~{min_genes_detected_in_percent_segment} \
-			--output ~{cohort_id}.processed.rds
+			--output "$sample_id".processed.rds
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.segment_gene_detection_plot.png" \
-			-o "~{cohort_id}.gene_detection_rate.csv" \
-			-o "~{cohort_id}.q3_negprobe_plot.png" \
-			-o "~{cohort_id}.normalization_plot.png"
+			-o "$sample_id.segment_gene_detection_plot.png" \
+			-o "$sample_id.gene_detection_rate.csv" \
+			-o "$sample_id.q3_negprobe_plot.png" \
+			-o "$sample_id.normalization_plot.png"
 	>>>
 
 	output {
-		File processed_rds_object = "~{cohort_id}.processed.rds"
-		String segment_gene_detection_plot_png = "~{raw_data_path}/~{cohort_id}.segment_gene_detection_plot.png"
-		String gene_detection_rate_csv = "~{raw_data_path}/~{cohort_id}.gene_detection_rate.csv"
-		String q3_negprobe_plot_png = "~{raw_data_path}/~{cohort_id}.q3_negprobe_plot.png"
-		String normalization_plot_png = "~{raw_data_path}/~{cohort_id}.normalization_plot.png.png"
+		File processed_rds_object = "$sample_id.processed.rds"
+		String segment_gene_detection_plot_png = "~{raw_data_path}/$sample_id.segment_gene_detection_plot.png"
+		String gene_detection_rate_csv = "~{raw_data_path}/$sample_id.gene_detection_rate.csv"
+		String q3_negprobe_plot_png = "~{raw_data_path}/$sample_id.q3_negprobe_plot.png"
+		String normalization_plot_png = "~{raw_data_path}/$sample_id.normalization_plot.png"
 	}
 
 	runtime {
@@ -247,7 +246,6 @@ task process {
 
 task rds_to_adata {
 	input {
-		String cohort_id
 		File processed_rds_object
 
 		String container_registry
@@ -260,13 +258,15 @@ task rds_to_adata {
 	command <<<
 		set -euo pipefail
 
+		sample_id=$(basename ~{processed_rds_object} | cut -d '.' -f 1)
+
 		Rscript /opt/scripts/rds_to_adata.R \
 			--input ~{processed_rds_object} \
-			--output-prefix ~{cohort_id}.processed
+			--output-prefix "$sample_id".processed
 	>>>
 
 	output {
-		File processed_adata_object = "~{cohort_id}.processed.h5ad"
+		File processed_adata_object = "$sample_id.processed.h5ad"
 	}
 
 	runtime {

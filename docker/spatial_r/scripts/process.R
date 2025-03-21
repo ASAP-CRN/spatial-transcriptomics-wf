@@ -11,9 +11,9 @@ library(cowplot)
 parser <- ArgumentParser(description = "Process GeoMx data RDS objects by filtering and normalization")
 
 parser$add_argument(
-	"--cohort-id",
+	"--sample-id",
 	required=TRUE,
-	help="Cohort ID"
+	help="Sample ID"
 )
 parser$add_argument(
 	"--input",
@@ -93,7 +93,7 @@ segment_gene_detection_plot <- ggplot(pData(target_geomxdata), aes(x = Detection
 		y = "Segments, #",
 		fill = "Segment Type")
 
-segment_gene_detection_plot_output <- paste0(args$cohort_id, ".segment_gene_detection_plot.png")
+segment_gene_detection_plot_output <- paste0(args$sample_id, ".segment_gene_detection_plot.png")
 ggsave(
 	segment_gene_detection_plot_output,
 	plot = segment_gene_detection_plot,
@@ -117,7 +117,7 @@ gene_list_df <- data.frame(
 	Gene = gene_list,
 	Number = fData(target_geomxdata)[gene_list, "DetectedSegments"],
 	DetectionRate = percent(fData(target_geomxdata)[gene_list, "DetectionRate"]))
-gene_list_df_output <- paste0(args$cohort_id, ".gene_detection_rate.csv")
+gene_list_df_output <- paste0(args$sample_id, ".gene_detection_rate.csv")
 write.csv(gene_list_df, gene_list_df_output, row.names = FALSE)
 
 neg_probe_fData <- subset(fData(target_geomxdata), CodeClass == "Negative")
@@ -174,7 +174,7 @@ plt3 <- ggplot(stat_data,
 btm_row <- plot_grid(plt2, plt3, nrow = 1, labels = c("B", ""),
 			rel_widths = c(0.43,0.57))
 combined_plt <- plot_grid(plt1, btm_row, ncol = 1, labels = c("A", ""))
-combined_plot_output <- paste0(args$cohort_id, ".q3_negprobe_plot.png")
+combined_plot_output <- paste0(args$sample_id, ".q3_negprobe_plot.png")
 ggsave(
 	combined_plot_output,
 	plot = combined_plt,
@@ -205,7 +205,7 @@ message("[INFO] Normalization complete")
 saveRDS(target_geomxdata, file = args$output)
 
 # Visualize at least the first 10 samples with each normalization method
-normalization_plot_output <- paste0(args$cohort_id, ".normalization_plot.png")
+normalization_plot_output <- paste0(args$sample_id, ".normalization_plot.png")
 agg_png(
 	normalization_plot_output,
 	width = 800,
