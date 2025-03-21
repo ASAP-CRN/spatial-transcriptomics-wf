@@ -29,7 +29,7 @@ parser$add_argument(
 	"--min-segment",
 	type = "double",
 	required=TRUE,
-	help="Minimum % of segments that detect the genes [0.1]"
+	help="Minimum % of segments that detect the genes [0.01]"
 )
 parser$add_argument(
 	"--output",

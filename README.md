@@ -67,7 +67,7 @@ An input template file can be found at [workflows/pmdbs_spatial_geomx/inputs.jso
 | Int? | max_ntc_count | Maximum counts observed in NTC well. [1000] |
 | Int? | min_nuclei | Minimum # of nuclei estimated. [100] |
 | Int? | min_segment_area | Minimum segment area. [5000] |
-| Float? | min_genes_detected_in_percent_segment | Minimum % of segments that detect the genes. [0.1] |
+| Float? | min_genes_detected_in_percent_segment | Minimum % of segments that detect the genes. [0.01] |
 | Int? | n_comps | Number of principal components to compute. [30] |
 | String? | batch_key | Key in AnnData object for batch information. ['batch_id'] |
 | Float? | leiden_resolution | Value controlling the coarseness of the Leiden clustering. [0.4] |

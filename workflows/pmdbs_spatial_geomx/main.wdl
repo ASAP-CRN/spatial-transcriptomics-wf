@@ -27,7 +27,7 @@ workflow pmdbs_spatial_geomx_analysis {
 
 		# Filtering parameters
 		File cell_type_markers_list
-		Float min_genes_detected_in_percent_segment = 0.1
+		Float min_genes_detected_in_percent_segment = 0.01
 
 		# Integrate and cluster parameters
 		Int n_top_genes = 3000
@@ -225,7 +225,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		max_ntc_count: {help: "Maximum counts observed in NTC well. [1000]"}
 		min_nuclei: {help: "Minimum # of nuclei estimated. [100]"}
 		min_segment_area: {help: "Minimum segment area. [5000]"}
-		min_genes_detected_in_percent_segment: {help: "Minimum % of segments that detect the genes. [0.1]"}
+		min_genes_detected_in_percent_segment: {help: "Minimum % of segments that detect the genes. [0.01]"}
 		n_comps: {help: "Number of principal components to compute. [30]"}
 		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}
 		leiden_resolution: {help: "Value controlling the coarseness of the Leiden clustering. [0.4]"}
