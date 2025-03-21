@@ -219,7 +219,6 @@ n_cols <- ncol(exprs(target_geomxdata))
 max_cols <- ifelse(n_cols > 10, 10, n_cols)
 title_text <- ifelse(n_cols > 10, "First 10 samples with each normalization method",
 				paste("First", n_cols, "samples with each normalization method"))
-mtext(title_text, outer = TRUE, cex = 1.5, line = -1)
 boxplot(exprs(target_geomxdata)[,1:max_cols],
 		col = "#9EDAE5", main = "Raw Counts",
 		log = "y", names = 1:max_cols, xlab = "Segment",
@@ -234,5 +233,6 @@ boxplot(assayDataElement(target_geomxdata[,1:max_cols], elt = "neg_norm"),
 		col = "#FF7F0E", main = "Neg Norm Counts",
 		log = "y", names = 1:max_cols, xlab = "Segment",
 		ylab = "Counts, Neg. Normalized")
+mtext(title_text, outer = TRUE, cex = 1.5, line = -1)
 
 dev.off()
