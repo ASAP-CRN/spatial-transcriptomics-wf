@@ -218,7 +218,7 @@ par(mfrow = c(1, 3))
 n_cols <- ncol(exprs(target_geomxdata))
 max_cols <- ifelse(n_cols > 10, 10, n_cols)
 title_text <- ifelse(n_cols > 10, "First 10 samples with each normalization method",
-				paste("First", n_cols, "samples with each normalization method")
+				paste("First", n_cols, "samples with each normalization method"))
 mtext(title_text, outer = TRUE, cex = 1.5, line = -1)
 boxplot(exprs(target_geomxdata)[,1:max_cols],
 		col = "#9EDAE5", main = "Raw Counts",
