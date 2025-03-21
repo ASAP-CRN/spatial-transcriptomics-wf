@@ -4,7 +4,6 @@ version 1.0
 
 import "../../../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
 import "../../integrate_data/integrate_data.wdl" as IntegrateData
-import "../../spatial_statistics/spatial_statistics.wdl" as SpatialStatistics
 import "../../../wf-common/wdl/tasks/upload_final_outputs.wdl" as UploadFinalOutputs
 
 workflow cohort_analysis {
@@ -103,17 +102,6 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call SpatialStatistics.spatial_statistics {
-		input:
-			cohort_id = cohort_id,
-			clustered_adata_object = integrate_data.clustered_adata_object, #!FileCoercion
-			raw_data_path = raw_data_path,
-			workflow_info = workflow_info,
-			billing_project = billing_project,
-			container_registry = container_registry,
-			zones = zones
-	}
-
 	call UploadFinalOutputs.upload_final_outputs as upload_preprocess_files {
 		input:
 			output_file_paths = preprocessing_output_file_paths,
@@ -137,11 +125,6 @@ workflow cohort_analysis {
 		],
 		[
 			integrate_data.umap_cluster_plots_png
-		],
-		[	
-			spatial_statistics.final_adata_object,
-			spatial_statistics.moran_top_10_variable_genes_csv,
-			spatial_statistics.moran_top_3_variable_genes_spatial_scatter_plot_png
 		]
 	]) #!StringCoercion
 
@@ -174,11 +157,6 @@ workflow cohort_analysis {
 		File integrated_adata_object = integrate_data.integrated_adata_object
 		File clustered_adata_object = integrate_data.clustered_adata_object
 		File umap_cluster_plots_png = integrate_data.umap_cluster_plots_png
-
-		# Spatial statistics outputs
-		File final_adata_object = spatial_statistics.final_adata_object
-		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
-		File moran_top_3_variable_genes_spatial_scatter_plot_png = spatial_statistics.moran_top_3_variable_genes_spatial_scatter_plot_png
 
 		Array[File] preprocess_manifest_tsvs = upload_preprocess_files.manifests #!FileCoercion
 		Array[File] cohort_analysis_manifest_tsvs = upload_cohort_analysis_files.manifests #!FileCoercion

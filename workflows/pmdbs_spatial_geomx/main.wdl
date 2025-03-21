@@ -176,11 +176,6 @@ workflow pmdbs_spatial_geomx_analysis {
 		Array[File?] project_clustered_adata_object = project_cohort_analysis.clustered_adata_object
 		Array[File?] project_umap_cluster_plots_png = project_cohort_analysis.umap_cluster_plots_png
 
-		# Spatial statistics outputs
-		Array[File?] project_final_adata_object = project_cohort_analysis.final_adata_object
-		Array[File?] project_moran_top_10_variable_genes_csv = project_cohort_analysis.moran_top_10_variable_genes_csv
-		Array[File?] project_moran_top_3_variable_genes_spatial_scatter_plot_png = project_cohort_analysis.moran_top_3_variable_genes_spatial_scatter_plot_png
-
 		Array[Array[File]?] preprocess_manifests = project_cohort_analysis.preprocess_manifest_tsvs
 		Array[Array[File]?] project_manifests = project_cohort_analysis.cohort_analysis_manifest_tsvs
 
@@ -199,11 +194,6 @@ workflow pmdbs_spatial_geomx_analysis {
 		File? cohort_integrated_adata_object = cross_team_cohort_analysis.integrated_adata_object
 		File? cohort_clustered_adata_object = cross_team_cohort_analysis.clustered_adata_object
 		File? cohort_umap_cluster_plots_png = cross_team_cohort_analysis.umap_cluster_plots_png
-
-		# Spatial statistics outputs
-		File? cohort_final_adata_object = cross_team_cohort_analysis.final_adata_object
-		File? cohort_moran_top_10_variable_genes_csv = cross_team_cohort_analysis.moran_top_10_variable_genes_csv
-		File? cohort_moran_top_3_variable_genes_spatial_scatter_plot_png = cross_team_cohort_analysis.moran_top_3_variable_genes_spatial_scatter_plot_png
 
 		Array[File]? cohort_manifests = cross_team_cohort_analysis.cohort_analysis_manifest_tsvs
 	}

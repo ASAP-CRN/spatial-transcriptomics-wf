@@ -22,14 +22,16 @@ def main(args):
     ##################
     ## ANNOTATE HVG ##
     ##################
+    sc.pp.log1p(merged_adata)
+    
     sc.pp.highly_variable_genes(
-        adata,
+        merged_adata,
         flavor="seurat",
         n_top_genes=args.n_top_genes,
         inplace=True,
     )
     sc.pl.highly_variable_genes(
-        adata,
+        merged_adata,
     )
     fig = plt.gcf()
     fig.suptitle(f"Highly variable genes dispersion plot - {args.plots_prefix}", va="center", ha="center", fontsize=16)
@@ -40,13 +42,13 @@ def main(args):
     ## DIMENSIONALITY REDUCTION ##
     ##############################
     sc.pp.pca(
-        adata,
+        merged_adata,
         n_comps=args.n_comps,
         svd_solver="arpack",
     )
 
     # Save outputs
-    adata.write_h5ad(filename=args.adata_output, compression="gzip")
+    merged_adata.write_h5ad(filename=args.adata_output, compression="gzip")
 
 
 if __name__ == "__main__":

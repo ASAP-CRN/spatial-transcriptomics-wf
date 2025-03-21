@@ -12,7 +12,7 @@
   "pmdbs_spatial_geomx_analysis.min_nuclei": "Int (optional, default = 100)",
   "pmdbs_spatial_geomx_analysis.min_segment_area": "Int (optional, default = 5000)",
   "pmdbs_spatial_geomx_analysis.cell_type_markers_list": "File",
-  "pmdbs_spatial_geomx_analysis.min_genes_detected_in_percent_segment": "Float (optional, default = 0.1)",
+  "pmdbs_spatial_geomx_analysis.min_genes_detected_in_percent_segment": "Float (optional, default = 0.01)",
   "pmdbs_spatial_geomx_analysis.n_comps": "Int (optional, default = 30)",
   "pmdbs_spatial_geomx_analysis.batch_key": "String (optional, default = \"batch_id\")",
   "pmdbs_spatial_geomx_analysis.leiden_resolution": "Float (optional, default = 0.4)",
