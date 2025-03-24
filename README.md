@@ -57,10 +57,20 @@ An input template file can be found at [workflows/pmdbs_spatial_geomx/inputs.jso
 | :- | :- | :- |
 | String | cohort_id | Name of the cohort; used to name output files during cross-team cohort analysis. |
 | Array[[Project](#project)] | projects | The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis. |
-| File | config_ini | The configuration (.ini) file, containing pipeline processing parameters. |
 | File | geomxngs_config_pkc | The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers; see https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-configuration-files/. |
-| Int? | filter_cells_min_counts | Minimum number of counts required for a cell to pass filtering. [5000] |
-| Int? | filter_genes_min_cells | Minimum number of cells expressed required for a gene to pass filtering. [10] |
+| Int? | min_segment_reads | Minimum number of segment reads. [1000] |
+| Int? | min_percent_reads_trimmed | Minimum % of reads trimmed. [80] |
+| Int? | min_percent_reads_stitched | Minimum % of reads stitched. [80] |
+| Int? | min_percent_reads_aligned | Minimum % of reads aligned. [80] |
+| Int? | min_saturation | Minimum sequencing saturation. [50] |
+| Int? | min_neg_ctrl_count | Minimum negative control counts. [1] |
+| Int? | max_ntc_count | Maximum counts observed in NTC well. [1000] |
+| Int? | min_nuclei | Minimum # of nuclei estimated. [100] |
+| Int? | min_segment_area | Minimum segment area. [5000] |
+| Float? | min_genes_detected_in_percent_segment | Minimum % of segments that detect the genes. [0.01] |
+| Int? | n_comps | Number of principal components to compute. [30] |
+| String? | batch_key | Key in AnnData object for batch information. ['batch_id'] |
+| Float? | leiden_resolution | Value controlling the coarseness of the Leiden clustering. [0.4] |
 | Boolean? | run_cross_team_cohort_analysis | Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (GeoMxNGSPipeline and generating the initial adata object(s)) will run for samples. [false] |
 | String | cohort_raw_data_bucket | Bucket to upload cross-team cohort analysis intermediate files to. |
 | Array[String] | cohort_staging_data_buckets | Buckets to upload cross-team cohort analysis outputs to. |
@@ -103,6 +113,7 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | Array[[Sample](#sample)] | samples | The set of samples associated with this project. |
 | File? | project_sample_metadata_csv | CSV containing all sample information including batch, condition, etc. This is required for the bulk RNAseq pipeline. For the `batch` column, there must be at least two distinct values. |
 | File? | project_condition_metadata_csv | CSV containing condition and intervention IDs used to categorize conditions into broader groups for DESeq2 pairwise condition ('Case', 'Control', and 'Other'). This is required for the bulk RNAseq pipeline. |
+| File? | geomx_config_ini | The configuration (.ini) file, containing pipeline processing parameters. This is required for the spatial transcriptomics Nanostring GeoMx pipeline. |
 | Boolean | run_project_cohort_analysis | Whether or not to run cohort analysis within the project. |
 | String | raw_data_bucket | Raw data bucket; intermediate output files that are not final workflow outputs are stored here. |
 | String | staging_data_bucket | Staging data bucket; final project-level outputs are stored here. |
@@ -120,6 +131,7 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | File? | visium_brightfield_image | Optional 10x Visium brightfield image. This is required for the spatial transcriptomics 10x Visium pipeline. |
 | String? | visium_slide_serial_number | Optional 10x Visium slide serial number. This is required for the spatial transcriptomics 10x Visium pipeline. |
 | String? | visium_capture_area | Optional 10x Visium slide capture area. This is required for the spatial transcriptomics 10x Visium pipeline. |
+| File? | geomx_lab_annotation_xlsx | The annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx instrument study readout package. This is required for the spatial transcriptomics Nanostring GeoMx pipeline. |
 
 ## Generating the inputs JSON
 
@@ -185,9 +197,9 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset}
             ├── fastq_to_dcc
             │   └── ${fastq_to_dcc_task_version}
             │       └── <fastq_to_dcc output>
-            ├── dcc_to_adata
-            │   └── ${dcc_to_adata_task_version}
-            │       └── <dcc_to_adata output>
+            ├── dcc_to_rds
+            │   └── ${dcc_to_rds_task_version}
+            │       └── <dcc_to_rds output>
             └── qc
                 └── ${qc_task_version}
                     └── <qc output>
@@ -222,25 +234,31 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 └── pmdbs_spatial_geomx
     ├── cohort_analysis
     │   ├── ${cohort_id}.sample_list.tsv
-    │   ├──	${cohort_id}.merged_adata_object.h5ad
-    │   ├── ${cohort_id}.qc_hist.png
+    │   ├── ${sampleN_id}.segment_gene_detection_plot.png
+    │   ├── ${sampleN_id}.gene_detection_rate.csv
+    │   ├── ${sampleN_id}.q3_negprobe_plot.png
+    │   ├── ${sampleN_id}.normalization_plot.png
+    │   ├── ${cohort_id}.merged.h5ad
+    │   ├── ${cohort_id}.clustered.h5ad # Final
     │   ├── ${cohort_id}.umap_cluster.png
-    │   ├── ${cohort_id}.moran_top_10_variable_genes.csv
-    │   ├── ${cohort_id}.nhood_enrichment.png
-    │   ├── ${cohort_id}.final_adata_object.h5ad
-    │   ├── ${cohort_id}.co_occurrence.png
     │   └── MANIFEST.tsv
     └── preprocess
         ├── ${sampleA_id}.DCC.zip
         ├── ${sampleA_id}.geomxngs_out_dir.tar.gz
-        ├── ${sampleA_id}.initial_adata_object.h5ad
-        ├── ${sampleA_id}.qc.h5ad
+        ├── ${sampleA_id}.NanoStringGeoMxSet.rds
+        ├── ${sampleA_id}.qc.rds
+        ├── ${sampleA_id}.segment_qc_summary.csv
+        ├── ${sampleA_id}.probe_qc_summary.csv
+        ├── ${sampleA_id}.gene_count.csv
         ├── MANIFEST.tsv
         ├── ...
         ├── ${sampleN_id}.DCC.zip
         ├── ${sampleN_id}.geomxngs_out_dir.tar.gz
-        ├── ${sampleN_id}.initial_adata_object.h5ad
-        ├── ${sampleN_id}.qc.h5ad
+        ├── ${sampleN_id}.NanoStringGeoMxSet.rds
+        ├── ${sampleN_id}.qc.rds
+        ├── ${sampleN_id}.segment_qc_summary.csv
+        ├── ${sampleN_id}.probe_qc_summary.csv
+        ├── ${sampleN_id}.gene_count.csv
         └── MANIFEST.tsv
 
 asap-dev-{cohort,team-xxyy}-{source}-{dataset}
@@ -251,6 +269,7 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
     │   ├── ${cohort_id}.qc_violin.png
     │   ├── ${cohort_id}.qc_dist.png
     │   ├── ${cohort_id}.hvg_dispersion.png
+    │   ├── ${cohort_id}.clustered.h5ad 
     │   ├── ${cohort_id}.umap_cluster.png
     │   ├── ${cohort_id}.spatial_scatter.png
     │   ├── ${cohort_id}.final_adata_object.h5ad
@@ -389,9 +408,10 @@ Docker images can be build using the [`build_docker_images`](https://github.com/
 | Image | Major tool versions | Links | Workflow |
 | :- | :- | :- | :- |
 | geomxngs | <ul><li>[geomxngs v3.1.1.6](https://nanostring.app.box.com/v/GeoMxSW3-1-0/folder/233772026049)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/geomxngs) | pmdbs_spatial_geomx |
-| spatial_py | Python (v3.12.5) libraries: <ul><li>[squidpy v1.6.2](https://github.com/scverse/squidpy/releases/tag/v1.6.2)</li><li>[matplotlib v3.10.0](https://github.com/matplotlib/matplotlib/releases/tag/v3.10.0)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li><li>[harmonypy v0.0.10](https://github.com/slowkow/harmonypy/releases/tag/v0.0.10)</li><li>[scanpy v1.10.4](https://github.com/scverse/scanpy/releases/tag/1.10.4)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/spatial_py) | both |
 | spaceranger | <ul><li>[spaceranger v3.1.2](https://www.10xgenomics.com/support/software/space-ranger/latest/release-notes/release-notes-for-SR#v-3-1-2)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/spaceranger) | pmdbs_spatial_visium |
 | util | <ul><li>[google-cloud-cli 444.0.0-slim](https://cloud.google.com/sdk/docs/release-notes#44400_2023-08-22)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/util) | both |
+| spatial_r | R (v4.4.2) packages: <ul><li>[NanoStringNCTools v1.14.0](https://github.com/Nanostring-Biostats/NanoStringNCTools)</li><li>[Seurat v5.0.0](https://github.com/satijalab/seurat/releases/tag/v5.0.0)</li><li>[SeuratData v0.2.2.9001](https://github.com/satijalab/seurat-data/tags)</li><li>[SeuratDisk v0.0.0.9021](https://github.com/mojaveazure/seurat-disk)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/spatial_r) | pmdbs_spatial_geomx |
+| spatial_py | Python (v3.12.5) libraries: <ul><li>[squidpy v1.6.2](https://github.com/scverse/squidpy/releases/tag/v1.6.2)</li><li>[matplotlib v3.10.0](https://github.com/matplotlib/matplotlib/releases/tag/v3.10.0)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li><li>[harmonypy v0.0.10](https://github.com/slowkow/harmonypy/releases/tag/v0.0.10)</li><li>[scanpy v1.10.4](https://github.com/scverse/scanpy/releases/tag/1.10.4)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/spatial_py) | both |
 
 
 # wdl-ci
@@ -406,7 +426,7 @@ In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-
 ## Nanostring GeoMx notes
 The Nanostring GeoMx configuration (.pkc) files were obtained from https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-configuration-files/.
 - [Human_WTA_v1.0](https://nanostring.com/wp-content/uploads/Hs_R_NGS_WTA_v1.0.pkc_.zip) for Human Whole Transcriptome Atlas
-- [Mouse_WTA_v2.0](https://nanostring.com/wp-content/uploads/2024/06/Mm_R_NGS_WTA_v2.0.zip) for Mouse Whole Transcriptome Atlas
+- [Mouse_WTA_v1.0](https://nanostring.com/wp-content/uploads/Mm_R_NGS_WTA_v1.0.zip) or [Mouse_WTA_v2.0](https://nanostring.com/wp-content/uploads/2024/06/Mm_R_NGS_WTA_v2.0.zip) for Mouse Whole Transcriptome Atlas
 
 ## 10x Visium notes
 

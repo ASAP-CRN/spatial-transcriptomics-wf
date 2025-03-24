@@ -1,6 +1,6 @@
 version 1.0
 
-# Generate a QC'ed AnnData object by converting FASTQ files to DCC (digital count conversion) files to count matrices
+# Generate a QC'ed RDS object by converting FASTQ files to DCC (digital count conversion) files to a NanoStringGeoMxSet object
 
 import "../../../wf-common/wdl/structs.wdl"
 
@@ -10,8 +10,18 @@ workflow preprocess {
 		String dataset_id
 		Array[Sample] samples
 
-		File config_ini
+		File geomx_config_ini
 		File geomxngs_config_pkc
+
+		Int min_segment_reads
+		Int min_percent_reads_trimmed
+		Int min_percent_reads_stitched
+		Int min_percent_reads_aligned
+		Int min_saturation
+		Int min_neg_ctrl_count
+		Int max_ntc_count
+		Int min_nuclei
+		Int min_segment_area
 
 		String workflow_name
 		String workflow_version
@@ -26,27 +36,27 @@ workflow preprocess {
 	# Task and subworkflow versions
 	String sub_workflow_name = "preprocess"
 	String fastq_to_dcc_task_version = "1.0.0"
-	String dcc_to_adata_task_version = "1.0.0"
+	String dcc_to_rds_task_version = "1.0.0"
 	String qc_task_version = "1.0.0"
 
 	Array[Array[String]] workflow_info = [[run_timestamp, workflow_name, workflow_version, workflow_release]]
 
 	String workflow_raw_data_path_prefix = "~{raw_data_path_prefix}/~{sub_workflow_name}"
 	String dcc_raw_data_path = "~{workflow_raw_data_path_prefix}/fastq_to_dcc/~{fastq_to_dcc_task_version}"
-	String adata_raw_data_path = "~{workflow_raw_data_path_prefix}/dcc_to_adata/~{dcc_to_adata_task_version}"
+	String rds_raw_data_path = "~{workflow_raw_data_path_prefix}/dcc_to_rds/~{dcc_to_rds_task_version}"
 	String qc_raw_data_path = "~{workflow_raw_data_path_prefix}/qc/~{qc_task_version}"
 
 	scatter (sample_object in samples) {
 		String fastq_to_dcc_output = "~{dcc_raw_data_path}/~{sample_object.sample_id}.geomxngs_out_dir.tar.gz"
-		String dcc_to_adata_output = "~{adata_raw_data_path}/~{sample_object.sample_id}.initial_adata_object.h5ad"
-		String qc_output = "~{qc_raw_data_path}/~{sample_object.sample_id}.qc.h5ad"
+		String dcc_to_rds_output = "~{rds_raw_data_path}/~{sample_object.sample_id}.NanoStringGeoMxSet.rds"
+		String qc_output = "~{qc_raw_data_path}/~{sample_object.sample_id}.qc.rds"
 	}
 
-	# For each sample, outputs an array of true/false: [fastq_to_dcc_complete, dcc_to_adata_complete, qc_complete]
+	# For each sample, outputs an array of true/false: [fastq_to_dcc_complete, dcc_to_rds_complete, qc_complete]
 	call check_output_files_exist {
 		input:
 			fastq_to_dcc_output_files = fastq_to_dcc_output,
-			dcc_to_adata_output_files = dcc_to_adata_output,
+			dcc_to_rds_output_files = dcc_to_rds_output,
 			qc_output_files = qc_output,
 			billing_project = billing_project,
 			zones = zones
@@ -58,7 +68,7 @@ workflow preprocess {
 		Array[String] project_sample_id = [team_id, sample.sample_id]
 
 		String fastq_to_dcc_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][0]
-		String dcc_to_adata_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][1]
+		String dcc_to_rds_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][1]
 		String qc_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][2]
 
 		String fastq_to_dcc_geomxngs_dcc_zip = "~{dcc_raw_data_path}/~{sample.sample_id}.DCC.zip"
@@ -70,7 +80,7 @@ workflow preprocess {
 					sample_id = sample.sample_id,
 					fastq_R1s = sample.fastq_R1s,
 					fastq_R2s = sample.fastq_R2s,
-					config_ini = config_ini,
+					geomx_config_ini = geomx_config_ini,
 					raw_data_path = dcc_raw_data_path,
 					workflow_info = workflow_info,
 					billing_project = billing_project,
@@ -82,19 +92,19 @@ workflow preprocess {
 		File geomxngs_dcc_zip_output = select_first([fastq_to_dcc.geomxngs_dcc_zip, fastq_to_dcc_geomxngs_dcc_zip]) #!FileCoercion
 		File geomxngs_output_tar_gz_output = select_first([fastq_to_dcc.geomxngs_output_tar_gz, fastq_to_dcc_geomxngs_output_tar_gz]) #!FileCoercion
 
-		String dcc_to_adata_object = "~{adata_raw_data_path}/~{sample.sample_id}.initial_adata_object.h5ad"
+		String dcc_to_rds_object = "~{rds_raw_data_path}/~{sample.sample_id}.NanoStringGeoMxSet.rds"
 
-		if (dcc_to_adata_complete == "false") {
-			call dcc_to_adata {
+		if (dcc_to_rds_complete == "false") {
+			call dcc_to_rds {
 				input:
 					team_id = team_id,
 					dataset_id = dataset_id,
 					sample_id = sample.sample_id,
 					batch = select_first([sample.batch]),
 					geomxngs_dcc_zip = geomxngs_dcc_zip_output,
-					config_ini = config_ini,
+					geomx_lab_annotation_xlsx = select_first([sample.geomx_lab_annotation_xlsx]),
 					geomxngs_config_pkc = geomxngs_config_pkc,
-					raw_data_path = adata_raw_data_path,
+					raw_data_path = rds_raw_data_path,
 					workflow_info = workflow_info,
 					billing_project = billing_project,
 					container_registry = container_registry,
@@ -102,15 +112,27 @@ workflow preprocess {
 			}
 		}
 
-		File initial_adata_object_output = select_first([dcc_to_adata.initial_adata_object, dcc_to_adata_object]) #!FileCoercion
+		File initial_rds_object_output = select_first([dcc_to_rds.initial_rds_object, dcc_to_rds_object]) #!FileCoercion
 
-		String qc_metrics_adata_object = "~{qc_raw_data_path}/~{sample.sample_id}.qc.h5ad"
+		String qc_metrics_rds_object = "~{qc_raw_data_path}/~{sample.sample_id}.qc.rds"
+		String qc_segment_summary_csv = "~{qc_raw_data_path}/~{sample.sample_id}.segment_qc_summary.csv"
+		String qc_probe_summary_csv = "~{qc_raw_data_path}/~{sample.sample_id}.probe_qc_summary.csv"
+		String qc_gene_count_csv = "~{qc_raw_data_path}/~{sample.sample_id}.gene_count.csv"
 
 		if (qc_complete == "false") {
 			call qc {
 				input:
 					sample_id = sample.sample_id,
-					initial_adata_object = initial_adata_object_output,
+					initial_rds_object = initial_rds_object_output,
+					min_segment_reads = min_segment_reads,
+					min_percent_reads_trimmed = min_percent_reads_trimmed,
+					min_percent_reads_stitched = min_percent_reads_stitched,
+					min_percent_reads_aligned = min_percent_reads_aligned,
+					min_saturation = min_saturation,
+					min_neg_ctrl_count = min_neg_ctrl_count,
+					max_ntc_count = max_ntc_count,
+					min_nuclei = min_nuclei,
+					min_segment_area = min_segment_area,
 					raw_data_path = qc_raw_data_path,
 					workflow_info = workflow_info,
 					billing_project = billing_project,
@@ -119,7 +141,10 @@ workflow preprocess {
 			}
 		}
 
-		File qc_adata_object_output = select_first([qc.qc_adata_object, qc_metrics_adata_object]) #!FileCoercion
+		File qc_rds_object_output = select_first([qc.qc_rds_object, qc_metrics_rds_object]) #!FileCoercion
+		File segment_qc_summary_csv_output = select_first([qc.segment_qc_summary_csv, qc_segment_summary_csv]) #!FileCoercion
+		File probe_qc_summary_csv_output = select_first([qc.probe_qc_summary_csv, qc_probe_summary_csv]) #!FileCoercion
+		File gene_count_csv_output = select_first([qc.gene_count_csv, qc_gene_count_csv]) #!FileCoercion
 	}
 
 	output {
@@ -130,19 +155,21 @@ workflow preprocess {
 		Array[File] geomxngs_dcc_zip = geomxngs_dcc_zip_output #!FileCoercion
 		Array[File] geomxngs_output_tar_gz = geomxngs_output_tar_gz_output #!FileCoercion
 
-		# Initial adata object
-		Array[File] initial_adata_object = initial_adata_object_output #!FileCoercion
+		# Initial RDS object
+		Array[File] initial_rds_object = initial_rds_object_output #!FileCoercion
 
-		# QC adata object
-		Array[File] qc_adata_object = qc_adata_object_output #!FileCoercion
-		Array[Float?] qc_unassigned_ctrl_probes_percentage = qc.qc_unassigned_ctrl_probes_percentage
+		# QC RDS object and tables
+		Array[File] qc_rds_object = qc_rds_object_output #!FileCoercion
+		Array[File] segment_qc_summary_csv = segment_qc_summary_csv_output #!FileCoercion
+		Array[File] probe_qc_summary_csv = probe_qc_summary_csv_output #!FileCoercion
+		Array[File] gene_count_csv = gene_count_csv_output #!FileCoercion
 	}
 }
 
 task check_output_files_exist {
 	input {
 		Array[String] fastq_to_dcc_output_files
-		Array[String] dcc_to_adata_output_files
+		Array[String] dcc_to_rds_output_files
 		Array[String] qc_output_files
 
 		String billing_project
@@ -154,27 +181,27 @@ task check_output_files_exist {
 
 		while read -r output_files || [[ -n "${output_files}" ]]; do
 			dcc_file=$(echo "${output_files}" | cut -f 1)
-			adata_file=$(echo "${output_files}" | cut -f 2)
-			qc_adata_file=$(echo "${output_files}" | cut -f 3)
+			rds_file=$(echo "${output_files}" | cut -f 2)
+			qc_file=$(echo "${output_files}" | cut -f 3)
 
 			if gsutil -u ~{billing_project} ls "${dcc_file}"; then
-				if gsutil -u ~{billing_project} ls "${adata_file}"; then
-					if gsutil -u ~{billing_project} ls "${qc_adata_file}"; then
+				if gsutil -u ~{billing_project} ls "${rds_file}"; then
+					if gsutil -u ~{billing_project} ls "${qc_file}"; then
 						# If we find all outputs, don't rerun anything
 						echo -e "true\ttrue\ttrue" >> sample_preprocessing_complete.tsv
 					else
-						# If we find fastq_to_dcc and dcc_to_adata outputs, then run (or rerun) qc
+						# If we find fastq_to_dcc and dcc_to_rds outputs, then run (or rerun) qc
 						echo -e "true\ttrue\tfalse" >> sample_preprocessing_complete.tsv
 					fi
 				else
-					# If we only find fastq_to_dcc, then run (or rerun) dcc_to_adata and qc
+					# If we only find fastq_to_dcc, then run (or rerun) dcc_to_rds and qc
 					echo -e "true\tfalse\tfalse" >> sample_preprocessing_complete.tsv
 				fi
 			else
 				# If we don't find fast_to_dcc output, we must need to run (or rerun) preprocessing
 				echo -e "false\tfalse\tfalse" >> sample_preprocessing_complete.tsv
 			fi
-		done < <(paste ~{write_lines(fastq_to_dcc_output_files)} ~{write_lines(dcc_to_adata_output_files)} ~{write_lines(qc_output_files)})
+		done < <(paste ~{write_lines(fastq_to_dcc_output_files)} ~{write_lines(dcc_to_rds_output_files)} ~{write_lines(qc_output_files)})
 	>>>
 
 	output {
@@ -198,7 +225,7 @@ task fastq_to_dcc {
 		Array[File] fastq_R1s
 		Array[File] fastq_R2s
 
-		File config_ini
+		File geomx_config_ini
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -225,7 +252,7 @@ task fastq_to_dcc {
 		expect <<EOF
 		set timeout -1
 		spawn geomxngspipeline \
-			--ini=~{config_ini} \
+			--ini=~{geomx_config_ini} \
 			--in="$(pwd)/fastqs" \
 			--out="~{sample_id}_geomxngs_out_dir" \
 			--check-illumina-naming=false
@@ -233,9 +260,17 @@ task fastq_to_dcc {
 		expect eof
 		EOF
 
-		# DCC zip file is automatically named following format: DCC-<YYYYMMDD>.zip
-		dcc_file_to_rename=$(find ./~{sample_id}_geomxngs_out_dir -type f -name 'DCC-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].zip')
-		cp "${dcc_file_to_rename}" ./~{sample_id}.DCC.zip
+		# Only keep the sample that was processed or else all samples in the config (.ini) file is processed with zero RTS_ID count causing errors downstream
+		mkdir ~{sample_id}.DCC
+		touch sample_names.txt
+		while read -r file || [[ -n "${file}" ]]; do
+			basename "$file" | cut -d '_' -f 1-4 | grep "^DSP"
+		done < <(ls fastqs) > sample_names.txt
+		sed 's/$/.dcc/' sample_names.txt > sample_names_with_dcc.txt
+		while read -r file || [[ -n "${file}" ]]; do
+			cp ~{sample_id}_geomxngs_out_dir/"$file" ./~{sample_id}.DCC/
+		done < sample_names_with_dcc.txt
+		zip -r ~{sample_id}.DCC.zip ~{sample_id}.DCC
 
 		tar -czvf "~{sample_id}.geomxngs_out_dir.tar.gz" "~{sample_id}_geomxngs_out_dir"
 
@@ -263,7 +298,7 @@ task fastq_to_dcc {
 	}
 }
 
-task dcc_to_adata {
+task dcc_to_rds {
 	input {
 		String team_id
 		String dataset_id
@@ -272,7 +307,7 @@ task dcc_to_adata {
 
 		File geomxngs_dcc_zip
 
-		File config_ini
+		File geomx_lab_annotation_xlsx
 		File geomxngs_config_pkc
 
 		String raw_data_path
@@ -284,36 +319,36 @@ task dcc_to_adata {
 
 	Int threads = 4
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size([geomxngs_dcc_zip, config_ini, geomxngs_config_pkc], "GB") * 2 + 30)
+	Int disk_size = ceil(size([geomxngs_dcc_zip, geomx_lab_annotation_xlsx, geomxngs_config_pkc], "GB") * 4 + 30)
 
 	command <<<
 		set -euo pipefail
 
-		unzip -d ./dcc_files_dir ~{geomxngs_dcc_zip}
+		unzip -d ./dcc_files_dir -j ~{geomxngs_dcc_zip}
 
-		python3 /opt/scripts/dcc_to_adata.py \
-			--team ~{team_id} \
-			--dataset ~{dataset_id} \
+		Rscript /opt/scripts/counts_to_rds.R \
+			--team-id ~{team_id} \
+			--dataset-id ~{dataset_id} \
 			--sample-id ~{sample_id} \
 			--batch ~{batch} \
-			--dcc-files-dir-input ./dcc_files_dir \
-			--ini ~{config_ini} \
-			--pkc ~{geomxngs_config_pkc} \
-			--adata-output ~{sample_id}.initial_adata_object.h5ad
+			--dcc-dir ./dcc_files_dir \
+			--pkc-file ~{geomxngs_config_pkc} \
+			--annotation-file ~{geomx_lab_annotation_xlsx} \
+			--output ~{sample_id}.NanoStringGeoMxSet.rds
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{sample_id}.initial_adata_object.h5ad"
+			-o "~{sample_id}.NanoStringGeoMxSet.rds"
 	>>>
 
 	output {
-		String initial_adata_object = "~{raw_data_path}/~{sample_id}.initial_adata_object.h5ad"
+		String initial_rds_object = "~{raw_data_path}/~{sample_id}.NanoStringGeoMxSet.rds"
 	}
 
 	runtime {
-		docker: "~{container_registry}/geomx_ngs:3.1.1.6"
+		docker: "~{container_registry}/spatial_r:1.0.0"
 		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
@@ -327,7 +362,17 @@ task qc {
 	input {
 		String sample_id
 
-		File initial_adata_object
+		File initial_rds_object
+
+		Int min_segment_reads
+		Int min_percent_reads_trimmed
+		Int min_percent_reads_stitched
+		Int min_percent_reads_aligned
+		Int min_saturation
+		Int min_neg_ctrl_count
+		Int max_ntc_count
+		Int min_nuclei
+		Int min_segment_area
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -338,29 +383,44 @@ task qc {
 
 	Int threads = 4
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size(initial_adata_object, "GB") * 2 + 30)
+	Int disk_size = ceil(size(initial_rds_object, "GB") * 2 + 30)
 
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/geomx_qc.py \
-			--adata-input ~{initial_adata_object} \
-			--qc-adata-output ~{sample_id}.qc.h5ad
+		Rscript /opt/scripts/geomx_qc.R \
+			--sample-id ~{sample_id} \
+			--input ~{initial_rds_object} \
+			--min-reads ~{min_segment_reads} \
+			--percent-trimmed ~{min_percent_reads_trimmed} \
+			--percent-stitched ~{min_percent_reads_stitched} \
+			--percent-aligned ~{min_percent_reads_aligned} \
+			--percent-saturation ~{min_saturation} \
+			--min-neg-count ~{min_neg_ctrl_count} \
+			--max-ntc-count ~{max_ntc_count} \
+			--min-nuclei ~{min_nuclei} \
+			--min-area ~{min_segment_area} \
+			--output ~{sample_id}.qc.rds
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{sample_id}.qc.h5ad"
+			-o "~{sample_id}.qc.rds" \
+			-o "~{sample_id}.segment_qc_summary.csv" \
+			-o "~{sample_id}.probe_qc_summary.csv" \
+			-o "~{sample_id}.gene_count.csv"
 	>>>
 
 	output {
-		String qc_adata_object = "~{raw_data_path}/~{sample_id}.qc.h5ad"
-		Float qc_unassigned_ctrl_probes_percentage = read_float("unassigned_ctrl_probes_percentage.txt")
+		String qc_rds_object = "~{raw_data_path}/~{sample_id}.qc.rds"
+		String segment_qc_summary_csv = "~{raw_data_path}/~{sample_id}.segment_qc_summary.csv"
+		String probe_qc_summary_csv = "~{raw_data_path}/~{sample_id}.probe_qc_summary.csv"
+		String gene_count_csv = "~{raw_data_path}/~{sample_id}.gene_count.csv"
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
+		docker: "~{container_registry}/spatial_r:1.0.0"
 		cpu: threads
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
