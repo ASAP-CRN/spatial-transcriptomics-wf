@@ -164,13 +164,14 @@ workflow pmdbs_spatial_geomx_analysis {
 		## List of samples included in the cohort
 		Array[File?] project_cohort_sample_list = project_cohort_analysis.cohort_sample_list
 
-		# Processed (filtered and normalized) RDS objects, converted merged, integrated and clustered adata objects, and plots
+		## Sample-level outputs - Processed (filtered and normalized) RDS objects, converted adata objects, and plots
 		Array[Array[File]?] project_processed_rds_object = project_cohort_analysis.processed_rds_object
 		Array[Array[File]?] project_segment_gene_detection_plot_png = project_cohort_analysis.segment_gene_detection_plot_png
 		Array[Array[File]?] project_gene_detection_rate_csv = project_cohort_analysis.gene_detection_rate_csv
 		Array[Array[File]?] project_q3_negprobe_plot_png = project_cohort_analysis.q3_negprobe_plot_png
 		Array[Array[File]?] project_normalization_plot_png = project_cohort_analysis.normalization_plot_png
 		Array[Array[File]?] project_processed_adata_object = project_cohort_analysis.processed_adata_object
+		## Cohort-level outputs - Merged, integrated and clustered adata objects, and plots
 		Array[File?] project_merged_adata_object = project_cohort_analysis.merged_adata_object
 		Array[File?] project_integrated_adata_object = project_cohort_analysis.integrated_adata_object
 		Array[File?] project_clustered_adata_object = project_cohort_analysis.clustered_adata_object
@@ -183,13 +184,14 @@ workflow pmdbs_spatial_geomx_analysis {
 		## List of samples included in the cohort
 		File? cohort_cohort_sample_list = cross_team_cohort_analysis.cohort_sample_list
 
-		# Processed (filtered and normalized) RDS objects, converted merged, integrated and clustered adata objects, and plots
+		## Sample-level outputs - Processed (filtered and normalized) RDS objects, converted adata objects, and plots
 		Array[File]? cohort_processed_rds_object = cross_team_cohort_analysis.processed_rds_object
 		Array[File]? cohort_segment_gene_detection_plot_png = cross_team_cohort_analysis.segment_gene_detection_plot_png
 		Array[File]? cohort_gene_detection_rate_csv = cross_team_cohort_analysis.gene_detection_rate_csv
 		Array[File]? cohort_q3_negprobe_plot_png = cross_team_cohort_analysis.q3_negprobe_plot_png
 		Array[File]? cohort_normalization_plot_png = cross_team_cohort_analysis.normalization_plot_png
 		Array[File]? cohort_processed_adata_object = cross_team_cohort_analysis.processed_adata_object
+		## Cohort-level outputs - Merged, integrated and clustered adata objects, and plots
 		File? cohort_merged_adata_object = cross_team_cohort_analysis.merged_adata_object
 		File? cohort_integrated_adata_object = cross_team_cohort_analysis.integrated_adata_object
 		File? cohort_clustered_adata_object = cross_team_cohort_analysis.clustered_adata_object
