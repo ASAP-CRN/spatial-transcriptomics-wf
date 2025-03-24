@@ -123,6 +123,7 @@ workflow cohort_analysis {
 			merge_and_prep.merged_adata_object
 		],
 		[
+			integrate_data.clustered_adata_object,
 			integrate_data.umap_cluster_plots_png
 		]
 	]) #!StringCoercion

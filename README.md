@@ -239,6 +239,7 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
     │   ├── ${sampleN_id}.q3_negprobe_plot.png
     │   ├── ${sampleN_id}.normalization_plot.png
     │   ├── ${cohort_id}.merged.h5ad
+    │   ├── ${cohort_id}.clustered.h5ad # Final
     │   ├── ${cohort_id}.umap_cluster.png
     │   └── MANIFEST.tsv
     └── preprocess
