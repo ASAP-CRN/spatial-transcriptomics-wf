@@ -269,6 +269,7 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
     │   ├── ${cohort_id}.qc_violin.png
     │   ├── ${cohort_id}.qc_dist.png
     │   ├── ${cohort_id}.hvg_dispersion.png
+    │   ├── ${cohort_id}.clustered.h5ad 
     │   ├── ${cohort_id}.umap_cluster.png
     │   ├── ${cohort_id}.spatial_scatter.png
     │   ├── ${cohort_id}.final_adata_object.h5ad

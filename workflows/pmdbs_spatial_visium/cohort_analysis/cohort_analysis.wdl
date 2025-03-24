@@ -4,7 +4,7 @@ version 1.0
 
 import "../../../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
 import "../../integrate_data/integrate_data.wdl" as IntegrateData
-import "../../spatial_statistics/spatial_statistics.wdl" as SpatialStatistics
+import "spatial_statistics/spatial_statistics.wdl" as SpatialStatistics
 import "../../../wf-common/wdl/tasks/upload_final_outputs.wdl" as UploadFinalOutputs
 
 workflow cohort_analysis {
@@ -142,6 +142,7 @@ workflow cohort_analysis {
 			process.hvg_plot_png
 		],
 		[
+			integrate_data.clustered_adata_object,
 			integrate_data.umap_cluster_plots_png
 		],
 		[
