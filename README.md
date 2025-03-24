@@ -234,22 +234,17 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 └── pmdbs_spatial_geomx
     ├── cohort_analysis
     │   ├── ${cohort_id}.sample_list.tsv
-    │   ├──	${cohort_id}.merged_rds_object.rds
-    │   ├── ${cohort_id}.segment_gene_detection_plot.png
-    │   ├── ${cohort_id}.gene_detection_rate.csv
-    │   ├── ${cohort_id}.q3_negprobe_plot.png
-    │   ├── ${cohort_id}.normalization_plot.png
-    │   ├── ${cohort_id}.processed.h5ad
+    │   ├── ${sampleN_id}.segment_gene_detection_plot.png
+    │   ├── ${sampleN_id}.gene_detection_rate.csv
+    │   ├── ${sampleN_id}.q3_negprobe_plot.png
+    │   ├── ${sampleN_id}.normalization_plot.png
+    │   ├── ${cohort_id}.merged.h5ad
     │   ├── ${cohort_id}.umap_cluster.png
-    │   ├── ${cohort_id}.final_adata_object.h5ad
-    │   ├── ${cohort_id}.moran_top_10_variable_genes.csv
-    │   ├── ${cohort_id}.moran_top_3_variable_genes_spatial_scatter.png
     │   └── MANIFEST.tsv
     └── preprocess
         ├── ${sampleA_id}.DCC.zip
         ├── ${sampleA_id}.geomxngs_out_dir.tar.gz
         ├── ${sampleA_id}.NanoStringGeoMxSet.rds
-        ├── ${sampleA_id}.sankey_diagram.html
         ├── ${sampleA_id}.qc.rds
         ├── ${sampleA_id}.segment_qc_summary.csv
         ├── ${sampleA_id}.probe_qc_summary.csv
@@ -259,7 +254,6 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
         ├── ${sampleN_id}.DCC.zip
         ├── ${sampleN_id}.geomxngs_out_dir.tar.gz
         ├── ${sampleN_id}.NanoStringGeoMxSet.rds
-        ├── ${sampleN_id}.sankey_diagram.html
         ├── ${sampleN_id}.qc.rds
         ├── ${sampleN_id}.segment_qc_summary.csv
         ├── ${sampleN_id}.probe_qc_summary.csv
