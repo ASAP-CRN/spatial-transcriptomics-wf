@@ -119,7 +119,6 @@ workflow cohort_analysis {
 		process.gene_detection_rate_csv,
 		process.q3_negprobe_plot_png,
 		process.normalization_plot_png,
-		rds_to_adata.processed_adata_object,
 		[
 			merge_and_prep.merged_adata_object
 		],
