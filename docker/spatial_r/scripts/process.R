@@ -86,7 +86,7 @@ pData(target_geomxdata)$DetectionThreshold <- cut(
 )
 
 segment_gene_detection_plot <- ggplot(pData(target_geomxdata), aes(x = DetectionThreshold)) +
-	geom_bar() +
+	geom_bar(fill = "blue") +
 	geom_text(stat = "count", aes(label = after_stat(count)), vjust = -0.5) +
 	theme_bw() +
 	scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
@@ -209,8 +209,8 @@ saveRDS(target_geomxdata, file = args$output)
 normalization_plot_output <- paste0(args$sample_id, ".normalization_plot.png")
 agg_png(
 	normalization_plot_output,
-	width = 1600,
-	height = 600,
+	width = 1800,
+	height = 700,
 	res = 300
 )
 
@@ -234,6 +234,6 @@ boxplot(assayDataElement(target_geomxdata[,1:max_cols], elt = "neg_norm"),
 		col = "#FF7F0E", main = "Neg Norm Counts",
 		log = "y", names = 1:max_cols, xlab = "Segment",
 		ylab = "Counts, Neg. Normalized", cex.axis = 0.8, cex.main = 1)
-mtext(title_text, outer = TRUE, cex = 1.2, line = -1)
+mtext(title_text, outer = TRUE, cex = 1, line = -1)
 
 dev.off()
