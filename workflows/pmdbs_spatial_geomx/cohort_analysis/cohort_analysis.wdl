@@ -178,37 +178,37 @@ task process {
 		String zones
 	}
 
+	String sample_id = basename(preprocessed_rds_object, ".qc.rds")
+
 	Int mem_gb = ceil(size([preprocessed_rds_object, cell_type_markers_list], "GB") * 2 + 20)
 	Int disk_size = ceil(size([preprocessed_rds_object, cell_type_markers_list], "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail
 
-		sample_id=$(basename ~{preprocessed_rds_object} | cut -d '.' -f 1)
-
 		Rscript /opt/scripts/process.R \
-			--sample-id "$sample_id" \
+			--sample-id ~{sample_id} \
 			--input ~{preprocessed_rds_object} \
 			--celltype-markers ~{cell_type_markers_list} \
 			--min-segment ~{min_genes_detected_in_percent_segment} \
-			--output "$sample_id".processed.rds
+			--output ~{sample_id}.processed.rds
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "$sample_id.segment_gene_detection_plot.png" \
-			-o "$sample_id.gene_detection_rate.csv" \
-			-o "$sample_id.q3_negprobe_plot.png" \
-			-o "$sample_id.normalization_plot.png"
+			-o "~{sample_id}.segment_gene_detection_plot.png" \
+			-o "~{sample_id}.gene_detection_rate.csv" \
+			-o "~{sample_id}.q3_negprobe_plot.png" \
+			-o "~{sample_id}.normalization_plot.png"
 	>>>
 
 	output {
-		File processed_rds_object = "$sample_id.processed.rds"
-		String segment_gene_detection_plot_png = "~{raw_data_path}/$sample_id.segment_gene_detection_plot.png"
-		String gene_detection_rate_csv = "~{raw_data_path}/$sample_id.gene_detection_rate.csv"
-		String q3_negprobe_plot_png = "~{raw_data_path}/$sample_id.q3_negprobe_plot.png"
-		String normalization_plot_png = "~{raw_data_path}/$sample_id.normalization_plot.png"
+		File processed_rds_object = "~{sample_id}.processed.rds"
+		String segment_gene_detection_plot_png = "~{raw_data_path}/~{sample_id}.segment_gene_detection_plot.png"
+		String gene_detection_rate_csv = "~{raw_data_path}/~{sample_id}.gene_detection_rate.csv"
+		String q3_negprobe_plot_png = "~{raw_data_path}/~{sample_id}.q3_negprobe_plot.png"
+		String normalization_plot_png = "~{raw_data_path}/~{sample_id}.normalization_plot.png"
 	}
 
 	runtime {
@@ -230,21 +230,21 @@ task rds_to_adata {
 		String zones
 	}
 
+	String sample_id = basename(processed_rds_object, ".processed.rds")
+
 	Int mem_gb = ceil(size(processed_rds_object, "GB") * 2 + 20)
 	Int disk_size = ceil(size(processed_rds_object, "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail
 
-		sample_id=$(basename ~{processed_rds_object} | cut -d '.' -f 1)
-
 		Rscript /opt/scripts/rds_to_adata.R \
 			--input ~{processed_rds_object} \
-			--output-prefix "$sample_id".processed
+			--output-prefix ~{sample_id}.processed
 	>>>
 
 	output {
-		File processed_adata_object = "$sample_id.processed.h5ad"
+		File processed_adata_object = "~{sample_id}.processed.h5ad"
 	}
 
 	runtime {
