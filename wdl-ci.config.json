@@ -118,9 +118,71 @@
       }
     }
   },
-  "engines": {},
+  "engines": {
+    "asap-cromwell": {
+      "key": "asap-cromwell",
+      "enabled": true,
+      "name": ""
+    }
+  },
   "test_params": {
-    "global_params": {},
-    "engine_params": {}
+    "global_params": {
+      "geomx_sample_id": "ASAP_SPATIAL_1",
+      "geomx_team_id": "team-edwards",
+      "cohort_id": "asap-cohort",
+      "geomx_workflow_name": "pmdbs_spatial_geomx",
+      "geomx_workflow_version": "v1.0.0",
+      "geomx_workflow_release": "https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/releases/tag/pmdbs_spatial_geomx_analysis-${visium_workflow_version}",
+      "geomx_workflow_info": [
+        [
+          "${run_timestamp}",
+          "${geomx_workflow_name}",
+          "${geomx_workflow_version}",
+          "${geomx_workflow_release}"
+        ]
+      ],
+      "preprocess_workflow_name": "preprocess",
+      "fastq_to_dcc_task_version": "1.0.0",
+      "dcc_to_rds_task_version": "1.0.0",
+      "geomx_qc_task_version": "1.0.0",
+      "fastq_to_dcc_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${geomx_workflow_name}/${preprocess_workflow_name}/fastq_to_dcc/${fastq_to_dcc_task_version}",
+      "dcc_to_rds_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${geomx_workflow_name}/${preprocess_workflow_name}/dcc_to_rds/${dcc_to_rds_task_version}",
+      "geomx_qc_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${geomx_workflow_name}/${preprocess_workflow_name}/qc/${geomx_qc_task_version}",
+      "cohort_analysis_workflow_name": "cohort_analysis",
+      "geomx_cohort_analysis_workflow_version": "1.0.0",
+      "geomx_cohort_analysis_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${geomx_workflow_name}/${cohort_analysis_workflow_name}/${geomx_cohort_analysis_workflow_version}/${run_timestamp}",
+      "visium_sample_id": "TEST_002_Rep1",
+      "visium_team_id": "team-test",
+      "visium_workflow_name": "pmdbs_spatial_visium",
+      "visium_workflow_version": "v1.0.0",
+      "visium_workflow_release": "https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/releases/tag/pmdbs_spatial_visium_analysis-${visium_workflow_version}",
+      "visium_workflow_info": [
+        [
+          "${run_timestamp}",
+          "${visium_workflow_name}",
+          "${visium_workflow_version}",
+          "${visium_workflow_release}"
+        ]
+      ],
+      "spaceranger_count_task_version": "1.0.0",
+      "dcc_to_rds_task_version": "1.0.0",
+      "visium_qc_task_version": "1.0.0",
+      "spaceranger_count_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${visium_workflow_name}/${preprocess_workflow_name}/spaceranger_count/${spaceranger_count_task_version}",
+      "dcc_to_rds_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${visium_workflow_name}/${preprocess_workflow_name}/counts_to_adata/${counts_to_adata_task_version}",
+      "visium_qc_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${visium_workflow_name}/${preprocess_workflow_name}/qc/${visium_qc_task_version}",
+      "visium_cohort_analysis_workflow_version": "1.0.0",
+      "visium_cohort_analysis_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${visium_workflow_name}/${cohort_analysis_workflow_name}/${visium_cohort_analysis_workflow_version}/${run_timestamp}",
+      "run_timestamp": "2025-03-25T00-00-00Z",
+      "billing_project": "dnastack-asap-parkinsons",
+      "container_registry": "us-central1-docker.pkg.dev/dnastack-asap-parkinsons/workflow-images",
+      "zones": "us-central1-c us-central1-f"
+    },
+    "engine_params": {
+      "asap-cromwell": {
+        "input_resources_file_path": "gs://asap-workflow-dev/workflow-resources",
+        "geomx_input_file_path": "gs://asap-wdl-ci/pmdbs_spatial_geomx",
+        "visium_input_file_path": "gs://asap-wdl-ci/pmdbs_spatial_visium"
+      }
+    }
   }
 }
