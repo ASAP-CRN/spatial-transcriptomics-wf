@@ -1,0 +1,214 @@
+{
+  "workflows": {
+    "wf-common/wdl/structs.wdl": {
+      "key": "wf-common/wdl/structs.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
+    },
+    "wf-common/wdl/tasks/upload_final_outputs.wdl": {
+      "key": "wf-common/wdl/tasks/upload_final_outputs.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "upload_final_outputs": {
+          "key": "upload_final_outputs",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "wf-common/wdl/tasks/write_cohort_sample_list.wdl": {
+      "key": "wf-common/wdl/tasks/write_cohort_sample_list.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "write_cohort_sample_list": {
+          "key": "write_cohort_sample_list",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "wf-common/wdl/tasks/multiqc.wdl": {
+      "key": "wf-common/wdl/tasks/multiqc.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "multiqc": {
+          "key": "multiqc",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "wf-common/wdl/tasks/fastqc.wdl": {
+      "key": "wf-common/wdl/tasks/fastqc.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "fastqc": {
+          "key": "fastqc",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "wf-common/wdl/tasks/get_workflow_metadata.wdl": {
+      "key": "wf-common/wdl/tasks/get_workflow_metadata.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "get_workflow_metadata": {
+          "key": "get_workflow_metadata",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "workflows/pmdbs_spatial_geomx/main.wdl": {
+      "key": "workflows/pmdbs_spatial_geomx/main.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
+    },
+    "workflows/pmdbs_spatial_geomx/cohort_analysis/cohort_analysis.wdl": {
+      "key": "workflows/pmdbs_spatial_geomx/cohort_analysis/cohort_analysis.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "process": {
+          "key": "process",
+          "digest": "",
+          "tests": []
+        },
+        "rds_to_adata": {
+          "key": "rds_to_adata",
+          "digest": "",
+          "tests": []
+        },
+        "merge_and_prep": {
+          "key": "merge_and_prep",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "workflows/pmdbs_spatial_geomx/preprocess/preprocess.wdl": {
+      "key": "workflows/pmdbs_spatial_geomx/preprocess/preprocess.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "check_output_files_exist": {
+          "key": "check_output_files_exist",
+          "digest": "",
+          "tests": []
+        },
+        "fastq_to_dcc": {
+          "key": "fastq_to_dcc",
+          "digest": "",
+          "tests": []
+        },
+        "dcc_to_rds": {
+          "key": "dcc_to_rds",
+          "digest": "",
+          "tests": []
+        },
+        "qc": {
+          "key": "qc",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "workflows/integrate_data/integrate_data.wdl": {
+      "key": "workflows/integrate_data/integrate_data.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "integrate_sample_data": {
+          "key": "integrate_sample_data",
+          "digest": "",
+          "tests": []
+        },
+        "cluster": {
+          "key": "cluster",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "workflows/pmdbs_spatial_visium/main.wdl": {
+      "key": "workflows/pmdbs_spatial_visium/main.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
+    },
+    "workflows/pmdbs_spatial_visium/cohort_analysis/cohort_analysis.wdl": {
+      "key": "workflows/pmdbs_spatial_visium/cohort_analysis/cohort_analysis.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "merge_and_plot_qc_metrics": {
+          "key": "merge_and_plot_qc_metrics",
+          "digest": "",
+          "tests": []
+        },
+        "process": {
+          "key": "process",
+          "digest": "",
+          "tests": []
+        },
+        "plot_spatial": {
+          "key": "plot_spatial",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "workflows/pmdbs_spatial_visium/cohort_analysis/spatial_statistics/spatial_statistics.wdl": {
+      "key": "workflows/pmdbs_spatial_visium/cohort_analysis/spatial_statistics/spatial_statistics.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "spatially_variable_gene_analysis": {
+          "key": "spatially_variable_gene_analysis",
+          "digest": "",
+          "tests": []
+        }
+      }
+    },
+    "workflows/pmdbs_spatial_visium/preprocess/preprocess.wdl": {
+      "key": "workflows/pmdbs_spatial_visium/preprocess/preprocess.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "check_output_files_exist": {
+          "key": "check_output_files_exist",
+          "digest": "",
+          "tests": []
+        },
+        "spaceranger_count": {
+          "key": "spaceranger_count",
+          "digest": "",
+          "tests": []
+        },
+        "counts_to_adata": {
+          "key": "counts_to_adata",
+          "digest": "",
+          "tests": []
+        },
+        "qc": {
+          "key": "qc",
+          "digest": "",
+          "tests": []
+        }
+      }
+    }
+  },
+  "engines": {},
+  "test_params": {
+    "global_params": {},
+    "engine_params": {}
+  }
+}
