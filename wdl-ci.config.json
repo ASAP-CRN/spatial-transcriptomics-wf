@@ -32,7 +32,8 @@
                   "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_sample_id}.segment_gene_detection_plot.png",
                   "test_tasks": [
                     "compare_file_basename",
-                    "png_validator"
+                    "png_validator",
+                    "image_validator"
                   ]
                 },
                 "gene_detection_rate_csv": {
@@ -48,14 +49,16 @@
                   "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_sample_id}.q3_negprobe_plot.png",
                   "test_tasks": [
                     "compare_file_basename",
-                    "png_validator"
+                    "png_validator",
+                    "image_validator"
                   ]
                 },
                 "normalization_plot_png": {
                   "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_sample_id}.normalization_plot.png",
                   "test_tasks": [
                     "compare_file_basename",
-                    "png_validator"
+                    "png_validator",
+                    "image_validator"
                   ]
                 }
               }
@@ -315,7 +318,8 @@
                   "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.umap_cluster.png",
                   "test_tasks": [
                     "compare_file_basename",
-                    "png_validator"
+                    "png_validator",
+                    "image_validator"
                   ]
                 }
               }
@@ -332,17 +336,110 @@
         "merge_and_plot_qc_metrics": {
           "key": "merge_and_plot_qc_metrics",
           "digest": "",
-          "tests": []
+          "tests": [
+            {
+              "inputs": {
+                "cohort_id": "${visium_team_id}",
+                "preprocessed_adata_objects": [
+                  "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.qc.h5ad",
+                  "${visium_input_file_path}/${preprocess_workflow_name}/TEST_002_Rep2.qc.h5ad"
+                ],
+                "raw_data_path": "${visium_cohort_analysis_raw_data_path}",
+                "workflow_info": "${visium_workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "merged_adata_object": {
+                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.merged_adata_object.h5ad",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_hdf5"
+                  ]
+                },
+                "qc_plots_png": {
+                  "value": [
+                    "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.qc_violin.png",
+                    "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.qc_dist.png"
+                  ],
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "png_validator",
+                    "image_validator"
+                  ]
+                }
+              }
+            }
+          ]
         },
         "process": {
           "key": "process",
           "digest": "",
-          "tests": []
+          "tests": [
+            {
+              "inputs": {
+                "cohort_id": "${visium_team_id}",
+                "merged_adata_object": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.merged_adata_object.h5ad",
+                "filter_cells_min_counts": 5000,
+                "filter_cells_min_genes": 3000,
+                "filter_genes_min_cells": 10,
+                "filter_mt_max_percent": 0.2,
+                "normalize_target_sum": 10000,
+                "n_top_genes": 3000,
+                "n_comps": 30,
+                "raw_data_path": "${visium_cohort_analysis_raw_data_path}",
+                "workflow_info": "${visium_workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "processed_adata_object": {
+                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.processed.h5ad",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_hdf5"
+                  ]
+                },
+                "hvg_plot_png": {
+                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.hvg_dispersion.png",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "png_validator",
+                    "image_validator"
+                  ]
+                }
+              }
+            }
+          ]
         },
         "plot_spatial": {
           "key": "plot_spatial",
           "digest": "",
-          "tests": []
+          "tests": [
+            {
+              "inputs": {
+                "cohort_id": "${visium_team_id}",
+                "clustered_adata_object": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.clustered.h5ad",
+                "raw_data_path": "${visium_cohort_analysis_raw_data_path}",
+                "workflow_info": "${visium_workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "spatial_scatter_plot_png": {
+                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.spatial_scatter.png",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "png_validator",
+                    "image_validator"
+                  ]
+                }
+              }
+            }
+          ]
         }
       }
     },
@@ -354,7 +451,45 @@
         "spatially_variable_gene_analysis": {
           "key": "spatially_variable_gene_analysis",
           "digest": "",
-          "tests": []
+          "tests": [
+            {
+              "inputs": {
+                "cohort_id": "${visium_team_id}",
+                "clustered_adata_object": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.clustered.h5ad",
+                "raw_data_path": "${visium_cohort_analysis_raw_data_path}",
+                "workflow_info": "${visium_workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "final_adata_object": {
+                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.final_adata_object.h5ad",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_hdf5"
+                  ]
+                },
+                "moran_top_10_variable_genes_csv": {
+                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.moran_top_10_variable_genes.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_comma_separated",
+                    "count_columns"
+                  ]
+                },
+                "moran_top_3_variable_genes_spatial_scatter_plot_png": {
+                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.moran_top_3_variable_genes_spatial_scatter.png",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "png_validator",
+                    "image_validator"
+                  ]
+                }
+              }
+            }
+          ]
         }
       }
     },
@@ -366,17 +501,171 @@
         "spaceranger_count": {
           "key": "spaceranger_count",
           "digest": "",
-          "tests": []
+          "tests": [
+            {
+              "inputs": {
+                "sample_id": "${visium_sample_id}",
+                "fastq_R1s": [
+                  "gs://asap-workflow-dev/pmdbs_spatial_visium_karen/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L001_R1_001.fastq.gz",
+                  "gs://asap-workflow-dev/pmdbs_spatial_visium_karen/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L002_R1_001.fastq.gz"
+                ],
+                "fastq_R2s": [
+                  "gs://asap-workflow-dev/pmdbs_spatial_visium_karen/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L001_R2_001.fastq.gz",
+                  "gs://asap-workflow-dev/pmdbs_spatial_visium_karen/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L002_R2_001.fastq.gz"
+                ],
+                "fastq_I1s": [
+                  "gs://asap-workflow-dev/pmdbs_spatial_visium_karen/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L001_I1_001.fastq.gz",
+                  "gs://asap-workflow-dev/pmdbs_spatial_visium_karen/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L002_I1_001.fastq.gz"
+                ],
+                "fastq_I2s": [
+                  "gs://asap-workflow-dev/pmdbs_spatial_visium_karen/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L001_I2_001.fastq.gz",
+                  "gs://asap-workflow-dev/pmdbs_spatial_visium_karen/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L002_I2_001.fastq.gz"
+                ],
+                "visium_brightfield_image": "gs://asap-workflow-dev/pmdbs_spatial_visium_karen/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_image.tif",
+                "visium_slide_serial_number": "V52Y23-098",
+                "visium_capture_area": "B1",
+                "spaceranger_reference_data": "${input_resources_file_path}/refdata-gex-mm10-2020-A.tar.gz",
+                "visium_probe_set_csv": "gs://asap-workflow-dev/pmdbs_spatial_visium_karen/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_probe_set.csv",
+                "raw_data_path": "${spaceranger_count_raw_data_path}",
+                "workflow_info": "${visium_workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "raw_counts": {
+                  "value": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.raw_feature_bc_matrix.h5",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_hdf5"
+                  ]
+                },
+                "filtered_counts": {
+                  "value": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.filtered_feature_bc_matrix.h5",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_hdf5"
+                  ]
+                },
+                "molecule_info": {
+                  "value": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.molecule_info.h5",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_hdf5"
+                  ]
+                },
+                "metrics_summary_csv": {
+                  "value": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.metrics_summary.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_comma_separated",
+                    "count_columns"
+                  ]
+                },
+                "spatial_outputs_tar_gz": {
+                  "value": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.spaceranger_spatial_outputs.tar.gz",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_gzip"
+                  ]
+                },
+                "spatial_images": {
+                  "value": [
+                    "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.aligned_fiducials.jpg",
+                    "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.detected_tissue_image.jpg",
+                    "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.tissue_hires_image.png",
+                    "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.tissue_lowres_image.png"
+                  ],
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "image_validator"
+                  ]
+                },
+                "scalefactors_json": {
+                  "value": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.scalefactors_json.json",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_json"
+                  ]
+                },
+                "tissue_positions_csv": {
+                  "value": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.tissue_positions.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_comma_separated",
+                    "count_columns"
+                  ]
+                },
+                "spatial_enrichment_csv": {
+                  "value": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.spatial_enrichment.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_comma_separated",
+                    "count_columns"
+                  ]
+                }
+              }
+            }
+          ]
         },
         "counts_to_adata": {
           "key": "counts_to_adata",
           "digest": "",
-          "tests": []
+          "tests": [
+            {
+              "inputs": {
+                "team_id": "${visium_team_id}",
+                "dataset_id": "${visium_dataset_id}",
+                "sample_id": "${visium_sample_id}",
+                "batch": "1",
+                "spaceranger_spatial_tar_gz": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.spaceranger_spatial_outputs.tar.gz",
+                "raw_data_path": "${counts_to_adata_raw_data_path}",
+                "workflow_info": "${visium_workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "initial_adata_object": {
+                  "value": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.initial_adata_object.h5ad",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_hdf5"
+                  ]
+                }
+              }
+            }
+          ]
         },
         "qc": {
           "key": "qc",
           "digest": "",
-          "tests": []
+          "tests": [
+            {
+              "inputs": {
+                "sample_id": "${visium_sample_id}",
+                "initial_adata_object": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.initial_adata_object.h5ad",
+                "raw_data_path": "${visium_qc_raw_data_path}",
+                "workflow_info": "${visium_workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "qc_adata_object": {
+                  "value": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.qc.h5ad",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_hdf5"
+                  ]
+                }
+              }
+            }
+          ]
         }
       }
     }
@@ -430,10 +719,10 @@
         ]
       ],
       "spaceranger_count_task_version": "1.0.0",
-      "dcc_to_rds_task_version": "1.0.0",
+      "counts_to_adata_task_version": "1.0.0",
       "visium_qc_task_version": "1.0.0",
       "spaceranger_count_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${visium_workflow_name}/${preprocess_workflow_name}/spaceranger_count/${spaceranger_count_task_version}",
-      "dcc_to_rds_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${visium_workflow_name}/${preprocess_workflow_name}/counts_to_adata/${counts_to_adata_task_version}",
+      "counts_to_adata_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${visium_workflow_name}/${preprocess_workflow_name}/counts_to_adata/${counts_to_adata_task_version}",
       "visium_qc_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${visium_workflow_name}/${preprocess_workflow_name}/qc/${visium_qc_task_version}",
       "visium_cohort_analysis_workflow_version": "1.0.0",
       "visium_cohort_analysis_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${visium_workflow_name}/${cohort_analysis_workflow_name}/${visium_cohort_analysis_workflow_version}/${run_timestamp}",
