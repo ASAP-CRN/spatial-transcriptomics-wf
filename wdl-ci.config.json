@@ -89,7 +89,7 @@
         },
         "merge_and_prep": {
           "key": "merge_and_prep",
-          "digest": "",
+          "digest": "rrtfz4ntz5yqpzx5k5rtqdwdsfoi24na",
           "tests": [
             {
               "inputs": {
@@ -127,7 +127,7 @@
       "tasks": {
         "fastq_to_dcc": {
           "key": "fastq_to_dcc",
-          "digest": "",
+          "digest": "bv3ccu6zyo77e6l5z3gkntlnggjio5hp",
           "tests": [
             {
               "inputs": {
@@ -210,7 +210,7 @@
                 "min_percent_reads_stitched": 80,
                 "min_percent_reads_aligned": 80,
                 "min_saturation": 50,
-                "min_neg_ctrl_count": 1, 
+                "min_neg_ctrl_count": 1,
                 "max_ntc_count": 1000,
                 "min_nuclei": 100,
                 "min_segment_area": 5000,
@@ -268,7 +268,7 @@
       "tasks": {
         "integrate_sample_data": {
           "key": "integrate_sample_data",
-          "digest": "",
+          "digest": "mrol3ltk42put4yxlg4l7xhh25dtvyx3",
           "tests": [
             {
               "inputs": {
@@ -292,7 +292,7 @@
         },
         "cluster": {
           "key": "cluster",
-          "digest": "",
+          "digest": "dipxrq5hnrh7eexsec4lk6r3iwpyjuoa",
           "tests": [
             {
               "inputs": {
@@ -335,7 +335,7 @@
       "tasks": {
         "merge_and_plot_qc_metrics": {
           "key": "merge_and_plot_qc_metrics",
-          "digest": "",
+          "digest": "yke6kiits3y2p65nhi7w3eg3tlhinxgx",
           "tests": [
             {
               "inputs": {
@@ -375,7 +375,7 @@
         },
         "process": {
           "key": "process",
-          "digest": "",
+          "digest": "25xj3r6qo4doxodcpmn3pg2w2sxu3ihn",
           "tests": [
             {
               "inputs": {
@@ -416,7 +416,7 @@
         },
         "plot_spatial": {
           "key": "plot_spatial",
-          "digest": "",
+          "digest": "ddemb6yrtkrdj56j7asnx7lypuesynmd",
           "tests": [
             {
               "inputs": {
@@ -450,7 +450,7 @@
       "tasks": {
         "spatially_variable_gene_analysis": {
           "key": "spatially_variable_gene_analysis",
-          "digest": "",
+          "digest": "g4mgorusig3ew7ct45v72yreibzfrrpi",
           "tests": [
             {
               "inputs": {
@@ -614,7 +614,7 @@
         },
         "counts_to_adata": {
           "key": "counts_to_adata",
-          "digest": "",
+          "digest": "q24ev6qsync5dxrjicnkdpnrhme6nlhx",
           "tests": [
             {
               "inputs": {
@@ -643,7 +643,7 @@
         },
         "qc": {
           "key": "qc",
-          "digest": "",
+          "digest": "j3zos3aottstes3dkrnr65u7insi54ch",
           "tests": [
             {
               "inputs": {
