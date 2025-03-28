@@ -11,7 +11,7 @@
           "tests": [
             {
               "inputs": {
-                "preprocessed_rds_object": "${geomx_sample_id}.qc.rds",
+                "preprocessed_rds_object": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_sample_id}.qc.rds",
                 "cell_type_markers_list": "${input_resources_file_path}/celltype_marker_table.csv",
                 "min_genes_detected_in_percent_segment": "0.01",
                 "raw_data_path": "${geomx_cohort_analysis_raw_data_path}",
