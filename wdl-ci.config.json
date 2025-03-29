@@ -67,7 +67,7 @@
         },
         "rds_to_adata": {
           "key": "rds_to_adata",
-          "digest": "",
+          "digest": "wg7qp3dgvn6bq47i3dquqrdt5nyrgu53",
           "tests": [
             {
               "inputs": {
@@ -500,7 +500,7 @@
       "tasks": {
         "spaceranger_count": {
           "key": "spaceranger_count",
-          "digest": "",
+          "digest": "mfsx6smhjug4bxhnbvhkq6qijeal2oti",
           "tests": [
             {
               "inputs": {
