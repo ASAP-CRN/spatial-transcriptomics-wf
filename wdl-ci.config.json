@@ -7,7 +7,7 @@
       "tasks": {
         "process": {
           "key": "process",
-          "digest": "",
+          "digest": "vw63bt3nqzcepfevgvvelyj4lgway25h",
           "tests": [
             {
               "inputs": {
@@ -168,7 +168,7 @@
         },
         "dcc_to_rds": {
           "key": "dcc_to_rds",
-          "digest": "",
+          "digest": "yffvcllrlqhs7umlxyo54p5tdajw2vfu",
           "tests": [
             {
               "inputs": {
@@ -199,7 +199,7 @@
         },
         "qc": {
           "key": "qc",
-          "digest": "",
+          "digest": "gsl2diz4rtnet4a6v6jyzbc2ikphmhlf",
           "tests": [
             {
               "inputs": {
