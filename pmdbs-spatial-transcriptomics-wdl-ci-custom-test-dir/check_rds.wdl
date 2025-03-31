@@ -23,7 +23,7 @@ task check_rds {
 		validate_rds() {
 			test_file=$1
 
-			Rscript -e "obj <- readRDS('processed_seurat_object.rds'); if ("Error" in obj) { quit(status = 1) }"
+			Rscript -e "obj <- readRDS('$test_file'); if ("Error" in obj) { quit(status = 1) }"
 		}
 
 		# Confirm that validated output is RDS format
