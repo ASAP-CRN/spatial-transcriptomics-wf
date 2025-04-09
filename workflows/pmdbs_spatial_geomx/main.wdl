@@ -217,6 +217,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		max_ntc_count: {help: "Maximum counts observed in NTC well. [1000]"}
 		min_nuclei: {help: "Minimum # of nuclei estimated. [100]"}
 		min_segment_area: {help: "Minimum segment area. [5000]"}
+		cell_type_markers_list: {help: "CSV file containing a list of major cell type markers; used for detecting genes of interest."}
 		min_genes_detected_in_percent_segment: {help: "Minimum % of segments that detect the genes. [0.01]"}
 		n_comps: {help: "Number of principal components to compute. [30]"}
 		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}
