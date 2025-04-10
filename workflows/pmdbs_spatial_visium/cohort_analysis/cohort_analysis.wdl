@@ -67,7 +67,7 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call process {
+	call filter_and_normalize {
 		input:
 			cohort_id = cohort_id,
 			merged_adata_object = merge_and_plot_qc_metrics.merged_adata_object, #!FileCoercion
@@ -88,7 +88,7 @@ workflow cohort_analysis {
 	call IntegrateData.integrate_data {
 		input:
 			cohort_id = cohort_id,
-			processed_adata_object = process.processed_adata_object, #!FileCoercion
+			processed_adata_object = filter_and_normalize.processed_adata_object, #!FileCoercion
 			n_comps = n_comps,
 			batch_key = batch_key,
 			leiden_resolution = leiden_resolution,
@@ -139,7 +139,7 @@ workflow cohort_analysis {
 		],
 		merge_and_plot_qc_metrics.qc_plots_png,
 		[
-			process.hvg_plot_png
+			filter_and_normalize.hvg_plot_png
 		],
 		[
 			integrate_data.clustered_adata_object,
@@ -172,8 +172,8 @@ workflow cohort_analysis {
 		Array[File] qc_plots_png = merge_and_plot_qc_metrics.qc_plots_png #!FileCoercion
 
 		# Processed outputs
-		File processed_adata_object = process.processed_adata_object
-		File hvg_plot_png = process.hvg_plot_png #!FileCoercion
+		File processed_adata_object = filter_and_normalize.processed_adata_object
+		File hvg_plot_png = filter_and_normalize.hvg_plot_png #!FileCoercion
 
 		# Integrate data outputs
 		File integrated_adata_object = integrate_data.integrated_adata_object
@@ -244,7 +244,7 @@ task merge_and_plot_qc_metrics {
 	}
 }
 
-task process {
+task filter_and_normalize {
 	input {
 		String cohort_id
 		File merged_adata_object

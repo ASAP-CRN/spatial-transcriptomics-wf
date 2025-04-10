@@ -55,7 +55,7 @@ workflow cohort_analysis {
 	}
 
 	scatter (preprocessed_rds_object in preprocessed_rds_objects) {
-		call process {
+		call filter_and_normalize {
 			input:
 				preprocessed_rds_object = preprocessed_rds_object,
 				cell_type_markers_list = cell_type_markers_list,
@@ -69,7 +69,7 @@ workflow cohort_analysis {
 
 		call rds_to_adata {
 			input:
-				processed_rds_object = process.processed_rds_object,
+				processed_rds_object = filter_and_normalize.processed_rds_object,
 				container_registry = container_registry,
 				zones = zones
 		}
@@ -115,10 +115,10 @@ workflow cohort_analysis {
 		[
 			write_cohort_sample_list.cohort_sample_list
 		],
-		process.segment_gene_detection_plot_png,
-		process.gene_detection_rate_csv,
-		process.q3_negprobe_plot_png,
-		process.normalization_plot_png,
+		filter_and_normalize.segment_gene_detection_plot_png,
+		filter_and_normalize.gene_detection_rate_csv,
+		filter_and_normalize.q3_negprobe_plot_png,
+		filter_and_normalize.normalization_plot_png,
 		[
 			merge_and_prep.merged_adata_object,
 			merge_and_prep.hvg_plot_png
@@ -142,11 +142,11 @@ workflow cohort_analysis {
 		File cohort_sample_list = write_cohort_sample_list.cohort_sample_list #!FileCoercion
 
 		# Processed RDS object and plots
-		Array[File] processed_rds_object = process.processed_rds_object
-		Array[File] segment_gene_detection_plot_png = process.segment_gene_detection_plot_png #!FileCoercion
-		Array[File] gene_detection_rate_csv = process.gene_detection_rate_csv #!FileCoercion
-		Array[File] q3_negprobe_plot_png = process.q3_negprobe_plot_png #!FileCoercion
-		Array[File] normalization_plot_png = process.normalization_plot_png #!FileCoercion
+		Array[File] processed_rds_object = filter_and_normalize.processed_rds_object
+		Array[File] segment_gene_detection_plot_png = filter_and_normalize.segment_gene_detection_plot_png #!FileCoercion
+		Array[File] gene_detection_rate_csv = filter_and_normalize.gene_detection_rate_csv #!FileCoercion
+		Array[File] q3_negprobe_plot_png = filter_and_normalize.q3_negprobe_plot_png #!FileCoercion
+		Array[File] normalization_plot_png = filter_and_normalize.normalization_plot_png #!FileCoercion
 
 		# Converted AnnData object
 		Array[File] processed_adata_object = rds_to_adata.processed_adata_object
@@ -165,7 +165,7 @@ workflow cohort_analysis {
 	}
 }
 
-task process {
+task filter_and_normalize {
 	input {
 		File preprocessed_rds_object
 
@@ -188,6 +188,7 @@ task process {
 	command <<<
 		set -euo pipefail
 
+		# Select ROI/AOI segments and genes based on LOQ and normalization
 		Rscript /opt/scripts/process.R \
 			--sample-id ~{sample_id} \
 			--input ~{preprocessed_rds_object} \
