@@ -379,7 +379,7 @@ task counts_to_adata {
 
 		tar -xzvf ~{spaceranger_spatial_tar_gz}
 
-		python3 /opt/scripts/counts_to_adata.py \
+		python3 /opt/scripts/visium_counts_to_adata.py \
 			--team ~{team_id} \
 			--dataset ~{dataset_id} \
 			--sample-id ~{sample_id} \

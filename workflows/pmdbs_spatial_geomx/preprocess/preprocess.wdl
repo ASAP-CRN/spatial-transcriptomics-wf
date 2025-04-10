@@ -326,7 +326,7 @@ task dcc_to_rds {
 
 		unzip -d ./dcc_files_dir -j ~{geomxngs_dcc_zip}
 
-		Rscript /opt/scripts/counts_to_rds.R \
+		Rscript /opt/scripts/geomx_counts_to_rds.R \
 			--team-id ~{team_id} \
 			--dataset-id ~{dataset_id} \
 			--sample-id ~{sample_id} \
