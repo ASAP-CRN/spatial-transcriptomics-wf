@@ -116,7 +116,7 @@ qc_summary_df["TOTAL FLAGS", ] <-
 	sum(qc_results[, "QCStatus"] == "WARNING"))
 
 qc_summary_output = paste0(args$sample_id, ".segment_qc_summary.csv")
-write.csv(qc_summary_df, qc_summary_output, row.names = FALSE)
+write.csv(qc_summary_df, qc_summary_output, row.names = FALSE, quote = FALSE)
 
 # Remove flagged segments
 geomxdata <- geomxdata[, qc_results$QCStatus == "PASS"]
@@ -146,7 +146,7 @@ probe_qc_df <- data.frame(
 )
 
 probe_qc_output = paste0(args$sample_id, ".probe_qc_summary.csv")
-write.csv(probe_qc_df, probe_qc_output, row.names = FALSE)
+write.csv(probe_qc_df, probe_qc_output, row.names = FALSE, quote = FALSE)
 
 # Exclude outlier probes
 probe_qc_passed <-  subset(
@@ -164,6 +164,6 @@ geomxdata <- probe_qc_passed
 target_geomxdata <- aggregateCounts(geomxdata)
 gene_count <- data.frame(exprs(target_geomxdata))
 gene_count_output = paste0(args$sample_id, ".gene_count.csv")
-write.csv(gene_count, gene_count_output, row.names = FALSE)
+write.csv(gene_count, gene_count_output, row.names = FALSE, quote = FALSE)
 
 saveRDS(target_geomxdata, file = args$output)

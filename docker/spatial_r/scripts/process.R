@@ -119,7 +119,7 @@ gene_list_df <- data.frame(
 	Number = fData(target_geomxdata)[gene_list, "DetectedSegments"],
 	DetectionRate = percent(fData(target_geomxdata)[gene_list, "DetectionRate"]))
 gene_list_df_output <- paste0(args$sample_id, ".gene_detection_rate.csv")
-write.csv(gene_list_df, gene_list_df_output, row.names = FALSE)
+write.csv(gene_list_df, gene_list_df_output, row.names = FALSE, quote = FALSE)
 
 neg_probe_fData <- subset(fData(target_geomxdata), CodeClass == "Negative")
 neg_probes <- unique(neg_probe_fData$TargetName)
