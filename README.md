@@ -114,7 +114,7 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | Array[[Sample](#sample)] | samples | The set of samples associated with this project. |
 | File? | project_sample_metadata_csv | CSV containing all sample information including batch, condition, etc. This is required for the bulk RNAseq pipeline. For the `batch` column, there must be at least two distinct values. |
 | File? | project_condition_metadata_csv | CSV containing condition and intervention IDs used to categorize conditions into broader groups for DESeq2 pairwise condition ('Case', 'Control', and 'Other'). This is required for the bulk RNAseq pipeline. |
-| File? | geomx_config_ini | The configuration (.ini) file, containing pipeline processing parameters. This is required for the spatial transcriptomics Nanostring GeoMx pipeline. |
+| File? | geomx_config_ini | The configuration (.ini) file, containing pipeline processing parameters that is used by the GeoMx NGS pipeline to assist in converting the FASTQ files to DCC files. It is from the GeoMx DSP readout package. Sections can include `[Sequencing]`, `[Processing_v2]`, `[AOI_List]`, and `[Targets]`; see [GeoMx configuration (.ini) files notes](#geomx-configuration-(.ini)-files). This is required for the spatial transcriptomics Nanostring GeoMx pipeline. |
 | Boolean | run_project_cohort_analysis | Whether or not to run cohort analysis within the project. |
 | String | raw_data_bucket | Raw data bucket; intermediate output files that are not final workflow outputs are stored here. |
 | String | staging_data_bucket | Staging data bucket; final project-level outputs are stored here. |
@@ -129,10 +129,10 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | File | fastq_R2 | Path to the sample's read 2 FASTQ file. |
 | File? | fastq_I1 | Optional fastq index 1. |
 | File? | fastq_I2 | Optional fastq index 2. |
-| File? | visium_brightfield_image | Optional 10x Visium brightfield image. This is required for the spatial transcriptomics 10x Visium pipeline. |
-| String? | visium_slide_serial_number | Optional 10x Visium slide serial number. This is required for the spatial transcriptomics 10x Visium pipeline. |
-| String? | visium_capture_area | Optional 10x Visium slide capture area. This is required for the spatial transcriptomics 10x Visium pipeline. |
-| File? | geomx_lab_annotation_xlsx | The annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx instrument study readout package. This is required for the spatial transcriptomics Nanostring GeoMx pipeline. |
+| File? | visium_brightfield_image | The 10x Visium brightfield image. This is required for the spatial transcriptomics 10x Visium pipeline. |
+| String? | visium_slide_serial_number | The 10x Visium slide serial number obtained from the ASAP sample metadata. The unique identifier printed on the label of each Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary. This is required for the spatial transcriptomics 10x Visium pipeline. |
+| String? | visium_capture_area | The 10x Visium slide capture area obtained from the ASAP sample metadata. Active regions for capturing expression data on a Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary. This is required for the spatial transcriptomics 10x Visium pipeline. |
+| File? | geomx_lab_annotation_xlsx | The annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx DSP readout package; see [GeoMx Lab Worksheet notes](#geomx-lab-worksheet). This is required for the spatial transcriptomics Nanostring GeoMx pipeline. |
 
 ## Generating the inputs JSON
 
@@ -425,6 +425,35 @@ In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-
 # Notes
 
 ## Nanostring GeoMx notes
+
+The [GeoMx DSP Instrument User Manual](https://nanostring.com/wp-content/uploads/2022/06/MAN-10152-01-GeoMx-DSP-Instrument-User-Manual.pdf) and [GeoMx DSP Data Analysis User Manual](https://nanostring.com/wp-content/uploads/2022/06/MAN-10154-01-GeoMx-DSP-Data-Analysis-User-Manual.pdf) provide a comprehensive overview of the GeoMx DSP workflow- from sample preparation and slide scanning to sequencing and data analysis. The required input files listed below for our `pmdbs_spatial_geomx` pipeline are described in detail in these manuals. These files are included as part of the GeoMx Readout Package, which are used during the experimental runs.
+
+### GeoMx Lab Worksheet
+
+The GeoMx Lab Worksheet contains information on the contents of each well of each plate and can be useful when doing library preparation and pooling. Some columns include:
+- `Sample_ID`
+- `slide name`
+- `scan name`
+- `panel`
+- `roi`
+- `segment`
+- `aoi`
+- `area`
+- ...
+
+### GeoMx configuration (.ini) files
+
+An example of the configuration (.ini) file can be found in the [GeoMx-NGS-Pipeline-Dataset](https://nanostring.app.box.com/v/GeoMxSW3-1-0/file/1385968928681).
+
+| Section         | Description                                                                 |
+|-----------------|-----------------------------------------------------------------------------|
+| `[Sequencing]`   | Specifies sequencing platform, read pattern, library prep, etc.            |
+| `[Processing_v2]` | Core processing parameters including adapters and filters.                |
+| `[AOI_List]`      | Area of Interest, which refers to the specific regions selected on a GeoMx slide for spatial transcriptomic profiling. |
+| `[Targets]`       | Maps readout tag sequence identifiers to their corresponding nucleotide sequences. |
+
+### GeoMx DSP configuration (.pkc) files
+
 The Nanostring GeoMx configuration (.pkc) files were obtained from https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-configuration-files/.
 - [Human_WTA_v1.0](https://nanostring.com/wp-content/uploads/Hs_R_NGS_WTA_v1.0.pkc_.zip) for Human Whole Transcriptome Atlas
 - [Mouse_WTA_v1.0](https://nanostring.com/wp-content/uploads/Mm_R_NGS_WTA_v1.0.zip) or [Mouse_WTA_v2.0](https://nanostring.com/wp-content/uploads/2024/06/Mm_R_NGS_WTA_v2.0.zip) for Mouse Whole Transcriptome Atlas
