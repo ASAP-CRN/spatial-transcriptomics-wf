@@ -239,7 +239,7 @@ task merge_and_plot_qc_metrics {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
 	}
 }
@@ -300,7 +300,7 @@ task process {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
 	}
 }
@@ -344,7 +344,7 @@ task plot_spatial {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
 	}
 }

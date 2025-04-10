@@ -219,7 +219,7 @@ task process {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
 	}
 }
@@ -255,7 +255,7 @@ task rds_to_adata {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
 	}
 }
@@ -308,7 +308,7 @@ task merge_and_prep {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
 	}
 }

@@ -351,7 +351,7 @@ task spaceranger_count {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
 	}
 }
@@ -404,7 +404,7 @@ task counts_to_adata {
 		memory: "16 GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
 	}
 }
@@ -450,7 +450,7 @@ task qc {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
 	}
 }

@@ -77,7 +77,7 @@ task spatially_variable_gene_analysis {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
 	}
 }
