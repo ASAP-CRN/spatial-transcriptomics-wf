@@ -116,8 +116,8 @@ cell_type_markers <- read.csv(args$celltype_markers, header = TRUE, stringsAsFac
 gene_list <- as.vector(cell_type_markers$marker)
 gene_list_df <- data.frame(
 	Gene = gene_list,
-	Number = fData(target_geomxdata)[gene_list, "DetectedSegments"],
-	DetectionRate = percent(fData(target_geomxdata)[gene_list, "DetectionRate"]))
+	`Detection, # Segments` = fData(target_geomxdata)[gene_list, "DetectedSegments"],
+	`Detection Rate, % of Segments` = percent(fData(target_geomxdata)[gene_list, "DetectionRate"]))
 gene_list_df_output <- paste0(args$sample_id, ".gene_detection_rate.csv")
 write.csv(gene_list_df, gene_list_df_output, row.names = FALSE, quote = FALSE)
 
