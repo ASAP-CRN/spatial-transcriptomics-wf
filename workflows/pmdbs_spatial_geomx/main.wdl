@@ -173,6 +173,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		Array[Array[File]?] project_processed_adata_object = project_cohort_analysis.processed_adata_object
 		## Cohort-level outputs - Merged, integrated and clustered adata objects, and plots
 		Array[File?] project_merged_adata_object = project_cohort_analysis.merged_adata_object
+		Array[File?] project_hvg_plot_png = project_cohort_analysis.hvg_plot_png
 		Array[File?] project_integrated_adata_object = project_cohort_analysis.integrated_adata_object
 		Array[File?] project_clustered_adata_object = project_cohort_analysis.clustered_adata_object
 		Array[File?] project_umap_cluster_plots_png = project_cohort_analysis.umap_cluster_plots_png
@@ -193,6 +194,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		Array[File]? cohort_processed_adata_object = cross_team_cohort_analysis.processed_adata_object
 		## Cohort-level outputs - Merged, integrated and clustered adata objects, and plots
 		File? cohort_merged_adata_object = cross_team_cohort_analysis.merged_adata_object
+		File? cohort_hvg_plot_png = cross_team_cohort_analysis.hvg_plot_png
 		File? cohort_integrated_adata_object = cross_team_cohort_analysis.integrated_adata_object
 		File? cohort_clustered_adata_object = cross_team_cohort_analysis.clustered_adata_object
 		File? cohort_umap_cluster_plots_png = cross_team_cohort_analysis.umap_cluster_plots_png

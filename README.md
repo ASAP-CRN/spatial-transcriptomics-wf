@@ -1,5 +1,5 @@
 # pmdbs-spatial-transcriptomics-wf
-Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) workflow harmonized across ASAP with human and mouse spatial transcriptomics data for both Nanostring GeoMx and 10x Visium platforms.
+Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) workflow harmonized across ASAP with human and mouse spatial transcriptomics data for both Nanostring GeoMx and 10x Visium platforms. The main goal is to uncover spatially distinct gene expression profiles across tissue samples, enabling insights into tissue architecture, cell type composition, and disease-related molecular patterns.
 
 Common workflows, tasks, utility scripts, and docker images reused across harmonized ASAP workflows are defined in [the wf-common repository](wf-common).
 
@@ -17,7 +17,11 @@ Common workflows, tasks, utility scripts, and docker images reused across harmon
 
 Worfklows are defined in [the `workflows` directory](workflows). There is [the `pmdbs_spatial_geomx` workflow directory](workflows/pmdbs_spatial_geomx) and [the `pmdbs_spatial_visium` workflow directory](workflows/pmdbs_spatial_visium).
 
-These workflows are set up to analyze spatial transcriptomics data: Nanostring GeoMx and 10x Visium in WDL using mainly command line and a Python script.
+These workflows are set up to analyze spatial transcriptomics data: Nanostring GeoMx in WDL using command line, R, and Python scripts and 10x Visium in WDL using command line and Python scripts.
+
+## Nanostring GeoMx workflow overview
+
+For the Nanostring GeoMx workflow, we start with raw output files from the instrument and convert them into counts. Then, we clean the data by removing unreliable segments and genes, adjust for technical noise, and combine data from different samples. Finally, we cluster based on segment (which may contain many cells) and visualize their transcriptional profiles in a UMAP space.
 
 **Nanostring GeoMx workflow diagram:**
 ![Nanostring GeoMx workflow diagram](workflows/pmdbs_spatial_geomx/workflow_diagram.svg "Workflow diagram")
@@ -25,6 +29,10 @@ These workflows are set up to analyze spatial transcriptomics data: Nanostring G
 **Nanostring GeoMx entrypoint**: [workflows/pmdbs_spatial_geomx/main.wdl](workflows/pmdbs_spatial_geomx/main.wdl)
 
 **Nanostring GeoMx input template**: [workflows/pmdbs_spatial_geomx/inputs.json](workflows/pmdbs_spatial_geomx/inputs.json)
+
+## 10x Visium workflow overview
+
+For the 10x Visium workflow, we start with raw output files from the instrument and convert them into counts. Then, we clean the data by removing unreliable spots and genes, adjust for technical noise, and combine data from different samples. We cluster based on spots (which may contain many cells) and visualize their transcriptional profiles in a UMAP space. We also identify spatially variable genes to uncover expression patterns that are location-specific within the tissue.
 
 **10x Visium workflow diagram:**
 ![10x Visium workflow diagram](workflows/pmdbs_spatial_visium/workflow_diagram.svg "Workflow diagram")
@@ -240,6 +248,7 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
     │   ├── ${sampleN_id}.q3_negprobe_plot.png
     │   ├── ${sampleN_id}.normalization_plot.png
     │   ├── ${cohort_id}.merged.h5ad
+    │   ├── ${cohort_id}.hvg_dispersion.png
     │   ├── ${cohort_id}.clustered.h5ad # Final
     │   ├── ${cohort_id}.umap_cluster.png
     │   └── MANIFEST.tsv

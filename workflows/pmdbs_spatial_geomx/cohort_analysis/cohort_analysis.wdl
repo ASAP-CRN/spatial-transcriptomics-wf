@@ -120,7 +120,8 @@ workflow cohort_analysis {
 		process.q3_negprobe_plot_png,
 		process.normalization_plot_png,
 		[
-			merge_and_prep.merged_adata_object
+			merge_and_prep.merged_adata_object,
+			merge_and_prep.hvg_plot_png
 		],
 		[
 			integrate_data.clustered_adata_object,
@@ -152,6 +153,7 @@ workflow cohort_analysis {
 
 		# Merged and prepped AnnData object
 		File merged_adata_object = merge_and_prep.merged_adata_object #!FileCoercion
+		File hvg_plot_png = merge_and_prep.hvg_plot_png #!FileCoercion
 
 		# Integrate data outputs
 		File integrated_adata_object = integrate_data.integrated_adata_object
@@ -290,11 +292,14 @@ task merge_and_prep {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.merged.h5ad"
+			-o "~{cohort_id}.merged.h5ad" \
+			-o "~{cohort_id}.hvg_dispersion.png"
+
 	>>>
 
 	output {
 		String merged_adata_object = "~{raw_data_path}/~{cohort_id}.merged.h5ad"
+		String hvg_plot_png = "~{raw_data_path}/~{cohort_id}.hvg_dispersion.png"
 	}
 
 	runtime {
