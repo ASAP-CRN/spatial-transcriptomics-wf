@@ -58,7 +58,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-i",
         "--adata-paths-input",
-        nargs="+",
+        type=str,
         required=True,
         help="List of preprocessed adata objects to merge"
     )

@@ -212,7 +212,7 @@ task merge_and_plot_qc_metrics {
 		set -euo pipefail
 
 		python3 /opt/scripts/merge_and_plot_visium_qc.py \
-			--adata-paths-input ~{sep=' ' preprocessed_adata_objects} \
+			--adata-paths-input ~{write_lines(preprocessed_adata_objects)} \
 			--qc-plots-prefix ~{cohort_id} \
 			--merged-adata-output ~{cohort_id}.merged_adata_object.h5ad
 
