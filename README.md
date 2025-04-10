@@ -113,21 +113,21 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 
 ## Structs
 
-### Project
+### Nanostring GeoMx structs
+
+#### Nanostring GeoMx Project
 
 | Type | Name | Description |
 | :- | :- | :- |
 | String | team_id | Unique identifier for team; used for naming output files. |
 | String | dataset_id | Unique identifier for dataset; used for naming output files. |
 | Array[[Sample](#sample)] | samples | The set of samples associated with this project. |
-| File? | project_sample_metadata_csv | CSV containing all sample information including batch, condition, etc. This is required for the bulk RNAseq pipeline. For the `batch` column, there must be at least two distinct values. |
-| File? | project_condition_metadata_csv | CSV containing condition and intervention IDs used to categorize conditions into broader groups for DESeq2 pairwise condition ('Case', 'Control', and 'Other'). This is required for the bulk RNAseq pipeline. |
-| File? | geomx_config_ini | The configuration (.ini) file, containing pipeline processing parameters that is used by the GeoMx NGS pipeline to assist in converting the FASTQ files to DCC files. It is from the GeoMx DSP readout package. Sections can include `[Sequencing]`, `[Processing_v2]`, `[AOI_List]`, and `[Targets]`; see [GeoMx configuration (.ini) files notes](#geomx-configuration-(.ini)-files). This is required for the spatial transcriptomics Nanostring GeoMx pipeline. |
+| File | geomx_config_ini | The configuration (.ini) file, containing pipeline processing parameters that is used by the GeoMx NGS pipeline to assist in converting the FASTQ files to DCC files. It is from the GeoMx DSP readout package. Sections can include `[Sequencing]`, `[Processing_v2]`, `[AOI_List]`, and `[Targets]`; see [GeoMx configuration (.ini) files notes](#geomx-configuration-(.ini)-files). |
 | Boolean | run_project_cohort_analysis | Whether or not to run cohort analysis within the project. |
 | String | raw_data_bucket | Raw data bucket; intermediate output files that are not final workflow outputs are stored here. |
 | String | staging_data_bucket | Staging data bucket; final project-level outputs are stored here. |
 
-### Sample
+#### Nanostring GeoMx Sample
 
 | Type | Name | Description |
 | :- | :- | :- |
@@ -137,10 +137,34 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | File | fastq_R2 | Path to the sample's read 2 FASTQ file. |
 | File? | fastq_I1 | Optional fastq index 1. |
 | File? | fastq_I2 | Optional fastq index 2. |
-| File? | visium_brightfield_image | The 10x Visium brightfield image. This is required for the spatial transcriptomics 10x Visium pipeline. |
-| String? | visium_slide_serial_number | The 10x Visium slide serial number obtained from the ASAP sample metadata. The unique identifier printed on the label of each Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary. This is required for the spatial transcriptomics 10x Visium pipeline. |
-| String? | visium_capture_area | The 10x Visium slide capture area obtained from the ASAP sample metadata. Active regions for capturing expression data on a Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary. This is required for the spatial transcriptomics 10x Visium pipeline. |
-| File? | geomx_lab_annotation_xlsx | The annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx DSP readout package; see [GeoMx Lab Worksheet notes](#geomx-lab-worksheet). This is required for the spatial transcriptomics Nanostring GeoMx pipeline. |
+| File | geomx_lab_annotation_xlsx | The annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx DSP readout package; see [GeoMx Lab Worksheet notes](#geomx-lab-worksheet). |
+
+### 10x Visium structs
+
+#### 10x Visium Project
+
+| Type | Name | Description |
+| :- | :- | :- |
+| String | team_id | Unique identifier for team; used for naming output files. |
+| String | dataset_id | Unique identifier for dataset; used for naming output files. |
+| Array[[Sample](#sample)] | samples | The set of samples associated with this project. |
+| Boolean | run_project_cohort_analysis | Whether or not to run cohort analysis within the project. |
+| String | raw_data_bucket | Raw data bucket; intermediate output files that are not final workflow outputs are stored here. |
+| String | staging_data_bucket | Staging data bucket; final project-level outputs are stored here. |
+
+#### 10x Visium Sample
+
+| Type | Name | Description |
+| :- | :- | :- |
+| String | sample_id | Unique identifier for the sample within the project. |
+| String? | batch | The sample's batch. |
+| File | fastq_R1 | Path to the sample's read 1 FASTQ file. |
+| File | fastq_R2 | Path to the sample's read 2 FASTQ file. |
+| File? | fastq_I1 | Optional fastq index 1. |
+| File? | fastq_I2 | Optional fastq index 2. |
+| File | visium_brightfield_image | The 10x Visium brightfield image, which is a high-resolution image of a tissue section and used for plotting spatial coordinates. |
+| String | visium_slide_serial_number | The 10x Visium slide serial number obtained from the ASAP sample metadata. The unique identifier printed on the label of each Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary. |
+| String | visium_capture_area | The 10x Visium slide capture area obtained from the ASAP sample metadata. Active regions for capturing expression data on a Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary. |
 
 ## Generating the inputs JSON
 

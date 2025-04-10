@@ -2,7 +2,7 @@ version 1.0
 
 # Generate a AnnData object by converting FASTQ files to counts to adata objects
 
-import "../../../wf-common/wdl/structs.wdl"
+import "../structs.wdl"
 
 workflow preprocess {
 	input {
@@ -84,9 +84,9 @@ workflow preprocess {
 					fastq_R2s = sample.fastq_R2s,
 					fastq_I1s = sample.fastq_I1s,
 					fastq_I2s = sample.fastq_I2s,
-					visium_brightfield_image = select_first([sample.visium_brightfield_image]),
-					visium_slide_serial_number = select_first([sample.visium_slide_serial_number]),
-					visium_capture_area = select_first([sample.visium_capture_area]),
+					visium_brightfield_image = sample.visium_brightfield_image,
+					visium_slide_serial_number = sample.visium_slide_serial_number,
+					visium_capture_area = sample.visium_capture_area,
 					spaceranger_reference_data = spaceranger_reference_data,
 					visium_probe_set_csv = visium_probe_set_csv,
 					raw_data_path = spaceranger_raw_data_path,

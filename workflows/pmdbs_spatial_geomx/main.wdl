@@ -2,7 +2,7 @@ version 1.0
 
 # Harmonized human and non-human PMDBS spatial transcriptomics workflow entrypoint for Nanostring GeoMx data
 
-import "../../wf-common/wdl/structs.wdl"
+import "structs.wdl"
 import "../../wf-common/wdl/tasks/get_workflow_metadata.wdl" as GetWorkflowMetadata
 import "preprocess/preprocess.wdl" as Preprocess
 import "cohort_analysis/cohort_analysis.wdl" as CohortAnalysis
@@ -62,7 +62,7 @@ workflow pmdbs_spatial_geomx_analysis {
 				team_id = project.team_id,
 				dataset_id = project.dataset_id,
 				samples = project.samples,
-				geomx_config_ini = select_first([project.geomx_config_ini]),
+				geomx_config_ini = project.geomx_config_ini,
 				geomxngs_config_pkc = geomxngs_config_pkc,
 				min_segment_reads = min_segment_reads,
 				min_percent_reads_trimmed = min_percent_reads_trimmed,

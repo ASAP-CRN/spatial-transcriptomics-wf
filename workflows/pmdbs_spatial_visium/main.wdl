@@ -2,7 +2,7 @@ version 1.0
 
 # Harmonized human and non-human PMDBS spatial transcriptomics workflow entrypoint for 10x Visium data
 
-import "../../wf-common/wdl/structs.wdl"
+import "structs.wdl"
 import "../../wf-common/wdl/tasks/get_workflow_metadata.wdl" as GetWorkflowMetadata
 import "preprocess/preprocess.wdl" as Preprocess
 import "cohort_analysis/cohort_analysis.wdl" as CohortAnalysis

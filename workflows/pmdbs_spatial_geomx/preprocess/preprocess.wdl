@@ -2,7 +2,7 @@ version 1.0
 
 # Generate a QC'ed RDS object by converting FASTQ files to DCC (digital count conversion) files to a NanoStringGeoMxSet object
 
-import "../../../wf-common/wdl/structs.wdl"
+import "../structs.wdl"
 
 workflow preprocess {
 	input {
@@ -102,7 +102,7 @@ workflow preprocess {
 					sample_id = sample.sample_id,
 					batch = select_first([sample.batch]),
 					geomxngs_dcc_zip = geomxngs_dcc_zip_output,
-					geomx_lab_annotation_xlsx = select_first([sample.geomx_lab_annotation_xlsx]),
+					geomx_lab_annotation_xlsx = sample.geomx_lab_annotation_xlsx,
 					geomxngs_config_pkc = geomxngs_config_pkc,
 					raw_data_path = rds_raw_data_path,
 					workflow_info = workflow_info,
