@@ -59,18 +59,13 @@ RUN Rscript -e 'lines <- readLines("/opt/requirements.txt"); \
     parts <- strsplit(line, "==")[[1]]; \
     pkg <- parts[1]; \
     ver <- parts[2]; \
-    remotes::install_version(pkg, version = ver, upgrade == "always", repos = "http://cran.r-project.org"); \
+    remotes::install_version(pkg, version = ver, upgrade = "always", repos = "http://cran.r-project.org"); \
   }'
 
-COPY ./bioconductor_requirements.txt /opt/bioconductor_requirements.txt
-RUN Rscript -e 'lines <- readLines("/opt/bioconductor_requirements.txt"); \
-  for (line in lines) { \
-    parts <- strsplit(line, "==")[[1]]; \
-    pkg <- parts[1]; \
-    ver <- parts[2]; \
-    BiocManager::install(pkg, version = ver, ask = FALSE); \
-  }'
+# NanoStringNCTools version 1.14.0; GeomxTools version 3.10.0; GeoMxWorkflows version 1.12.0
+RUN Rscript -e "BiocManager::install(c('NanoStringNCTools', 'GeomxTools', 'GeoMxWorkflows'), ask = FALSE)"
 
+RUN Rscript -e 'remotes::install_github("satijalab/seurat@v5.2.1", quiet = TRUE)'
 # SeuratData version 0.2.2.9001
 RUN Rscript -e 'remotes::install_github("satijalab/seurat-data@3e51f44", quiet = TRUE)'
 # SeuratDisk version 0.0.0.9021

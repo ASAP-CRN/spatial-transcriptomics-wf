@@ -1,4 +1,0 @@
-NanoStringNCTools==1.14.0
-GeomxTools==3.10.0
-GeoMxWorkflows==1.12.0
-Seurat==5.2.1
