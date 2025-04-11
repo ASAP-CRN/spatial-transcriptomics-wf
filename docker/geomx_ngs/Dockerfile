@@ -57,10 +57,8 @@ RUN cd /opt/Python-${PYTHON3_VERSION} && \
 	make && \
 	make altinstall
 
-ENV PATH "${PATH}:/opt/Python-${PYTHON3_VERSION}"
-
-RUN rm -f /usr/bin/python3
-RUN ln -s /opt/Python-${PYTHON3_VERSION}/python /usr/bin/python3
+RUN update-alternatives --install /usr/bin/python3 python3 /opt/Python-${PYTHON3_VERSION}/python 1
+RUN update-alternatives --config python3 <<< "1"
 
 COPY ./requirements.txt /opt/requirements.txt
 RUN python3 -m pip install -r /opt/requirements.txt
