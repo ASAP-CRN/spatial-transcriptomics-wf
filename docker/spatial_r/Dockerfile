@@ -50,17 +50,33 @@ RUN ./configure --with-readline=no --with-x=no && \
 	make && \
 	make install
 
+# Must install remotes first to use install_version and install_github
+RUN Rscript -e 'install.packages("https://cran.r-project.org/src/contrib/remotes_2.5.0.tar.gz", repos=NULL, type="source")'
+
 COPY ./bioconductor_requirements.txt /opt/bioconductor_requirements.txt
 RUN Rscript -e 'if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager", repos = "https://cran.r-project.org"); \
   packages <- readLines("/opt/bioconductor_requirements.txt"); \
   BiocManager::install(packages, ask = FALSE)'
-# Must install remotes here first
+RUN Rscript -e 'lines <- readLines("/opt/bioconductor_requirements.txt"); \
+  for (line in lines) { \
+    parts <- strsplit(line, "==")[[1]]; \
+    pkg <- parts[1]; \
+    ver <- parts[2]; \
+    BiocManager::install(pkg, version = ver, ask = FALSE)
+  }'
+
 COPY ./requirements.txt /opt/requirements.txt
-RUN Rscript -e 'packages <- readLines("/opt/requirements.txt"); \
-  install.packages(packages, repos="http://cran.r-project.org")'
-RUN Rscript -e 'remotes::install_github("satijalab/seurat", "seurat5", quiet = TRUE)'
-RUN Rscript -e 'remotes::install_github("satijalab/seurat-data", "seurat5", quiet = TRUE)'
-RUN Rscript -e 'remotes::install_github("mojaveazure/seurat-disk", quiet = TRUE)'
+RUN Rscript -e 'lines <- readLines("/opt/requirements.txt"); \
+  for (line in lines) { \
+    parts <- strsplit(line, "==")[[1]]; \
+    pkg <- parts[1]; \
+    ver <- parts[2]; \
+    remotes::install_version(pkg, version = ver, upgrade == "always", repos = "http://cran.r-project.org"); \
+  }'
+
+RUN Rscript -e 'remotes::install_github("satijalab/seurat@v5.0.0", quiet = TRUE)'
+RUN Rscript -e 'remotes::install_github("satijalab/seurat-data@3e51f44", quiet = TRUE)'
+RUN Rscript -e 'remotes::install_github("mojaveazure/seurat-disk@877d4e1", quiet = TRUE)'
 
 COPY scripts /opt/scripts
 ENV PATH "${PATH}:/opt/scripts"

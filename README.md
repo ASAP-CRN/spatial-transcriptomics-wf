@@ -400,14 +400,14 @@ docker
     ├── Dockerfile
     ├── requirements.txt
     └── scripts
-        ├── counts_to_adata.py
+        ├── visium_counts_to_adata.py
         ├── visium_qc.py
-        ├── merge_and_plot_visium_qc.py
-        ├── process.py
+        ├── visium_merge_and_plot_qc.py
+        ├── visium_process.py
         ├── integrate_harmony.py
         ├── cluster.py
-        ├── plot_spatial.py
-        ├── identify_spatially_variable_genes.py
+        ├── visium_plot_spatial.py
+        ├── visium_spatially_variable_genes.py
         └── ...
 ```
 
