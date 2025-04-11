@@ -62,7 +62,7 @@ RUN Rscript -e 'lines <- readLines("/opt/bioconductor_requirements.txt"); \
     parts <- strsplit(line, "==")[[1]]; \
     pkg <- parts[1]; \
     ver <- parts[2]; \
-    BiocManager::install(pkg, version = ver, ask = FALSE)
+    BiocManager::install(pkg, version = ver, ask = FALSE); \
   }'
 
 COPY ./requirements.txt /opt/requirements.txt
