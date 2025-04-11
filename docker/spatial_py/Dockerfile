@@ -31,16 +31,16 @@ RUN apt-get -qq update \
 # Python
 ARG PYTHON3_VERSION
 ENV PYTHON3_VERSION "${PYTHON3_VERSION}"
-RUN curl -O https://www.python.org/ftp/python/${PYTHON3_VERSION}/Python-${PYTHON3_VERSION}.tar.xz && \
-	tar -xvf Python-${PYTHON3_VERSION}.tar.xz --directory /opt/ && \
-	rm Python-${PYTHON3_VERSION}.tar.xz
-RUN cd /opt/Python-${PYTHON3_VERSION} && \
-	./configure && \
-	make && \
-	make altinstall
+RUN curl -O https://www.python.org/ftp/python/${PYTHON3_VERSION}/Python-${PYTHON3_VERSION}.tar.xz \
+	&& tar -xvf Python-${PYTHON3_VERSION}.tar.xz --directory /opt/ \
+	&& rm Python-${PYTHON3_VERSION}.tar.xz
+RUN cd /opt/Python-${PYTHON3_VERSION} \
+	&& ./configure \
+	&& make \
+	&& make altinstall
 
-RUN update-alternatives --install /usr/bin/python3 python3 /opt/Python-${PYTHON3_VERSION}/python 1
-RUN update-alternatives --config python3 <<< "1"
+RUN update-alternatives --install /usr/bin/python3 python3 /opt/Python-${PYTHON3_VERSION}/python 1 \
+	&& update-alternatives --set python3 /opt/Python-${PYTHON3_VERSION}/python
 
 COPY ./requirements.txt /opt/requirements.txt
 RUN python3 -m pip install -r /opt/requirements.txt
