@@ -24,10 +24,16 @@ def main(args):
         resolution=args.resolution,
     )
 
-    sc.pl.umap(
-        adata,
-        color=["total_counts", "n_genes_by_counts", "batch", "leiden"],
-    )
+    if "total_counts" in adata.obs.columns:
+        sc.pl.umap(
+            adata,
+            color=["total_counts", "n_genes_by_counts", "batch", "leiden"],
+        )
+    else:
+        sc.pl.umap(
+            adata,
+            color=["nCount_GeoMx", "nFeature_GeoMx", "batch", "leiden"],
+        )
     fig = plt.gcf()
     fig.suptitle(f"UMAP - {args.plots_prefix}", va="center", ha="center", fontsize=16)
     plt.savefig(f"{args.plots_prefix}.umap_cluster.png", dpi=300, bbox_inches="tight")

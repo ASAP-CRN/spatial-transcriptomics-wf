@@ -1,23 +1,29 @@
 version 1.0
 
-# Merge and process adata object with QC, filtering, normalization, and clustering
+# Merge and process RDS object with QC, filtering, and normalization, and convert to adata object, integrate and cluster
 
 import "../../../wf-common/wdl/tasks/write_cohort_sample_list.wdl" as WriteCohortSampleList
-import "../../spatial_statistics/spatial_statistics.wdl" as SpatialStatistics
+import "../../integrate_data/integrate_data.wdl" as IntegrateData
 import "../../../wf-common/wdl/tasks/upload_final_outputs.wdl" as UploadFinalOutputs
 
 workflow cohort_analysis {
 	input {
 		String cohort_id
 		Array[Array[String]] project_sample_ids
-		Array[File] preprocessed_adata_objects
+		Array[File] preprocessed_rds_objects
 
 		# If provided, these files will be uploaded to the staging bucket alongside other intermediate files made by this workflow
 		Array[String] preprocessing_output_file_paths = []
 
-		# Filter parameters
-		Int filter_cells_min_counts
-		Int filter_genes_min_cells
+		# Filtering parameters
+		File cell_type_markers_list
+		Float min_genes_detected_in_percent_segment
+
+		# Integrate and cluster parameters
+		Int n_top_genes
+		Int n_comps
+		String batch_key
+		Float leiden_resolution
 
 		String workflow_name
 		String workflow_version
@@ -48,10 +54,33 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call merge_and_plot_qc_metrics {
+	scatter (preprocessed_rds_object in preprocessed_rds_objects) {
+		call filter_and_normalize {
+			input:
+				preprocessed_rds_object = preprocessed_rds_object,
+				cell_type_markers_list = cell_type_markers_list,
+				min_genes_detected_in_percent_segment = min_genes_detected_in_percent_segment,
+				raw_data_path = raw_data_path,
+				workflow_info = workflow_info,
+				billing_project = billing_project,
+				container_registry = container_registry,
+				zones = zones
+		}
+
+		call rds_to_adata {
+			input:
+				processed_rds_object = filter_and_normalize.processed_rds_object,
+				container_registry = container_registry,
+				zones = zones
+		}
+	}
+
+	call merge_and_prep {
 		input:
 			cohort_id = cohort_id,
-			preprocessed_adata_objects = preprocessed_adata_objects,
+			processed_adata_objects = rds_to_adata.processed_adata_object,
+			n_top_genes = n_top_genes,
+			n_comps = n_comps,
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -59,34 +88,13 @@ workflow cohort_analysis {
 			zones = zones
 	}
 
-	call filter_and_normalize {
+	call IntegrateData.integrate_data {
 		input:
 			cohort_id = cohort_id,
-			merged_adata_object = merge_and_plot_qc_metrics.merged_adata_object, #!FileCoercion
-			filter_cells_min_counts = filter_cells_min_counts,
-			filter_genes_min_cells = filter_genes_min_cells,
-			raw_data_path = raw_data_path,
-			workflow_info = workflow_info,
-			billing_project = billing_project,
-			container_registry = container_registry,
-			zones = zones
-	}
-
-	call cluster {
-		input:
-			cohort_id = cohort_id,
-			filtered_normalized_adata_object = filter_and_normalize.filtered_normalized_adata_object, #!FileCoercion
-			raw_data_path = raw_data_path,
-			workflow_info = workflow_info,
-			billing_project = billing_project,
-			container_registry = container_registry,
-			zones = zones
-	}
-
-	call SpatialStatistics.spatial_statistics {
-		input:
-			cohort_id = cohort_id,
-			clustered_adata_object = cluster.umap_cluster_adata_object, #!FileCoercion
+			processed_adata_object = merge_and_prep.merged_adata_object, #!FileCoercion
+			n_comps = n_comps,
+			batch_key = batch_key,
+			leiden_resolution = leiden_resolution,
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -107,18 +115,17 @@ workflow cohort_analysis {
 		[
 			write_cohort_sample_list.cohort_sample_list
 		],
+		filter_and_normalize.segment_gene_detection_plot_png,
+		filter_and_normalize.gene_detection_rate_csv,
+		filter_and_normalize.q3_negprobe_plot_png,
+		filter_and_normalize.normalization_plot_png,
 		[
-			merge_and_plot_qc_metrics.merged_adata_object,
-			merge_and_plot_qc_metrics.qc_plots_png
+			merge_and_prep.merged_adata_object,
+			merge_and_prep.hvg_plot_png
 		],
 		[
-			cluster.umap_cluster_plot_png,
-		],
-		[
-			spatial_statistics.moran_top_10_variable_genes_csv,
-			spatial_statistics.nhood_enrichment_plot_png,
-			spatial_statistics.final_adata_object,
-			spatial_statistics.co_occurrence_plot_png
+			integrate_data.clustered_adata_object,
+			integrate_data.umap_cluster_plots_png
 		]
 	]) #!StringCoercion
 
@@ -134,84 +141,63 @@ workflow cohort_analysis {
 	output {
 		File cohort_sample_list = write_cohort_sample_list.cohort_sample_list #!FileCoercion
 
-		# Merged adata objects and QC plots
-		File merged_adata_object = merge_and_plot_qc_metrics.merged_adata_object #!FileCoercion
-		File qc_plots_png = merge_and_plot_qc_metrics.qc_plots_png #!FileCoercion
+		# Processed RDS object and plots
+		Array[File] processed_rds_object = filter_and_normalize.processed_rds_object
+		Array[File] segment_gene_detection_plot_png = filter_and_normalize.segment_gene_detection_plot_png #!FileCoercion
+		Array[File] gene_detection_rate_csv = filter_and_normalize.gene_detection_rate_csv #!FileCoercion
+		Array[File] q3_negprobe_plot_png = filter_and_normalize.q3_negprobe_plot_png #!FileCoercion
+		Array[File] normalization_plot_png = filter_and_normalize.normalization_plot_png #!FileCoercion
 
-		# Filtered and normalized adata object
-		File filtered_normalized_adata_object = filter_and_normalize.filtered_normalized_adata_object #!FileCoercion
+		# Converted AnnData object
+		Array[File] processed_adata_object = rds_to_adata.processed_adata_object
 
-		# Leiden clustered adata object and UMAP and spatial coordinates plots
-		File umap_cluster_adata_object = cluster.umap_cluster_adata_object #!FileCoercion
-		File umap_cluster_plot_png = cluster.umap_cluster_plot_png #!FileCoercion
+		# Merged and prepped AnnData object
+		File merged_adata_object = merge_and_prep.merged_adata_object #!FileCoercion
+		File hvg_plot_png = merge_and_prep.hvg_plot_png #!FileCoercion
 
-		# Spatial statistics outputs
-		File moran_adata_object = spatial_statistics.moran_adata_object
-		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
-		File nhood_enrichment_adata_object = spatial_statistics.nhood_enrichment_adata_object
-		File nhood_enrichment_plot_png = spatial_statistics.nhood_enrichment_plot_png
-		File final_adata_object = spatial_statistics.final_adata_object
-		File co_occurrence_plot_png = spatial_statistics.co_occurrence_plot_png
+		# Integrate data outputs
+		File integrated_adata_object = integrate_data.integrated_adata_object
+		File clustered_adata_object = integrate_data.clustered_adata_object
+		File umap_cluster_plots_png = integrate_data.umap_cluster_plots_png
 
 		Array[File] preprocess_manifest_tsvs = upload_preprocess_files.manifests #!FileCoercion
 		Array[File] cohort_analysis_manifest_tsvs = upload_cohort_analysis_files.manifests #!FileCoercion
 	}
-}
 
-task merge_and_plot_qc_metrics {
-	input {
-		String cohort_id
-		Array[File] preprocessed_adata_objects
-
-		String raw_data_path
-		Array[Array[String]] workflow_info
-		String billing_project
-		String container_registry
-		String zones
+	meta {
+		description: "Run team-level and/or cross-team cohort analysis on the Nanostring GeoMx data by filtering, normalization, dimensionality reduction, sample integration, and clustering."
 	}
 
-	Int mem_gb = ceil(size(preprocessed_adata_objects, "GB") * 2 + 20)
-	Int disk_size = ceil(size(preprocessed_adata_objects, "GB") * 2 + 50)
-
-	command <<<
-		set -euo pipefail
-
-		python3 /opt/scripts/merge_and_plot_geomx_qc.py \
-			--adata-paths-input ~{sep=' ' preprocessed_adata_objects} \
-			--merged-adata-output ~{cohort_id}.merged_adata_object.h5ad \
-			--qc-plots-output ~{cohort_id}.qc_hist.png
-
-		upload_outputs \
-			-b ~{billing_project} \
-			-d ~{raw_data_path} \
-			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.merged_adata_object.h5ad" \
-			-o "~{cohort_id}.qc_hist.png"
-	>>>
-
-	output {
-		String merged_adata_object = "~{raw_data_path}/~{cohort_id}.merged_adata_object.h5ad"
-		String qc_plots_png = "~{raw_data_path}/~{cohort_id}.qc_hist.png"
-	}
-
-	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
-		cpu: 2
-		memory: "~{mem_gb} GB"
-		disks: "local-disk ~{disk_size} HDD"
-		preemptible: 3
-		bootDiskSizeGb: 30
-		zones: zones
+	parameter_meta {
+		cohort_id: {help: "Name of the cohort; used to name output files."}
+		project_sample_ids: {help: "Associated team ID and sample ID; used to generate a sample list."}
+		preprocessed_rds_objects: {help: "An array of preprocessed RDS objects to run cohort analysis on."}
+		preprocessing_output_file_paths: {help: "Selected preprocessed output files to upload to the staging bucket alongside selected cohort analysis output files."}
+		cell_type_markers_list: {help: "CSV file containing a list of major cell type markers; used for detecting genes of interest."}
+		min_genes_detected_in_percent_segment: {help: "Minimum % of segments that detect the genes. [0.01]"}
+		n_top_genes: {help: "Number of highly-variable genes to keep. [3000]"}
+		n_comps: {help: "Number of principal components to compute. [30]"}
+		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}
+		leiden_resolution: {help: "Value controlling the coarseness of the Leiden clustering. [0.4]"}
+		workflow_name: {help: "Workflow name; stored in the file-level manifest and final manifest with all saved files."}
+		workflow_version: {help: "Workflow version; stored in the file-level manifest and final manifest with all saved files."}
+		workflow_release: {help: "GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		run_timestamp: {help: "UTC timestamp; stored in the file-level manifest and final manifest with all saved files."}
+		raw_data_path_prefix: {help: "Raw data bucket path prefix; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/cohort_analysis`)."}
+		staging_data_buckets: {help: "Array of staging data buckets to upload intermediate files to (i.e., DEV or UAT buckets depending on internal QC status)."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
 	}
 }
 
 task filter_and_normalize {
 	input {
-		String cohort_id
-		File merged_adata_object
+		File preprocessed_rds_object
 
-		Int filter_cells_min_counts
-		Int filter_genes_min_cells
+		File cell_type_markers_list
+
+		Float min_genes_detected_in_percent_segment
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -220,44 +206,119 @@ task filter_and_normalize {
 		String zones
 	}
 
-	Int mem_gb = ceil(size(merged_adata_object, "GB") * 2 + 20)
-	Int disk_size = ceil(size(merged_adata_object, "GB") * 2 + 50)
+	String sample_id = basename(preprocessed_rds_object, ".qc.rds")
+
+	Int mem_gb = ceil(size([preprocessed_rds_object, cell_type_markers_list], "GB") * 2 + 20)
+	Int disk_size = ceil(size([preprocessed_rds_object, cell_type_markers_list], "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/filter_and_normalize.py \
-			--adata-input ~{merged_adata_object} \
-			--min-counts ~{filter_cells_min_counts} \
-			--min-cells ~{filter_genes_min_cells} \
-			--adata-output ~{cohort_id}.filtered_normalized.h5ad
+		# Select ROI/AOI segments and genes based on LOQ and normalization
+		Rscript /opt/scripts/geomx_process.R \
+			--sample-id ~{sample_id} \
+			--input ~{preprocessed_rds_object} \
+			--celltype-markers ~{cell_type_markers_list} \
+			--min-segment ~{min_genes_detected_in_percent_segment} \
+			--output ~{sample_id}.processed.rds
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.filtered_normalized.h5ad"
+			-o "~{sample_id}.segment_gene_detection_plot.png" \
+			-o "~{sample_id}.gene_detection_rate.csv" \
+			-o "~{sample_id}.q3_negprobe_plot.png" \
+			-o "~{sample_id}.normalization_plot.png"
 	>>>
 
 	output {
-		String filtered_normalized_adata_object = "~{raw_data_path}/~{cohort_id}.filtered_normalized.h5ad"
+		File processed_rds_object = "~{sample_id}.processed.rds"
+		String segment_gene_detection_plot_png = "~{raw_data_path}/~{sample_id}.segment_gene_detection_plot.png"
+		String gene_detection_rate_csv = "~{raw_data_path}/~{sample_id}.gene_detection_rate.csv"
+		String q3_negprobe_plot_png = "~{raw_data_path}/~{sample_id}.q3_negprobe_plot.png"
+		String normalization_plot_png = "~{raw_data_path}/~{sample_id}.normalization_plot.png"
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
+		docker: "~{container_registry}/spatial_r:1.0.0"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
+	}
+
+	meta {
+		description: "Perform Limit of Quantification (LOQ), filter segments and/or genes with low signal, and normalize (Q3 and background)."
+	}
+
+	parameter_meta {
+		preprocessed_rds_object: {help: "Preprocessed RDS object to run cohort analysis on."}
+		cell_type_markers_list: {help: "CSV file containing a list of major cell type markers; used for detecting genes of interest."}
+		min_genes_detected_in_percent_segment: {help: "Minimum % of segments that detect the genes. [0.01]"}
+		raw_data_path: {help: "Raw data bucket path for processed RDS and gene detection and normalization plots outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/cohort_analysis/<cohort_analysis_version>/<run_timestamp>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
 	}
 }
 
-task cluster {
+task rds_to_adata {
+	input {
+		File processed_rds_object
+
+		String container_registry
+		String zones
+	}
+
+	String sample_id = basename(processed_rds_object, ".processed.rds")
+
+	Int mem_gb = ceil(size(processed_rds_object, "GB") * 2 + 20)
+	Int disk_size = ceil(size(processed_rds_object, "GB") * 2 + 50)
+
+	command <<<
+		set -euo pipefail
+
+		Rscript /opt/scripts/geomx_rds_to_adata.R \
+			--input ~{processed_rds_object} \
+			--output-prefix ~{sample_id}.processed
+	>>>
+
+	output {
+		File processed_adata_object = "~{sample_id}.processed.h5ad"
+	}
+
+	runtime {
+		docker: "~{container_registry}/spatial_r:1.0.0"
+		cpu: 2
+		memory: "~{mem_gb} GB"
+		disks: "local-disk ~{disk_size} HDD"
+		preemptible: 3
+		bootDiskSizeGb: 5
+		zones: zones
+	}
+
+	meta {
+		description: "Convert processed NanoStringGeoMxSet (.RDS) object to AnnData object with Seurat."
+	}
+
+	parameter_meta {
+		processed_rds_object: {help: "Processed RDS object to convert into an AnnData object."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
+	}
+}
+
+task merge_and_prep {
 	input {
 		String cohort_id
-		File filtered_normalized_adata_object
+		Array[File] processed_adata_objects
+
+		Int n_top_genes
+		Int n_comps
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -266,37 +327,56 @@ task cluster {
 		String zones
 	}
 
-	Int mem_gb = ceil(size(filtered_normalized_adata_object, "GB") * 2 + 20)
-	Int disk_size = ceil(size(filtered_normalized_adata_object, "GB") * 2 + 50)
+	Int mem_gb = ceil(size(processed_adata_objects, "GB") * 2 + 20)
+	Int disk_size = ceil(size(processed_adata_objects, "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/cluster.py \
-			--cohort-id ~{cohort_id} \
-			--adata-input ~{filtered_normalized_adata_object} \
-			--adata-output ~{cohort_id}.umap_cluster.h5ad
+		python3 /opt/scripts/geomx_merge_and_prep.py \
+			--adata-paths-input ~{write_lines(processed_adata_objects)} \
+			--n-top-genes ~{n_top_genes} \
+			--n-comps ~{n_comps} \
+			--plots-prefix ~{cohort_id} \
+			--adata-output ~{cohort_id}.merged.h5ad
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.umap_cluster.h5ad" \
-			-o "~{cohort_id}.umap_cluster.png"
+			-o "~{cohort_id}.merged.h5ad" \
+			-o "~{cohort_id}.hvg_dispersion.png"
+
 	>>>
 
 	output {
-		String umap_cluster_adata_object = "~{raw_data_path}/~{cohort_id}.umap_cluster.h5ad"
-		String umap_cluster_plot_png = "~{raw_data_path}/~{cohort_id}.umap_cluster.png"
+		String merged_adata_object = "~{raw_data_path}/~{cohort_id}.merged.h5ad"
+		String hvg_plot_png = "~{raw_data_path}/~{cohort_id}.hvg_dispersion.png"
 	}
 
 	runtime {
-		docker: "~{container_registry}/squidpy:1.6.2_1"
+		docker: "~{container_registry}/spatial_py:1.0.0"
 		cpu: 2
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
+	}
+
+	meta {
+		description: "Merge sample-level AnnData objects to a single cohort-level AnnData object, and prepare for downstream analysis by annotating highly-variable genes (HVG) and performing PCA."
+	}
+
+	parameter_meta {
+		cohort_id: {help: "Name of the cohort; used to name output files."}
+		processed_adata_objects: {help: "An array of processed AnnData object to merge."}
+		n_top_genes: {help: "Number of highly-variable genes to keep. [3000]"}
+		n_comps: {help: "Number of principal components to compute. [30]"}
+		raw_data_path: {help: "Raw data bucket path for merged adata and HVG plot outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/cohort_analysis/<cohort_analysis_version>/<run_timestamp>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
 	}
 }

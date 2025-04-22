@@ -14,6 +14,7 @@ RUN apt-get -qq update \
 	&& apt-get -qq install \
 		build-essential \
 		unzip \
+		zip \
 		time \
 		curl \
 		expect \
@@ -48,18 +49,16 @@ ENV PATH "${PATH}:/opt/geomx_ngs"
 # Python
 ARG PYTHON3_VERSION
 ENV PYTHON3_VERSION "${PYTHON3_VERSION}"
-RUN curl -O https://www.python.org/ftp/python/${PYTHON3_VERSION}/Python-${PYTHON3_VERSION}.tar.xz && \
-	tar -xvf Python-${PYTHON3_VERSION}.tar.xz --directory /opt/ && \
-	rm Python-${PYTHON3_VERSION}.tar.xz
-RUN cd /opt/Python-${PYTHON3_VERSION} && \
-	./configure && \
-	make && \
-	make altinstall
+RUN curl -O https://www.python.org/ftp/python/${PYTHON3_VERSION}/Python-${PYTHON3_VERSION}.tar.xz \
+	&& tar -xvf Python-${PYTHON3_VERSION}.tar.xz --directory /opt/ \
+	&& rm Python-${PYTHON3_VERSION}.tar.xz
+RUN cd /opt/Python-${PYTHON3_VERSION} \
+	&& ./configure \
+	&& make \
+	&& make altinstall
 
-ENV PATH "${PATH}:/opt/Python-${PYTHON3_VERSION}"
-
-RUN rm -f /usr/bin/python3
-RUN ln -s /opt/Python-${PYTHON3_VERSION}/python /usr/bin/python3
+RUN update-alternatives --install /usr/bin/python3 python3 /opt/Python-${PYTHON3_VERSION}/python 1 \
+	&& update-alternatives --set python3 /opt/Python-${PYTHON3_VERSION}/python
 
 COPY ./requirements.txt /opt/requirements.txt
 RUN python3 -m pip install -r /opt/requirements.txt
