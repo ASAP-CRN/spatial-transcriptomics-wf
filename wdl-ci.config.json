@@ -113,6 +113,14 @@
                     "compare_file_basename",
                     "check_hdf5"
                   ]
+                },
+                "hvg_plot_png": {
+                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.hvg_dispersion.png",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "png_validator",
+                    "image_validator"
+                  ]
                 }
               }
             }
