@@ -67,7 +67,7 @@
         },
         "rds_to_adata": {
           "key": "rds_to_adata",
-          "digest": "wg7qp3dgvn6bq47i3dquqrdt5nyrgu53",
+          "digest": "cezaagjm5vsnfdjv3gqpozrr6fdue5ho",
           "tests": [
             {
               "inputs": {
@@ -135,7 +135,7 @@
       "tasks": {
         "fastq_to_dcc": {
           "key": "fastq_to_dcc",
-          "digest": "bv3ccu6zyo77e6l5z3gkntlnggjio5hp",
+          "digest": "m72cxjhaxli2qvinur4gtx3h4ssc3wxl",
           "tests": [
             {
               "inputs": {
@@ -176,7 +176,7 @@
         },
         "dcc_to_rds": {
           "key": "dcc_to_rds",
-          "digest": "yffvcllrlqhs7umlxyo54p5tdajw2vfu",
+          "digest": "lkpdtwioty2kqf442nmeehdjgbfbhqyc",
           "tests": [
             {
               "inputs": {
@@ -207,7 +207,7 @@
         },
         "qc": {
           "key": "qc",
-          "digest": "gsl2diz4rtnet4a6v6jyzbc2ikphmhlf",
+          "digest": "5fpgcijtkp7qoquows3l5fflmnqytelw",
           "tests": [
             {
               "inputs": {
@@ -276,7 +276,7 @@
       "tasks": {
         "integrate_sample_data": {
           "key": "integrate_sample_data",
-          "digest": "mrol3ltk42put4yxlg4l7xhh25dtvyx3",
+          "digest": "5lont6mmtqj3ui5fph6klerbgg2zr7ng",
           "tests": [
             {
               "inputs": {
@@ -300,7 +300,7 @@
         },
         "cluster": {
           "key": "cluster",
-          "digest": "dipxrq5hnrh7eexsec4lk6r3iwpyjuoa",
+          "digest": "mbbky7bgt36zoyn45k3dcedfbujmayla",
           "tests": [
             {
               "inputs": {
@@ -424,7 +424,7 @@
         },
         "plot_spatial": {
           "key": "plot_spatial",
-          "digest": "ddemb6yrtkrdj56j7asnx7lypuesynmd",
+          "digest": "f2sfl2233ndzz23lahzgg3lfqrxnf3di",
           "tests": [
             {
               "inputs": {
@@ -458,7 +458,7 @@
       "tasks": {
         "spatially_variable_gene_analysis": {
           "key": "spatially_variable_gene_analysis",
-          "digest": "g4mgorusig3ew7ct45v72yreibzfrrpi",
+          "digest": "xfxdyly4sngwk4uuauw6jrjevuvxr4qx",
           "tests": [
             {
               "inputs": {
@@ -622,7 +622,7 @@
         },
         "counts_to_adata": {
           "key": "counts_to_adata",
-          "digest": "q24ev6qsync5dxrjicnkdpnrhme6nlhx",
+          "digest": "53a3lp274dgttbixvt4rohgnre4wj7o6",
           "tests": [
             {
               "inputs": {
@@ -651,7 +651,7 @@
         },
         "qc": {
           "key": "qc",
-          "digest": "j3zos3aottstes3dkrnr65u7insi54ch",
+          "digest": "45nmxr6mcx6j2lcmhbh55w55r5tur7ut",
           "tests": [
             {
               "inputs": {
