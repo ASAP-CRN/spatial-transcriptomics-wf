@@ -135,8 +135,8 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | String? | batch | The sample's batch. |
 | File | fastq_R1 | Path to the sample's read 1 FASTQ file. |
 | File | fastq_R2 | Path to the sample's read 2 FASTQ file. |
-| File? | fastq_I1 | Optional fastq index 1. |
-| File? | fastq_I2 | Optional fastq index 2. |
+| File? | fastq_I1 | Optional FASTQ index 1. |
+| File? | fastq_I2 | Optional FASTQ index 2. |
 | File | geomx_lab_annotation_xlsx | The annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx DSP readout package; see [GeoMx Lab Worksheet notes](#geomx-lab-worksheet). |
 
 ### 10x Visium structs
@@ -160,8 +160,8 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | String? | batch | The sample's batch. |
 | File | fastq_R1 | Path to the sample's read 1 FASTQ file. |
 | File | fastq_R2 | Path to the sample's read 2 FASTQ file. |
-| File? | fastq_I1 | Optional fastq index 1. |
-| File? | fastq_I2 | Optional fastq index 2. |
+| File? | fastq_I1 | Optional FASTQ index 1. |
+| File? | fastq_I2 | Optional FASTQ index 2. |
 | File | visium_brightfield_image | The 10x Visium brightfield image, which is a high-resolution image of a tissue section and used for plotting spatial coordinates. |
 | String | visium_slide_serial_number | The 10x Visium slide serial number obtained from the ASAP sample metadata. The unique identifier printed on the label of each Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary. |
 | String | visium_capture_area | The 10x Visium slide capture area obtained from the ASAP sample metadata. Active regions for capturing expression data on a Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary. |

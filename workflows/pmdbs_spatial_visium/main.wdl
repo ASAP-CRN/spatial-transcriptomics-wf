@@ -226,6 +226,6 @@ workflow pmdbs_spatial_visium_analysis {
 		cohort_raw_data_bucket: {help: "Bucket to upload cross-team downstream intermediate files to."}
 		cohort_staging_data_buckets: {help: "Set of buckets to stage cross-team downstream analysis outputs in."}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}
-		zones: {help: "Space-delimited set of GCP zones where compute will take place."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
 	}
 }

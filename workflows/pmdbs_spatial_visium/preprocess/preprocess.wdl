@@ -166,6 +166,26 @@ workflow preprocess {
 		# QC adata object
 		Array[File] qc_adata_object = qc_adata_object_output #!FileCoercion
 	}
+
+	meta {
+		description: "Preprocess the 10x Visium data by running spaceranger count, converting counts to AnnData object, and QC with scanpy."
+	}
+
+	parameter_meta {
+		team_id: {help: "Name of the CRN Team; stored in the AnnData objects."}
+		dataset_id: {help: "Generated ASAP dataset ID; stored in the AnnData objects."}
+		samples: {help: "An array of Sample struct, set of samples and their associated reads and Visium experimental information including the brightfield image, slide serial number, and capture area."}
+		spaceranger_reference_data: {help: "Space Ranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads."}
+		visium_probe_set_csv: {help: "Visium probe-based assays target genes in Space Ranger transcriptome; see https://www.10xgenomics.com/support/software/space-ranger/downloads."}
+		workflow_name: {help: "Workflow name; stored in the file-level manifest and final manifest with all saved files."}
+		workflow_version: {help: "Workflow version; stored in the file-level manifest and final manifest with all saved files."}
+		workflow_release: {help: "GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		run_timestamp: {help: "UTC timestamp; stored in the file-level manifest and final manifest with all saved files."}
+		raw_data_path_prefix: {help: "Raw data bucket path prefix; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess`)."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
+	}
 }
 
 task check_output_files_exist {
@@ -217,6 +237,18 @@ task check_output_files_exist {
 		disks: "local-disk 20 HDD"
 		preemptible: 3
 		zones: zones
+	}
+
+	meta {
+		description: "Checks for existing preprocessing files per sample and skips certain preprocessing steps if they exist."
+	}
+
+	parameter_meta {
+		spaceranger_count_output_files: {help: "Spaceranger count output file to detect (`<sample>.raw_feature_bc_matrix.h5`)."}
+		counts_to_adata_output_files: {help: "Converted AnnData object output file to detect (`<sample>.initial_adata_object.h5ad`)."}
+		qc_output_files: {help: "QC'ed output file to detect (`<sample>.qc.h5ad`)."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
 	}
 }
 
@@ -354,6 +386,28 @@ task spaceranger_count {
 		bootDiskSizeGb: 5
 		zones: zones
 	}
+
+	meta {
+		description: "Processes raw sequencing data and image files from 10x Visium experiments to generate spatial gene expression matrices aligned to tissue sections."
+	}
+
+	parameter_meta {
+		sample_id: {help: "Generated ASAP sample ID; used to name output files."}
+		fastq_R1s: {help: "Sample's read 1 FASTQ file."}
+		fastq_R2s: {help: "Sample's read 2 FASTQ file."}
+		fastq_I1s: {help: "Optional FASTQ index 1."}
+		fastq_I2s: {help: "Optional FASTQ index 2."}
+		visium_brightfield_image: {help: "The 10x Visium brightfield image, which is a high-resolution image of a tissue section and used for plotting spatial coordinates."}
+		visium_slide_serial_number: {help: "The 10x Visium slide serial number obtained from the ASAP sample metadata. The unique identifier printed on the label of each Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary."}
+		visium_capture_area: {help: "The 10x Visium slide capture area obtained from the ASAP sample metadata. Active regions for capturing expression data on a Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary."}
+		spaceranger_reference_data: {help: "Space Ranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads."}
+		visium_probe_set_csv: {help: "Visium probe-based assays target genes in Space Ranger transcriptome; see https://www.10xgenomics.com/support/software/space-ranger/downloads."}
+		raw_data_path: {help: "Raw data bucket path for spaceranger count outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess/spaceranger_count/<spaceranger_count_task_version>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
+	}
 }
 
 task counts_to_adata {
@@ -407,6 +461,23 @@ task counts_to_adata {
 		bootDiskSizeGb: 5
 		zones: zones
 	}
+
+	meta {
+		description: "Convert Space Ranger counts to AnnData objects with spatial data using squidpy."
+	}
+
+	parameter_meta {
+		team_id: {help: "Name of the CRN Team; stored in the AnnData objects."}
+		dataset_id: {help: "Generated ASAP dataset ID; stored in the AnnData objects."}
+		sample_id: {help: "Generated ASAP sample ID; stored in the AnnData objects and used to name output files."}
+		batch: {help: "The sample's batch; stored in the AnnData objects."}
+		spaceranger_spatial_tar_gz: {help: "Spaceranger spatial outputs directory (`<sample>/outs`; must be unmodified)."}
+		raw_data_path: {help: "Raw data bucket path for counts to adata outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess/counts_to_adata/<counts_to_adata_task_version>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
+	}
 }
 
 task qc {
@@ -452,5 +523,19 @@ task qc {
 		preemptible: 3
 		bootDiskSizeGb: 5
 		zones: zones
+	}
+
+	meta {
+		description: "Calculate QC metrics on 10x Visium data with scanpy by identifying mitochondrial, ribosomal, and hemoglobin genes and computing the fraction of mitochondrial gene expression per cell."
+	}
+
+	parameter_meta {
+		sample_id: {help: "Generated ASAP sample ID; used to name output files."}
+		initial_adata_object: {help: "The initial AnnData object converted from counts."}
+		raw_data_path: {help: "Raw data bucket path for qc outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess/qc/<qc_task_version>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
 	}
 }

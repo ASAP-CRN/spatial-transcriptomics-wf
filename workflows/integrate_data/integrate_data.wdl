@@ -45,6 +45,23 @@ workflow integrate_data {
 		File clustered_adata_object = cluster.clustered_adata_object #!FileCoercion
 		File umap_cluster_plots_png = cluster.umap_cluster_plots_png #!FileCoercion
 	}
+
+	meta {
+		description: "Perform sample integration with Harmony and cluster the 10x Visium data based on transcriptonal similarity."
+	}
+
+	parameter_meta {
+		cohort_id: {help: "Name of the cohort; used to name output files."}
+		processed_adata_object: {help: "Processed AnnData object to run integrate data workflow on."}
+		n_comps: {help: "Number of principal components to compute. [30]"}
+		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}
+		leiden_resolution: {help: "Value controlling the coarseness of the Leiden clustering. [0.4]"}
+		raw_data_path: {help: "Raw data bucket path for integrate data workflow outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/cohort_analysis/<cohort_analysis_version>/<run_timestamp>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
+	}
 }
 
 task integrate_sample_data {
@@ -82,6 +99,18 @@ task integrate_sample_data {
 		preemptible: 3
 		bootDiskSizeGb: 5
 		zones: zones
+	}
+
+	meta {
+		description: "Perform batch correction on the processed AnnData object using the Harmony algorithm."
+	}
+
+	parameter_meta {
+		cohort_id: {help: "Name of the cohort; used to name output files."}
+		processed_adata_object: {help: "Processed AnnData object to run integrate data workflow on."}
+		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
 	}
 }
 
@@ -134,5 +163,21 @@ task cluster {
 		preemptible: 3
 		bootDiskSizeGb: 5
 		zones: zones
+	}
+
+	meta {
+		description: "Compute the nearest neighbors distance matrix and UMAP embedding based on the PCA-reduced spatial data, and perform Leiden clustering."
+	}
+
+	parameter_meta {
+		cohort_id: {help: "Name of the cohort; used to name output files."}
+		integrated_adata_object: {help: "Integrated AnnData object."}
+		n_comps: {help: "Number of principal components to compute. [30]"}
+		leiden_resolution: {help: "Value controlling the coarseness of the Leiden clustering. [0.4]"}
+		raw_data_path: {help: "Raw data bucket path for clustered outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/cohort_analysis/<cohort_analysis_version>/<run_timestamp>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
 	}
 }
