@@ -2,7 +2,7 @@ version 1.0
 
 # Generate a QC'ed RDS object by converting FASTQ files to DCC (digital count conversion) files to a NanoStringGeoMxSet object
 
-import "../../../wf-common/wdl/structs.wdl"
+import "../structs.wdl"
 
 workflow preprocess {
 	input {
@@ -102,7 +102,7 @@ workflow preprocess {
 					sample_id = sample.sample_id,
 					batch = select_first([sample.batch]),
 					geomxngs_dcc_zip = geomxngs_dcc_zip_output,
-					geomx_lab_annotation_xlsx = select_first([sample.geomx_lab_annotation_xlsx]),
+					geomx_lab_annotation_xlsx = sample.geomx_lab_annotation_xlsx,
 					geomxngs_config_pkc = geomxngs_config_pkc,
 					raw_data_path = rds_raw_data_path,
 					workflow_info = workflow_info,
@@ -164,6 +164,35 @@ workflow preprocess {
 		Array[File] probe_qc_summary_csv = probe_qc_summary_csv_output #!FileCoercion
 		Array[File] gene_count_csv = gene_count_csv_output #!FileCoercion
 	}
+
+	meta {
+		description: "Preprocess the Nanostring GeoMx data by running the GeoMxNGSPipeline, convert DCC files to NanoStringGeoMxSet objects, and QC with GeoMx R libraries."
+	}
+
+	parameter_meta {
+		team_id: {help: "Name of the CRN Team; stored in the NanoStringGeoMxSet objects."}
+		dataset_id: {help: "Generated ASAP dataset ID; stored in the NanoStringGeoMxSet objects."}
+		samples: {help: "An array of Sample struct, set of samples and their associated reads and GeoMx experimental information including the annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx DSP readout package."}
+		geomx_config_ini: {help: "The configuration (.ini) file, containing pipeline processing parameters that is used by the GeoMx NGS pipeline to assist in converting the FASTQ files to DCC files. It is from the GeoMx DSP readout package."}
+		geomxngs_config_pkc: {help: "The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers."}
+		min_segment_reads: {help: "Minimum number of segment reads. [1000]"}
+		min_percent_reads_trimmed: {help: "Minimum % of reads trimmed. [80]"}
+		min_percent_reads_stitched: {help: "Minimum % of reads stitched. [80]"}
+		min_percent_reads_aligned: {help: "Minimum % of reads aligned. [80]"}
+		min_saturation: {help: "Minimum sequencing saturation. [50]"}
+		min_neg_ctrl_count: {help: "Minimum negative control counts. [1]"}
+		max_ntc_count: {help: "Maximum counts observed in NTC well. [1000]"}
+		min_nuclei: {help: "Minimum # of nuclei estimated. [100]"}
+		min_segment_area: {help: "Minimum segment area. [5000]"}
+		workflow_name: {help: "Workflow name; stored in the file-level manifest and final manifest with all saved files."}
+		workflow_version: {help: "Workflow version; stored in the file-level manifest and final manifest with all saved files."}
+		workflow_release: {help: "GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		run_timestamp: {help: "UTC timestamp; stored in the file-level manifest and final manifest with all saved files."}
+		raw_data_path_prefix: {help: "Raw data bucket path prefix; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess`)."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
+	}
 }
 
 task check_output_files_exist {
@@ -215,6 +244,18 @@ task check_output_files_exist {
 		disks: "local-disk 20 HDD"
 		preemptible: 3
 		zones: zones
+	}
+
+	meta {
+		description: "Checks for existing preprocessing files per sample and skips certain preprocessing steps if they exist."
+	}
+
+	parameter_meta {
+		fastq_to_dcc_output_files: {help: "Converted DCC output file to detect (`<sample>.geomxngs_out_dir.tar.gz`)."}
+		dcc_to_rds_output_files: {help: "Converted NanoStringGeoMxSet (.RDS) object output file to detect (`<sample>.NanoStringGeoMxSet.rds`)."}
+		qc_output_files: {help: "QC'ed output file to detect (`<sample>.qc.rds`)."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
 	}
 }
 
@@ -293,8 +334,24 @@ task fastq_to_dcc {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
+	}
+
+	meta {
+		description: "Processes raw sequencing data from Nanostring GeoMx experiments using Nanostring's GeoMxNGSPipeline to demultiplex raw reads using probe and sample information, align and count unique molecular identifiers (UMIs), and generate gene expression count matrices along with QC metrics."
+	}
+
+	parameter_meta {
+		sample_id: {help: "Generated ASAP sample ID; used to name output files."}
+		fastq_R1s: {help: "Sample's read 1 FASTQ file."}
+		fastq_R2s: {help: "Sample's read 2 FASTQ file."}
+		geomx_config_ini: {help: "The configuration (.ini) file, containing pipeline processing parameters that is used by the GeoMx NGS pipeline to assist in converting the FASTQ files to DCC files. It is from the GeoMx DSP readout package."}
+		raw_data_path: {help: "Raw data bucket path for GeoMxNGSPipeline outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess/fastq_to_dcc/<fastq_to_dcc_task_version>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
 	}
 }
 
@@ -326,7 +383,7 @@ task dcc_to_rds {
 
 		unzip -d ./dcc_files_dir -j ~{geomxngs_dcc_zip}
 
-		Rscript /opt/scripts/counts_to_rds.R \
+		Rscript /opt/scripts/geomx_counts_to_rds.R \
 			--team-id ~{team_id} \
 			--dataset-id ~{dataset_id} \
 			--sample-id ~{sample_id} \
@@ -353,8 +410,27 @@ task dcc_to_rds {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
+	}
+
+	meta {
+		description: "Convert digital count conversion (DCC) files to a NanoStringGeoMxSet (.RDS) object."
+	}
+
+	parameter_meta {
+		team_id: {help: "Name of the CRN Team; stored in the NanoStringGeoMxSet objects."}
+		dataset_id: {help: "Generated ASAP dataset ID; stored in the NanoStringGeoMxSet objects."}
+		sample_id: {help: "Generated ASAP sample ID; stored in the NanoStringGeoMxSet objects and used to name output files."}
+		batch: {help: "The sample's batch; stored in the NanoStringGeoMxSet objects."}
+		geomxngs_dcc_zip: {help: "DCC files for each sample compressed in a ZIP file."}
+		geomx_lab_annotation_xlsx: {help: "The annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx DSP readout package."}
+		geomxngs_config_pkc: {help: "The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers."}
+		raw_data_path: {help: "Raw data bucket path for converted RDS file outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess/dcc_to_rds/<dcc_to_rds_task_version>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
 	}
 }
 
@@ -425,7 +501,29 @@ task qc {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
+	}
+
+	meta {
+		description: "Calculate QC metrics on Nanostring GeoMx data with segments and probes, and generate gene-level count data."
+	}
+
+	parameter_meta {
+		initial_rds_object: {help: "The initial RDS object converted from counts."}
+		min_segment_reads: {help: "Minimum number of segment reads. [1000]"}
+		min_percent_reads_trimmed: {help: "Minimum % of reads trimmed. [80]"}
+		min_percent_reads_stitched: {help: "Minimum % of reads stitched. [80]"}
+		min_percent_reads_aligned: {help: "Minimum % of reads aligned. [80]"}
+		min_saturation: {help: "Minimum sequencing saturation. [50]"}
+		min_neg_ctrl_count: {help: "Minimum negative control counts. [1]"}
+		max_ntc_count: {help: "Maximum counts observed in NTC well. [1000]"}
+		min_nuclei: {help: "Minimum # of nuclei estimated. [100]"}
+		min_segment_area: {help: "Minimum segment area. [5000]"}
+		raw_data_path: {help: "Raw data bucket path for converted RDS file outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess/dcc_to_rds/<dcc_to_rds_task_version>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
 	}
 }

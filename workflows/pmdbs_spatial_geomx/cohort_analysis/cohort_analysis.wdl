@@ -55,7 +55,7 @@ workflow cohort_analysis {
 	}
 
 	scatter (preprocessed_rds_object in preprocessed_rds_objects) {
-		call process {
+		call filter_and_normalize {
 			input:
 				preprocessed_rds_object = preprocessed_rds_object,
 				cell_type_markers_list = cell_type_markers_list,
@@ -69,7 +69,7 @@ workflow cohort_analysis {
 
 		call rds_to_adata {
 			input:
-				processed_rds_object = process.processed_rds_object,
+				processed_rds_object = filter_and_normalize.processed_rds_object,
 				container_registry = container_registry,
 				zones = zones
 		}
@@ -115,12 +115,13 @@ workflow cohort_analysis {
 		[
 			write_cohort_sample_list.cohort_sample_list
 		],
-		process.segment_gene_detection_plot_png,
-		process.gene_detection_rate_csv,
-		process.q3_negprobe_plot_png,
-		process.normalization_plot_png,
+		filter_and_normalize.segment_gene_detection_plot_png,
+		filter_and_normalize.gene_detection_rate_csv,
+		filter_and_normalize.q3_negprobe_plot_png,
+		filter_and_normalize.normalization_plot_png,
 		[
-			merge_and_prep.merged_adata_object
+			merge_and_prep.merged_adata_object,
+			merge_and_prep.hvg_plot_png
 		],
 		[
 			integrate_data.clustered_adata_object,
@@ -141,17 +142,18 @@ workflow cohort_analysis {
 		File cohort_sample_list = write_cohort_sample_list.cohort_sample_list #!FileCoercion
 
 		# Processed RDS object and plots
-		Array[File] processed_rds_object = process.processed_rds_object
-		Array[File] segment_gene_detection_plot_png = process.segment_gene_detection_plot_png #!FileCoercion
-		Array[File] gene_detection_rate_csv = process.gene_detection_rate_csv #!FileCoercion
-		Array[File] q3_negprobe_plot_png = process.q3_negprobe_plot_png #!FileCoercion
-		Array[File] normalization_plot_png = process.normalization_plot_png #!FileCoercion
+		Array[File] processed_rds_object = filter_and_normalize.processed_rds_object
+		Array[File] segment_gene_detection_plot_png = filter_and_normalize.segment_gene_detection_plot_png #!FileCoercion
+		Array[File] gene_detection_rate_csv = filter_and_normalize.gene_detection_rate_csv #!FileCoercion
+		Array[File] q3_negprobe_plot_png = filter_and_normalize.q3_negprobe_plot_png #!FileCoercion
+		Array[File] normalization_plot_png = filter_and_normalize.normalization_plot_png #!FileCoercion
 
 		# Converted AnnData object
 		Array[File] processed_adata_object = rds_to_adata.processed_adata_object
 
 		# Merged and prepped AnnData object
 		File merged_adata_object = merge_and_prep.merged_adata_object #!FileCoercion
+		File hvg_plot_png = merge_and_prep.hvg_plot_png #!FileCoercion
 
 		# Integrate data outputs
 		File integrated_adata_object = integrate_data.integrated_adata_object
@@ -161,9 +163,35 @@ workflow cohort_analysis {
 		Array[File] preprocess_manifest_tsvs = upload_preprocess_files.manifests #!FileCoercion
 		Array[File] cohort_analysis_manifest_tsvs = upload_cohort_analysis_files.manifests #!FileCoercion
 	}
+
+	meta {
+		description: "Run team-level and/or cross-team cohort analysis on the Nanostring GeoMx data by filtering, normalization, dimensionality reduction, sample integration, and clustering."
+	}
+
+	parameter_meta {
+		cohort_id: {help: "Name of the cohort; used to name output files."}
+		project_sample_ids: {help: "Associated team ID and sample ID; used to generate a sample list."}
+		preprocessed_rds_objects: {help: "An array of preprocessed RDS objects to run cohort analysis on."}
+		preprocessing_output_file_paths: {help: "Selected preprocessed output files to upload to the staging bucket alongside selected cohort analysis output files."}
+		cell_type_markers_list: {help: "CSV file containing a list of major cell type markers; used for detecting genes of interest."}
+		min_genes_detected_in_percent_segment: {help: "Minimum % of segments that detect the genes. [0.01]"}
+		n_top_genes: {help: "Number of highly-variable genes to keep. [3000]"}
+		n_comps: {help: "Number of principal components to compute. [30]"}
+		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}
+		leiden_resolution: {help: "Value controlling the coarseness of the Leiden clustering. [0.4]"}
+		workflow_name: {help: "Workflow name; stored in the file-level manifest and final manifest with all saved files."}
+		workflow_version: {help: "Workflow version; stored in the file-level manifest and final manifest with all saved files."}
+		workflow_release: {help: "GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		run_timestamp: {help: "UTC timestamp; stored in the file-level manifest and final manifest with all saved files."}
+		raw_data_path_prefix: {help: "Raw data bucket path prefix; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/cohort_analysis`)."}
+		staging_data_buckets: {help: "Array of staging data buckets to upload intermediate files to (i.e., DEV or UAT buckets depending on internal QC status)."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
+	}
 }
 
-task process {
+task filter_and_normalize {
 	input {
 		File preprocessed_rds_object
 
@@ -186,7 +214,8 @@ task process {
 	command <<<
 		set -euo pipefail
 
-		Rscript /opt/scripts/process.R \
+		# Select ROI/AOI segments and genes based on LOQ and normalization
+		Rscript /opt/scripts/geomx_process.R \
 			--sample-id ~{sample_id} \
 			--input ~{preprocessed_rds_object} \
 			--celltype-markers ~{cell_type_markers_list} \
@@ -217,8 +246,23 @@ task process {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
+	}
+
+	meta {
+		description: "Perform Limit of Quantification (LOQ), filter segments and/or genes with low signal, and normalize (Q3 and background)."
+	}
+
+	parameter_meta {
+		preprocessed_rds_object: {help: "Preprocessed RDS object to run cohort analysis on."}
+		cell_type_markers_list: {help: "CSV file containing a list of major cell type markers; used for detecting genes of interest."}
+		min_genes_detected_in_percent_segment: {help: "Minimum % of segments that detect the genes. [0.01]"}
+		raw_data_path: {help: "Raw data bucket path for processed RDS and gene detection and normalization plots outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/cohort_analysis/<cohort_analysis_version>/<run_timestamp>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
 	}
 }
 
@@ -238,7 +282,7 @@ task rds_to_adata {
 	command <<<
 		set -euo pipefail
 
-		Rscript /opt/scripts/rds_to_adata.R \
+		Rscript /opt/scripts/geomx_rds_to_adata.R \
 			--input ~{processed_rds_object} \
 			--output-prefix ~{sample_id}.processed
 	>>>
@@ -253,8 +297,18 @@ task rds_to_adata {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
+	}
+
+	meta {
+		description: "Convert processed NanoStringGeoMxSet (.RDS) object to AnnData object with Seurat."
+	}
+
+	parameter_meta {
+		processed_rds_object: {help: "Processed RDS object to convert into an AnnData object."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
 	}
 }
 
@@ -279,8 +333,8 @@ task merge_and_prep {
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/merge_and_prep_geomx.py \
-			--adata-paths-input ~{sep=' ' processed_adata_objects} \
+		python3 /opt/scripts/geomx_merge_and_prep.py \
+			--adata-paths-input ~{write_lines(processed_adata_objects)} \
 			--n-top-genes ~{n_top_genes} \
 			--n-comps ~{n_comps} \
 			--plots-prefix ~{cohort_id} \
@@ -290,11 +344,14 @@ task merge_and_prep {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.merged.h5ad"
+			-o "~{cohort_id}.merged.h5ad" \
+			-o "~{cohort_id}.hvg_dispersion.png"
+
 	>>>
 
 	output {
 		String merged_adata_object = "~{raw_data_path}/~{cohort_id}.merged.h5ad"
+		String hvg_plot_png = "~{raw_data_path}/~{cohort_id}.hvg_dispersion.png"
 	}
 
 	runtime {
@@ -303,7 +360,23 @@ task merge_and_prep {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 30
+		bootDiskSizeGb: 5
 		zones: zones
+	}
+
+	meta {
+		description: "Merge sample-level AnnData objects to a single cohort-level AnnData object, and prepare for downstream analysis by annotating highly-variable genes (HVG) and performing PCA."
+	}
+
+	parameter_meta {
+		cohort_id: {help: "Name of the cohort; used to name output files."}
+		processed_adata_objects: {help: "An array of processed AnnData object to merge."}
+		n_top_genes: {help: "Number of highly-variable genes to keep. [3000]"}
+		n_comps: {help: "Number of principal components to compute. [30]"}
+		raw_data_path: {help: "Raw data bucket path for merged adata and HVG plot outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/cohort_analysis/<cohort_analysis_version>/<run_timestamp>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
 	}
 }

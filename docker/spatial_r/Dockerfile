@@ -39,28 +39,37 @@ RUN apt-get -qq update \
 # R
 ARG R_VERSION
 ENV R_VERSION "${R_VERSION}"
-RUN wget https://cran.r-project.org/src/base/R-4/R-${R_VERSION}.tar.gz && \
-	tar -zxvf R-${R_VERSION}.tar.gz --directory /opt && \
-	rm R-${R_VERSION}.tar.gz
+RUN wget https://cran.r-project.org/src/base/R-4/R-${R_VERSION}.tar.gz \
+	&& tar -zxvf R-${R_VERSION}.tar.gz --directory /opt \
+	&& rm R-${R_VERSION}.tar.gz
 
 ENV PATH "${PATH}:/opt/R-${R_VERSION}"
 
 WORKDIR /opt/R-${R_VERSION}
-RUN ./configure --with-readline=no --with-x=no && \
-	make && \
-	make install
+RUN ./configure --with-readline=no --with-x=no \
+	&& make \
+	&& make install
 
-COPY ./bioconductor_requirements.txt /opt/bioconductor_requirements.txt
-RUN Rscript -e 'if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager", repos = "https://cran.r-project.org"); \
-  packages <- readLines("/opt/bioconductor_requirements.txt"); \
-  BiocManager::install(packages, ask = FALSE)'
-# Must install remotes here first
+# Must install remotes first to use install_version and install_github
+RUN Rscript -e 'install.packages("https://cran.r-project.org/src/contrib/remotes_2.5.0.tar.gz", repos=NULL, type="source")'
+
 COPY ./requirements.txt /opt/requirements.txt
-RUN Rscript -e 'packages <- readLines("/opt/requirements.txt"); \
-  install.packages(packages, repos="http://cran.r-project.org")'
-RUN Rscript -e 'remotes::install_github("satijalab/seurat", "seurat5", quiet = TRUE)'
-RUN Rscript -e 'remotes::install_github("satijalab/seurat-data", "seurat5", quiet = TRUE)'
-RUN Rscript -e 'remotes::install_github("mojaveazure/seurat-disk", quiet = TRUE)'
+RUN Rscript -e 'lines <- readLines("/opt/requirements.txt"); \
+  for (line in lines) { \
+    parts <- strsplit(line, "==")[[1]]; \
+    pkg <- parts[1]; \
+    ver <- parts[2]; \
+    remotes::install_version(pkg, version = ver, upgrade = "always", repos = "http://cran.r-project.org"); \
+  }'
+
+# NanoStringNCTools version 1.14.0; GeomxTools version 3.10.0; GeoMxWorkflows version 1.12.0
+RUN Rscript -e "BiocManager::install(c('NanoStringNCTools', 'GeomxTools', 'GeoMxWorkflows'), ask = FALSE)"
+
+RUN Rscript -e 'remotes::install_github("satijalab/seurat@v5.2.1", quiet = TRUE)'
+# SeuratData version 0.2.2.9001
+RUN Rscript -e 'remotes::install_github("satijalab/seurat-data@3e51f44", quiet = TRUE)'
+# SeuratDisk version 0.0.0.9021
+RUN Rscript -e 'remotes::install_github("mojaveazure/seurat-disk@877d4e1", quiet = TRUE)'
 
 COPY scripts /opt/scripts
 ENV PATH "${PATH}:/opt/scripts"

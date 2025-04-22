@@ -1,5 +1,5 @@
 # pmdbs-spatial-transcriptomics-wf
-Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) workflow harmonized across ASAP with human and mouse spatial transcriptomics data for both Nanostring GeoMx and 10x Visium platforms.
+Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) workflow harmonized across ASAP with human and mouse spatial transcriptomics data for both Nanostring GeoMx and 10x Visium platforms. The main goal is to uncover spatially distinct gene expression profiles across tissue samples, enabling insights into tissue architecture, cell type composition, and disease-related molecular patterns.
 
 Common workflows, tasks, utility scripts, and docker images reused across harmonized ASAP workflows are defined in [the wf-common repository](wf-common).
 
@@ -17,7 +17,11 @@ Common workflows, tasks, utility scripts, and docker images reused across harmon
 
 Worfklows are defined in [the `workflows` directory](workflows). There is [the `pmdbs_spatial_geomx` workflow directory](workflows/pmdbs_spatial_geomx) and [the `pmdbs_spatial_visium` workflow directory](workflows/pmdbs_spatial_visium).
 
-These workflows are set up to analyze spatial transcriptomics data: Nanostring GeoMx and 10x Visium in WDL using mainly command line and a Python script.
+These workflows are set up to analyze spatial transcriptomics data: Nanostring GeoMx in WDL using command line, R, and Python scripts and 10x Visium in WDL using command line and Python scripts.
+
+## Nanostring GeoMx workflow overview
+
+For the Nanostring GeoMx workflow, we start with raw output files from the instrument and convert them into counts. Then, we clean the data by removing unreliable segments and genes, adjust for technical noise, and combine data from different samples. Finally, we cluster based on segment (which may contain many cells) and visualize their transcriptional profiles in a UMAP space.
 
 **Nanostring GeoMx workflow diagram:**
 ![Nanostring GeoMx workflow diagram](workflows/pmdbs_spatial_geomx/workflow_diagram.svg "Workflow diagram")
@@ -25,6 +29,10 @@ These workflows are set up to analyze spatial transcriptomics data: Nanostring G
 **Nanostring GeoMx entrypoint**: [workflows/pmdbs_spatial_geomx/main.wdl](workflows/pmdbs_spatial_geomx/main.wdl)
 
 **Nanostring GeoMx input template**: [workflows/pmdbs_spatial_geomx/inputs.json](workflows/pmdbs_spatial_geomx/inputs.json)
+
+## 10x Visium workflow overview
+
+For the 10x Visium workflow, we start with raw output files from the instrument and convert them into counts. Then, we clean the data by removing unreliable spots and genes, adjust for technical noise, and combine data from different samples. We cluster based on spots (which may contain many cells) and visualize their transcriptional profiles in a UMAP space. We also identify spatially variable genes to uncover expression patterns that are location-specific within the tissue.
 
 **10x Visium workflow diagram:**
 ![10x Visium workflow diagram](workflows/pmdbs_spatial_visium/workflow_diagram.svg "Workflow diagram")
@@ -67,6 +75,7 @@ An input template file can be found at [workflows/pmdbs_spatial_geomx/inputs.jso
 | Int? | max_ntc_count | Maximum counts observed in NTC well. [1000] |
 | Int? | min_nuclei | Minimum # of nuclei estimated. [100] |
 | Int? | min_segment_area | Minimum segment area. [5000] |
+| File? | cell_type_markers_list | CSV file containing a list of major cell type markers; used for detecting genes of interest. |
 | Float? | min_genes_detected_in_percent_segment | Minimum % of segments that detect the genes. [0.01] |
 | Int? | n_comps | Number of principal components to compute. [30] |
 | String? | batch_key | Key in AnnData object for batch information. ['batch_id'] |
@@ -104,21 +113,21 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 
 ## Structs
 
-### Project
+### Nanostring GeoMx structs
+
+#### Nanostring GeoMx Project
 
 | Type | Name | Description |
 | :- | :- | :- |
 | String | team_id | Unique identifier for team; used for naming output files. |
 | String | dataset_id | Unique identifier for dataset; used for naming output files. |
 | Array[[Sample](#sample)] | samples | The set of samples associated with this project. |
-| File? | project_sample_metadata_csv | CSV containing all sample information including batch, condition, etc. This is required for the bulk RNAseq pipeline. For the `batch` column, there must be at least two distinct values. |
-| File? | project_condition_metadata_csv | CSV containing condition and intervention IDs used to categorize conditions into broader groups for DESeq2 pairwise condition ('Case', 'Control', and 'Other'). This is required for the bulk RNAseq pipeline. |
-| File? | geomx_config_ini | The configuration (.ini) file, containing pipeline processing parameters. This is required for the spatial transcriptomics Nanostring GeoMx pipeline. |
+| File | geomx_config_ini | The configuration (.ini) file, containing pipeline processing parameters that is used by the GeoMx NGS pipeline to assist in converting the FASTQ files to DCC files. It is from the GeoMx DSP readout package. Sections can include `[Sequencing]`, `[Processing_v2]`, `[AOI_List]`, and `[Targets]`; see [GeoMx configuration (.ini) files notes](#geomx-configuration-(.ini)-files). |
 | Boolean | run_project_cohort_analysis | Whether or not to run cohort analysis within the project. |
 | String | raw_data_bucket | Raw data bucket; intermediate output files that are not final workflow outputs are stored here. |
 | String | staging_data_bucket | Staging data bucket; final project-level outputs are stored here. |
 
-### Sample
+#### Nanostring GeoMx Sample
 
 | Type | Name | Description |
 | :- | :- | :- |
@@ -126,12 +135,36 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | String? | batch | The sample's batch. |
 | File | fastq_R1 | Path to the sample's read 1 FASTQ file. |
 | File | fastq_R2 | Path to the sample's read 2 FASTQ file. |
-| File? | fastq_I1 | Optional fastq index 1. |
-| File? | fastq_I2 | Optional fastq index 2. |
-| File? | visium_brightfield_image | Optional 10x Visium brightfield image. This is required for the spatial transcriptomics 10x Visium pipeline. |
-| String? | visium_slide_serial_number | Optional 10x Visium slide serial number. This is required for the spatial transcriptomics 10x Visium pipeline. |
-| String? | visium_capture_area | Optional 10x Visium slide capture area. This is required for the spatial transcriptomics 10x Visium pipeline. |
-| File? | geomx_lab_annotation_xlsx | The annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx instrument study readout package. This is required for the spatial transcriptomics Nanostring GeoMx pipeline. |
+| File? | fastq_I1 | Optional FASTQ index 1. |
+| File? | fastq_I2 | Optional FASTQ index 2. |
+| File | geomx_lab_annotation_xlsx | The annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx DSP readout package; see [GeoMx Lab Worksheet notes](#geomx-lab-worksheet). |
+
+### 10x Visium structs
+
+#### 10x Visium Project
+
+| Type | Name | Description |
+| :- | :- | :- |
+| String | team_id | Unique identifier for team; used for naming output files. |
+| String | dataset_id | Unique identifier for dataset; used for naming output files. |
+| Array[[Sample](#sample)] | samples | The set of samples associated with this project. |
+| Boolean | run_project_cohort_analysis | Whether or not to run cohort analysis within the project. |
+| String | raw_data_bucket | Raw data bucket; intermediate output files that are not final workflow outputs are stored here. |
+| String | staging_data_bucket | Staging data bucket; final project-level outputs are stored here. |
+
+#### 10x Visium Sample
+
+| Type | Name | Description |
+| :- | :- | :- |
+| String | sample_id | Unique identifier for the sample within the project. |
+| String? | batch | The sample's batch. |
+| File | fastq_R1 | Path to the sample's read 1 FASTQ file. |
+| File | fastq_R2 | Path to the sample's read 2 FASTQ file. |
+| File? | fastq_I1 | Optional FASTQ index 1. |
+| File? | fastq_I2 | Optional FASTQ index 2. |
+| File | visium_brightfield_image | The 10x Visium brightfield image, which is a high-resolution image of a tissue section and used for plotting spatial coordinates. |
+| String | visium_slide_serial_number | The 10x Visium slide serial number obtained from the ASAP sample metadata. The unique identifier printed on the label of each Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary. |
+| String | visium_capture_area | The 10x Visium slide capture area obtained from the ASAP sample metadata. Active regions for capturing expression data on a Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary. |
 
 ## Generating the inputs JSON
 
@@ -239,6 +272,7 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
     │   ├── ${sampleN_id}.q3_negprobe_plot.png
     │   ├── ${sampleN_id}.normalization_plot.png
     │   ├── ${cohort_id}.merged.h5ad
+    │   ├── ${cohort_id}.hvg_dispersion.png
     │   ├── ${cohort_id}.clustered.h5ad # Final
     │   ├── ${cohort_id}.umap_cluster.png
     │   └── MANIFEST.tsv
@@ -366,14 +400,14 @@ docker
     ├── Dockerfile
     ├── requirements.txt
     └── scripts
-        ├── counts_to_adata.py
+        ├── visium_counts_to_adata.py
         ├── visium_qc.py
-        ├── merge_and_plot_visium_qc.py
-        ├── process.py
+        ├── visium_merge_and_plot_qc.py
+        ├── visium_process.py
         ├── integrate_harmony.py
         ├── cluster.py
-        ├── plot_spatial.py
-        ├── identify_spatially_variable_genes.py
+        ├── visium_plot_spatial.py
+        ├── visium_spatially_variable_genes.py
         └── ...
 ```
 
@@ -410,7 +444,7 @@ Docker images can be build using the [`build_docker_images`](https://github.com/
 | geomxngs | <ul><li>[geomxngs v3.1.1.6](https://nanostring.app.box.com/v/GeoMxSW3-1-0/folder/233772026049)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/geomxngs) | pmdbs_spatial_geomx |
 | spaceranger | <ul><li>[spaceranger v3.1.2](https://www.10xgenomics.com/support/software/space-ranger/latest/release-notes/release-notes-for-SR#v-3-1-2)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/spaceranger) | pmdbs_spatial_visium |
 | util | <ul><li>[google-cloud-cli 444.0.0-slim](https://cloud.google.com/sdk/docs/release-notes#44400_2023-08-22)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/util) | both |
-| spatial_r | R (v4.4.2) packages: <ul><li>[NanoStringNCTools v1.14.0](https://github.com/Nanostring-Biostats/NanoStringNCTools)</li><li>[Seurat v5.0.0](https://github.com/satijalab/seurat/releases/tag/v5.0.0)</li><li>[SeuratData v0.2.2.9001](https://github.com/satijalab/seurat-data/tags)</li><li>[SeuratDisk v0.0.0.9021](https://github.com/mojaveazure/seurat-disk)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/spatial_r) | pmdbs_spatial_geomx |
+| spatial_r | R (v4.4.2) packages: <ul><li>[NanoStringNCTools v1.14.0](https://github.com/Nanostring-Biostats/NanoStringNCTools)</li><li>[Seurat v5.2.1](https://github.com/satijalab/seurat/releases/tag/v5.2.1)</li><li>[SeuratData v0.2.2.9001](https://github.com/satijalab/seurat-data/tags)</li><li>[SeuratDisk v0.0.0.9021](https://github.com/mojaveazure/seurat-disk)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/spatial_r) | pmdbs_spatial_geomx |
 | spatial_py | Python (v3.12.5) libraries: <ul><li>[squidpy v1.6.2](https://github.com/scverse/squidpy/releases/tag/v1.6.2)</li><li>[matplotlib v3.10.0](https://github.com/matplotlib/matplotlib/releases/tag/v3.10.0)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li><li>[harmonypy v0.0.10](https://github.com/slowkow/harmonypy/releases/tag/v0.0.10)</li><li>[scanpy v1.10.4](https://github.com/scverse/scanpy/releases/tag/1.10.4)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/spatial_py) | both |
 
 
@@ -424,6 +458,35 @@ In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-
 # Notes
 
 ## Nanostring GeoMx notes
+
+The [GeoMx DSP Instrument User Manual](https://nanostring.com/wp-content/uploads/2022/06/MAN-10152-01-GeoMx-DSP-Instrument-User-Manual.pdf) and [GeoMx DSP Data Analysis User Manual](https://nanostring.com/wp-content/uploads/2022/06/MAN-10154-01-GeoMx-DSP-Data-Analysis-User-Manual.pdf) provide a comprehensive overview of the GeoMx DSP workflow- from sample preparation and slide scanning to sequencing and data analysis. The required input files listed below for our `pmdbs_spatial_geomx` pipeline are described in detail in these manuals. These files are included as part of the GeoMx Readout Package, which are used during the experimental runs.
+
+### GeoMx Lab Worksheet
+
+The GeoMx Lab Worksheet contains information on the contents of each well of each plate and can be useful when doing library preparation and pooling. Some columns include:
+- `Sample_ID`
+- `slide name`
+- `scan name`
+- `panel`
+- `roi`
+- `segment`
+- `aoi`
+- `area`
+- ...
+
+### GeoMx configuration (.ini) files
+
+An example of the configuration (.ini) file can be found in the [GeoMx-NGS-Pipeline-Dataset](https://nanostring.app.box.com/v/GeoMxSW3-1-0/file/1385968928681).
+
+| Section         | Description                                                                 |
+|-----------------|-----------------------------------------------------------------------------|
+| `[Sequencing]`   | Specifies sequencing platform, read pattern, library prep, etc.            |
+| `[Processing_v2]` | Core processing parameters including adapters and filters.                |
+| `[AOI_List]`      | Area of Interest, which refers to the specific regions selected on a GeoMx slide for spatial transcriptomic profiling. |
+| `[Targets]`       | Maps readout tag sequence identifiers to their corresponding nucleotide sequences. |
+
+### GeoMx DSP configuration (.pkc) files
+
 The Nanostring GeoMx configuration (.pkc) files were obtained from https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-configuration-files/.
 - [Human_WTA_v1.0](https://nanostring.com/wp-content/uploads/Hs_R_NGS_WTA_v1.0.pkc_.zip) for Human Whole Transcriptome Atlas
 - [Mouse_WTA_v1.0](https://nanostring.com/wp-content/uploads/Mm_R_NGS_WTA_v1.0.zip) or [Mouse_WTA_v2.0](https://nanostring.com/wp-content/uploads/2024/06/Mm_R_NGS_WTA_v2.0.zip) for Mouse Whole Transcriptome Atlas

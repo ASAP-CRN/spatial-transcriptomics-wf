@@ -2,7 +2,7 @@ version 1.0
 
 # Harmonized human and non-human PMDBS spatial transcriptomics workflow entrypoint for Nanostring GeoMx data
 
-import "../../wf-common/wdl/structs.wdl"
+import "structs.wdl"
 import "../../wf-common/wdl/tasks/get_workflow_metadata.wdl" as GetWorkflowMetadata
 import "preprocess/preprocess.wdl" as Preprocess
 import "cohort_analysis/cohort_analysis.wdl" as CohortAnalysis
@@ -62,7 +62,7 @@ workflow pmdbs_spatial_geomx_analysis {
 				team_id = project.team_id,
 				dataset_id = project.dataset_id,
 				samples = project.samples,
-				geomx_config_ini = select_first([project.geomx_config_ini]),
+				geomx_config_ini = project.geomx_config_ini,
 				geomxngs_config_pkc = geomxngs_config_pkc,
 				min_segment_reads = min_segment_reads,
 				min_percent_reads_trimmed = min_percent_reads_trimmed,
@@ -173,6 +173,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		Array[Array[File]?] project_processed_adata_object = project_cohort_analysis.processed_adata_object
 		## Cohort-level outputs - Merged, integrated and clustered adata objects, and plots
 		Array[File?] project_merged_adata_object = project_cohort_analysis.merged_adata_object
+		Array[File?] project_hvg_plot_png = project_cohort_analysis.hvg_plot_png
 		Array[File?] project_integrated_adata_object = project_cohort_analysis.integrated_adata_object
 		Array[File?] project_clustered_adata_object = project_cohort_analysis.clustered_adata_object
 		Array[File?] project_umap_cluster_plots_png = project_cohort_analysis.umap_cluster_plots_png
@@ -193,6 +194,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		Array[File]? cohort_processed_adata_object = cross_team_cohort_analysis.processed_adata_object
 		## Cohort-level outputs - Merged, integrated and clustered adata objects, and plots
 		File? cohort_merged_adata_object = cross_team_cohort_analysis.merged_adata_object
+		File? cohort_hvg_plot_png = cross_team_cohort_analysis.hvg_plot_png
 		File? cohort_integrated_adata_object = cross_team_cohort_analysis.integrated_adata_object
 		File? cohort_clustered_adata_object = cross_team_cohort_analysis.clustered_adata_object
 		File? cohort_umap_cluster_plots_png = cross_team_cohort_analysis.umap_cluster_plots_png
@@ -217,7 +219,9 @@ workflow pmdbs_spatial_geomx_analysis {
 		max_ntc_count: {help: "Maximum counts observed in NTC well. [1000]"}
 		min_nuclei: {help: "Minimum # of nuclei estimated. [100]"}
 		min_segment_area: {help: "Minimum segment area. [5000]"}
+		cell_type_markers_list: {help: "CSV file containing a list of major cell type markers; used for detecting genes of interest."}
 		min_genes_detected_in_percent_segment: {help: "Minimum % of segments that detect the genes. [0.01]"}
+		n_top_genes: {help: "Number of highly-variable genes to keep. [3000]"}
 		n_comps: {help: "Number of principal components to compute. [30]"}
 		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}
 		leiden_resolution: {help: "Value controlling the coarseness of the Leiden clustering. [0.4]"}
