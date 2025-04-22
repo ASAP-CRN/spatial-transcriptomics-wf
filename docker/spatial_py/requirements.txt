@@ -10,3 +10,5 @@ harmonypy==0.0.10
 scanpy==1.10.4
 dask==2024.11.2
 distributed==2024.11.2
+numcodecs==0.11.0
+

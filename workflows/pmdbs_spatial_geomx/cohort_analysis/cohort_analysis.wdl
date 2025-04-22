@@ -334,7 +334,7 @@ task merge_and_prep {
 		set -euo pipefail
 
 		python3 /opt/scripts/geomx_merge_and_prep.py \
-			--adata-paths-input ~{write_lines(processed_adata_objects)} \
+			--adata-paths-input ~{sep=' ' processed_adata_objects} \
 			--n-top-genes ~{n_top_genes} \
 			--n-comps ~{n_comps} \
 			--plots-prefix ~{cohort_id} \
