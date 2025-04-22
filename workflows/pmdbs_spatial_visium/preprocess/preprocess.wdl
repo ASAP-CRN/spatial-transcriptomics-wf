@@ -168,7 +168,7 @@ workflow preprocess {
 	}
 
 	meta {
-		description: "Preprocess the 10x Visium data by running spaceranger count, converting counts to AnnData object, and QC with scanpy."
+		description: "Preprocess the 10x Visium data by running spaceranger count, convert counts to AnnData object, and QC with scanpy."
 	}
 
 	parameter_meta {

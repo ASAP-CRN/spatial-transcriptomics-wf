@@ -163,6 +163,32 @@ workflow cohort_analysis {
 		Array[File] preprocess_manifest_tsvs = upload_preprocess_files.manifests #!FileCoercion
 		Array[File] cohort_analysis_manifest_tsvs = upload_cohort_analysis_files.manifests #!FileCoercion
 	}
+
+	meta {
+		description: "Run team-level and/or cross-team cohort analysis on the Nanostring GeoMx data by filtering, normalization, dimensionality reduction, sample integration, and clustering."
+	}
+
+	parameter_meta {
+		cohort_id: {help: "Name of the cohort; used to name output files."}
+		project_sample_ids: {help: "Associated team ID and sample ID; used to generate a sample list."}
+		preprocessed_rds_objects: {help: "An array of preprocessed RDS objects to run cohort analysis on."}
+		preprocessing_output_file_paths: {help: "Selected preprocessed output files to upload to the staging bucket alongside selected cohort analysis output files."}
+		cell_type_markers_list: {help: "CSV file containing a list of major cell type markers; used for detecting genes of interest."}
+		min_genes_detected_in_percent_segment: {help: "Minimum % of segments that detect the genes. [0.01]"}
+		n_top_genes: {help: "Number of highly-variable genes to keep. [3000]"}
+		n_comps: {help: "Number of principal components to compute. [30]"}
+		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}
+		leiden_resolution: {help: "Value controlling the coarseness of the Leiden clustering. [0.4]"}
+		workflow_name: {help: "Workflow name; stored in the file-level manifest and final manifest with all saved files."}
+		workflow_version: {help: "Workflow version; stored in the file-level manifest and final manifest with all saved files."}
+		workflow_release: {help: "GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		run_timestamp: {help: "UTC timestamp; stored in the file-level manifest and final manifest with all saved files."}
+		raw_data_path_prefix: {help: "Raw data bucket path prefix; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/cohort_analysis`)."}
+		staging_data_buckets: {help: "Array of staging data buckets to upload intermediate files to (i.e., DEV or UAT buckets depending on internal QC status)."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
+	}
 }
 
 task filter_and_normalize {
@@ -223,6 +249,21 @@ task filter_and_normalize {
 		bootDiskSizeGb: 5
 		zones: zones
 	}
+
+	meta {
+		description: "Perform Limit of Quantification (LOQ), filter segments and/or genes with low signal, and normalize (Q3 and background)."
+	}
+
+	parameter_meta {
+		preprocessed_rds_object: {help: "Preprocessed RDS object to run cohort analysis on."}
+		cell_type_markers_list: {help: "CSV file containing a list of major cell type markers; used for detecting genes of interest."}
+		min_genes_detected_in_percent_segment: {help: "Minimum % of segments that detect the genes. [0.01]"}
+		raw_data_path: {help: "Raw data bucket path for processed RDS and gene detection and normalization plots outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/cohort_analysis/<cohort_analysis_version>/<run_timestamp>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
+	}
 }
 
 task rds_to_adata {
@@ -258,6 +299,16 @@ task rds_to_adata {
 		preemptible: 3
 		bootDiskSizeGb: 5
 		zones: zones
+	}
+
+	meta {
+		description: "Convert processed NanoStringGeoMxSet (.RDS) object to AnnData object with Seurat."
+	}
+
+	parameter_meta {
+		processed_rds_object: {help: "Processed RDS object to convert into an AnnData object."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
 	}
 }
 
@@ -311,5 +362,21 @@ task merge_and_prep {
 		preemptible: 3
 		bootDiskSizeGb: 5
 		zones: zones
+	}
+
+	meta {
+		description: "Merge sample-level AnnData objects to a single cohort-level AnnData object, and prepare for downstream analysis by annotating highly-variable genes (HVG) and performing PCA."
+	}
+
+	parameter_meta {
+		cohort_id: {help: "Name of the cohort; used to name output files."}
+		processed_adata_objects: {help: "An array of processed AnnData object to merge."}
+		n_top_genes: {help: "Number of highly-variable genes to keep. [3000]"}
+		n_comps: {help: "Number of principal components to compute. [30]"}
+		raw_data_path: {help: "Raw data bucket path for merged adata and HVG plot outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/cohort_analysis/<cohort_analysis_version>/<run_timestamp>`)."}
+		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
+		billing_project: {help: "Billing project to charge GCP costs."}
+		container_registry: {help: "Container registry where workflow Docker images are hosted."}
+		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
 	}
 }

@@ -221,6 +221,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		min_segment_area: {help: "Minimum segment area. [5000]"}
 		cell_type_markers_list: {help: "CSV file containing a list of major cell type markers; used for detecting genes of interest."}
 		min_genes_detected_in_percent_segment: {help: "Minimum % of segments that detect the genes. [0.01]"}
+		n_top_genes: {help: "Number of highly-variable genes to keep. [3000]"}
 		n_comps: {help: "Number of principal components to compute. [30]"}
 		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}
 		leiden_resolution: {help: "Value controlling the coarseness of the Leiden clustering. [0.4]"}

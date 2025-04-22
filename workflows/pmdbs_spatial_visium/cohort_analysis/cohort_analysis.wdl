@@ -193,7 +193,7 @@ workflow cohort_analysis {
 	}
 
 	meta {
-		description: "Run team-level and/or cross-team cohort analysis on the 10x Visium data by filtering, normalization, dimensionality reudction, sample integration, clustering, and spatially variable gene analysis."
+		description: "Run team-level and/or cross-team cohort analysis on the 10x Visium data by filtering, normalization, dimensionality reduction, sample integration, clustering, and spatially variable gene analysis."
 	}
 
 	parameter_meta {
@@ -348,7 +348,7 @@ task filter_and_normalize {
 	}
 
 	meta {
-		description: "Filter and normalize cells and genes, annotate highly variable genes (HVG), and perform PCA."
+		description: "Filter spots based on total counts and genes, normalize, annotate highly-variable genes (HVG), and perform PCA."
 	}
 
 	parameter_meta {
