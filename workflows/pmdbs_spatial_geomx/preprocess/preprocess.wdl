@@ -334,7 +334,7 @@ task fastq_to_dcc {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 5
+		bootDiskSizeGb: 10
 		zones: zones
 	}
 
@@ -410,7 +410,7 @@ task dcc_to_rds {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 5
+		bootDiskSizeGb: 10
 		zones: zones
 	}
 
@@ -501,7 +501,7 @@ task qc {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 5
+		bootDiskSizeGb: 10
 		zones: zones
 	}
 
