@@ -198,7 +198,7 @@ workflow cohort_analysis {
 
 	parameter_meta {
 		cohort_id: {help: "Name of the cohort; used to name output files."}
-		project_sample_ids: {help: "Associated team ID and sample ID; used to generate a sample list."}
+		project_sample_ids: {help: "Associated team ID, sample ID, and dataset DOI URL; used to generate a sample list."}
 		preprocessed_adata_objects: {help: "An array of preprocessed AnnData objects to run cohort analysis on."}
 		preprocessing_output_file_paths: {help: "Selected preprocessed output files to upload to the staging bucket alongside selected cohort analysis output files."}
 		filter_cells_min_counts: {help: "Minimum number of counts required for a cell to pass filtering. [5000]"}
