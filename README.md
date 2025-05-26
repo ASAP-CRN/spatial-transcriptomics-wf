@@ -170,7 +170,7 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 
 ## Generating the inputs JSON
 
-The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The `generate_inputs` utility script may be used to automatically generate the inputs JSON. The script requires the libraries outlined in [the requirements.txt file](wf-common/util/requirements.txt) and the following inputs:
+The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The `generate_inputs` utility script may be used to automatically generate the inputs JSON (`inputs.{staging_env}.{source}-{cohort_dataset}.{date}.json` and a sample list TSV (`{team_id}.{source}-{cohort_dataset}.sample_list.{date}.tsv`; same as the one generated in [the write_cohort_sample_list task](wf-common/wdl/tasks/write_cohort_sample_list.wdl)). The script requires the libraries outlined in [the requirements.txt file](wf-common/util/requirements.txt) and the following inputs:
 
 - `project-tsv`: One or more project TSVs with one row per sample and columns team_id, ASAP_dataset_id, ASAP_sample_id, batch, fastq_R1s, fastq_R2s, fastq_I1s, fastq_I2s, embargoed, source, dataset, dataset_DOI_url, and SPATIAL columns if applicable: geomx_config, geomx_dsp_config, geomx_annotation_file, visium_cytassist, visium_probe_set, visium_slide_ref, and visium_capture_area. All samples from all projects may be included in the same project TSV, or multiple project TSVs may be provided.
 	- `team_id`: A unique identifier for the team from which the sample(s) arose.
@@ -193,7 +193,6 @@ The inputs JSON may be generated manually, however when running a large number o
 - `run-project-cohort-analysis`: Optionally run project-level cohort analysis for provided projects. This value will apply to all projects. [false]
 - `workflow_name`: WDL workflow name.
 - `cohort-dataset`: Dataset name in cohort bucket name (e.g. 'sc-rnaseq').
-- `output-file-prefix`: Optional output file prefix name. [inputs.{staging_env}.{source}-{cohort_dataset}.{date}.json]
 
 Example usage:
 
@@ -203,16 +202,14 @@ Example usage:
 	--inputs-template workflows/inputs.json \
 	--run-project-cohort-analysis \
 	--workflow-name pmdbs_spatial_geomx_analysis \
-	--cohort-dataset spatial-geomx \
-	--output-file inputs.harmonized_spatial_geomx_workflow.json
+	--cohort-dataset spatial-geomx
 
 ./wf-common/util/generate_inputs \
 	--project-tsv metadata.tsv \
 	--inputs-template workflows/inputs.json \
 	--run-project-cohort-analysis \
 	--workflow-name pmdbs_spatial_visium_analysis \
-	--cohort-dataset spatial-visium \
-	--output-file inputs.harmonized_spatial_visium_workflow.json
+	--cohort-dataset spatial-visium
 ```
 
 # Outputs
