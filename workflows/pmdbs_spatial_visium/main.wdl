@@ -52,6 +52,7 @@ workflow pmdbs_spatial_visium_analysis {
 			input:
 				team_id = project.team_id,
 				dataset_id = project.dataset_id,
+				dataset_doi_url = project.dataset_doi_url,
 				samples = project.samples,
 				spaceranger_reference_data = spaceranger_reference_data,
 				visium_probe_set_csv = visium_probe_set_csv,

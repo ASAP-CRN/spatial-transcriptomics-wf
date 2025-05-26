@@ -121,6 +121,7 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | :- | :- | :- |
 | String | team_id | Unique identifier for team; used for naming output files. |
 | String | dataset_id | Unique identifier for dataset; used for naming output files. |
+| String | dataset_doi_url | Generated Zenodo DOI URL referencing the dataset. |
 | Array[[Sample](#sample)] | samples | The set of samples associated with this project. |
 | File | geomx_config_ini | The configuration (.ini) file, containing pipeline processing parameters that is used by the GeoMx NGS pipeline to assist in converting the FASTQ files to DCC files. It is from the GeoMx DSP readout package. Sections can include `[Sequencing]`, `[Processing_v2]`, `[AOI_List]`, and `[Targets]`; see [GeoMx configuration (.ini) files notes](#geomx-configuration-(.ini)-files). |
 | Boolean | run_project_cohort_analysis | Whether or not to run cohort analysis within the project. |
@@ -147,6 +148,7 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | :- | :- | :- |
 | String | team_id | Unique identifier for team; used for naming output files. |
 | String | dataset_id | Unique identifier for dataset; used for naming output files. |
+| String | dataset_doi_url | Generated Zenodo DOI URL referencing the dataset. |
 | Array[[Sample](#sample)] | samples | The set of samples associated with this project. |
 | Boolean | run_project_cohort_analysis | Whether or not to run cohort analysis within the project. |
 | String | raw_data_bucket | Raw data bucket; intermediate output files that are not final workflow outputs are stored here. |
@@ -168,20 +170,29 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 
 ## Generating the inputs JSON
 
-The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The `generate_inputs` utility script may be used to automatically generate the inputs JSON. The script requires the libraries outlined in [the requirements.txt file](wf-common/util/requirements.txt) and the following inputs:
+The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The `generate_inputs` utility script may be used to automatically generate the inputs JSON (`inputs.{staging_env}.{source}-{cohort_dataset}.{date}.json` and a sample list TSV (`{team_id}.{source}-{cohort_dataset}.sample_list.{date}.tsv`; same as the one generated in [the write_cohort_sample_list task](wf-common/wdl/tasks/write_cohort_sample_list.wdl)). The script requires the libraries outlined in [the requirements.txt file](wf-common/util/requirements.txt) and the following inputs:
 
-- `project-tsv`: One or more project TSVs with one row per sample and columns team_id, sample_id, batch, fastq_path. All samples from all projects may be included in the same project TSV, or multiple project TSVs may be provided.
-	- `team_id`: A unique identifier for the team from which the sample(s) arose
-	- `dataset_id`: A unique identifier for the dataset from which the sample(s) arose
-	- `sample_id`: A unique identifier for the sample within the project
-	- `batch`: The sample's batch
-	- `fastq_path`: The directory in which paired sample FASTQs may be found, including the gs:// bucket name and path
-		- This is appended to the `project-tsv` from the `fastq-locs-txt`: FASTQ locations for all samples provided in the `project-tsv`, one per line. Each sample is expected to have one set of paired fastqs located at `${fastq_path}/${sample_id}*`. The read 1 file should include 'R1' somewhere in the filename; the read 2 file should inclue 'R2' somewhere in the filename. Generate this file e.g. by running `gsutil ls gs://fastq_bucket/some/path/**.fastq.gz >> fastq_locs.txt`
+- `project-tsv`: One or more project TSVs with one row per sample and columns team_id, ASAP_dataset_id, ASAP_sample_id, batch, fastq_R1s, fastq_R2s, fastq_I1s, fastq_I2s, embargoed, source, dataset, dataset_DOI_url, and SPATIAL columns if applicable: geomx_config, geomx_dsp_config, geomx_annotation_file, visium_cytassist, visium_probe_set, visium_slide_ref, and visium_capture_area. All samples from all projects may be included in the same project TSV, or multiple project TSVs may be provided.
+	- `team_id`: A unique identifier for the team from which the sample(s) arose.
+	- `ASAP_dataset_id`: A generated unique identifier for the dataset from which the sample(s) arose.
+	- `ASAP_sample_id`: A generated unique identifier for the sample within the project.
+	- `batch`: The sample's batch.
+	- `fastq_R1s`: The gs uri to read 1 of sample FASTQ.
+		- This is appended to the `project-tsv` from the `fastq-locs-txt`: FASTQ locations for all samples provided in the `project-tsv`. Each sample is expected to have one set of paired fastqs located at `${fastq_path}/${sample_id}*`. The read 1 file should include 'R1' somewhere in the filename. Generate this file e.g. by running `gsutil ls gs://fastq_bucket/some/path/**.fastq.gz >> fastq_locs.txt`.
+	- `fastq_R2s`: The gs uri to read 2 of sample FASTQ.
+		- This is appended to the `project-tsv` from the `fastq-locs-txt`: FASTQ locations for all samples provided in the `project-tsv`. Each sample is expected to have one set of paired fastqs located at `${fastq_path}/${sample_id}*`. The read 2 file should include 'R2' somewhere in the filename. Generate this file e.g. by running `gsutil ls gs://fastq_bucket/some/path/**.fastq.gz >> fastq_locs.txt`.
+	- `fastq_I1s`: The gs uri to sample FASTQ index 1.
+	- `fastq_I2s`: The gs uri to sample FASTQ index 2.
+	- `embargoed`: The internal QC/embargo status of dataset.
+	- `source`: The source of dataset (e.g. 'pmdbs').
+	- `dataset`: The assigned dataset name without the source (e.g. 'sn-rnaseq')
+	- `dataset_DOI_url`: Generated Zenodo DOI URL referencing the dataset.
+	- `geomx_config`, `geomx_dsp_config`, `geomx_annotation_file`: go to [Nanostring GeoMx inputs](#nanostring-geomx-inputs)
+	- `visium_cytassist`, `visium_probe_set`, `visium_slide_ref`, `visium_capture_area`: go to [10x Visium inputs](#10x-visium-inputs)
 - `inputs-template`: The inputs template JSON file into which the `projects` information derived from the `project-tsv` will be inserted. Must have a key ending in `*.projects`. Other default values filled out in the inputs template will be written to the output inputs.json file.
 - `run-project-cohort-analysis`: Optionally run project-level cohort analysis for provided projects. This value will apply to all projects. [false]
 - `workflow_name`: WDL workflow name.
 - `cohort-dataset`: Dataset name in cohort bucket name (e.g. 'sc-rnaseq').
-- `output-file-prefix`: Optional output file prefix name. [inputs.{cohort_staging_bucket_type}.{source}-{cohort_dataset}.{date}.json]
 
 Example usage:
 
@@ -191,16 +202,14 @@ Example usage:
 	--inputs-template workflows/inputs.json \
 	--run-project-cohort-analysis \
 	--workflow-name pmdbs_spatial_geomx_analysis \
-	--cohort-dataset spatial-geomx \
-	--output-file inputs.harmonized_spatial_geomx_workflow.json
+	--cohort-dataset spatial-geomx
 
 ./wf-common/util/generate_inputs \
 	--project-tsv metadata.tsv \
 	--inputs-template workflows/inputs.json \
 	--run-project-cohort-analysis \
 	--workflow-name pmdbs_spatial_visium_analysis \
-	--cohort-dataset spatial-visium \
-	--output-file inputs.harmonized_spatial_visium_workflow.json
+	--cohort-dataset spatial-visium
 ```
 
 # Outputs

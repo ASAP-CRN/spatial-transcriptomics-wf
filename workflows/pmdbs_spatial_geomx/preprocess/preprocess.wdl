@@ -8,6 +8,7 @@ workflow preprocess {
 	input {
 		String team_id
 		String dataset_id
+		String dataset_doi_url
 		Array[Sample] samples
 
 		File geomx_config_ini
@@ -65,7 +66,7 @@ workflow preprocess {
 	scatter (sample_index in range(length(samples))) {
 		Sample sample = samples[sample_index]
 
-		Array[String] project_sample_id = [team_id, sample.sample_id]
+		Array[String] project_sample_id = [team_id, sample.sample_id, dataset_doi_url]
 
 		String fastq_to_dcc_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][0]
 		String dcc_to_rds_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][1]
@@ -172,6 +173,7 @@ workflow preprocess {
 	parameter_meta {
 		team_id: {help: "Name of the CRN Team; stored in the NanoStringGeoMxSet objects."}
 		dataset_id: {help: "Generated ASAP dataset ID; stored in the NanoStringGeoMxSet objects."}
+		dataset_doi_url: {help: "Generated Zenodo DOI URL referencing the dataset."}
 		samples: {help: "An array of Sample struct, set of samples and their associated reads and GeoMx experimental information including the annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx DSP readout package."}
 		geomx_config_ini: {help: "The configuration (.ini) file, containing pipeline processing parameters that is used by the GeoMx NGS pipeline to assist in converting the FASTQ files to DCC files. It is from the GeoMx DSP readout package."}
 		geomxngs_config_pkc: {help: "The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers."}

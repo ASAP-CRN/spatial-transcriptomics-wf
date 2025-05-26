@@ -61,6 +61,7 @@ workflow pmdbs_spatial_geomx_analysis {
 			input:
 				team_id = project.team_id,
 				dataset_id = project.dataset_id,
+				dataset_doi_url = project.dataset_doi_url,
 				samples = project.samples,
 				geomx_config_ini = project.geomx_config_ini,
 				geomxngs_config_pkc = geomxngs_config_pkc,

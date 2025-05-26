@@ -8,6 +8,7 @@ workflow preprocess {
 	input {
 		String team_id
 		String dataset_id
+		String dataset_doi_url
 		Array[Sample] samples
 
 		File spaceranger_reference_data
@@ -55,7 +56,7 @@ workflow preprocess {
 	scatter (sample_index in range(length(samples))) {
 		Sample sample = samples[sample_index]
 
-		Array[String] project_sample_id = [team_id, sample.sample_id]
+		Array[String] project_sample_id = [team_id, sample.sample_id, dataset_doi_url]
 
 		String spaceranger_count_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][0]
 		String counts_to_adata_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][1]
@@ -174,6 +175,7 @@ workflow preprocess {
 	parameter_meta {
 		team_id: {help: "Name of the CRN Team; stored in the AnnData objects."}
 		dataset_id: {help: "Generated ASAP dataset ID; stored in the AnnData objects."}
+		dataset_doi_url: {help: "Generated Zenodo DOI URL referencing the dataset."}
 		samples: {help: "An array of Sample struct, set of samples and their associated reads and Visium experimental information including the brightfield image, slide serial number, and capture area."}
 		spaceranger_reference_data: {help: "Space Ranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads."}
 		visium_probe_set_csv: {help: "Visium probe-based assays target genes in Space Ranger transcriptome; see https://www.10xgenomics.com/support/software/space-ranger/downloads."}

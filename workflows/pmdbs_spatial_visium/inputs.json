@@ -1,6 +1,6 @@
 {
   "pmdbs_spatial_visium_analysis.cohort_id": "String",
-  "pmdbs_spatial_visium_analysis.projects": "Array[WomCompositeType {\n project_condition_metadata_csv -> File?\nproject_sample_metadata_csv -> File?\nteam_id -> String\ndataset_id -> String\ngeomx_config_ini -> File?\nsamples -> Array[WomCompositeType {\n fastq_I1s -> Array[File]\nsample_id -> String\nfastq_R1s -> Array[File]+\nbatch -> String?\nvisium_capture_area -> String?\ngeomx_lab_annotation_xlsx -> File?\nvisium_brightfield_image -> File?\nfastq_I2s -> Array[File]\nvisium_slide_serial_number -> String?\nfastq_R2s -> Array[File]+ \n}]\nstaging_data_buckets -> Array[String]\nrun_project_cohort_analysis -> Boolean\nraw_data_bucket -> String \n}]",
+  "pmdbs_spatial_visium_analysis.projects": "Array[WomCompositeType {\n team_id -> String\ndataset_id -> String\nsamples -> Array[WomCompositeType {\n fastq_I1s -> Array[File]\nsample_id -> String\nfastq_R1s -> Array[File]+\nbatch -> String?\nvisium_capture_area -> String\nvisium_brightfield_image -> File\nfastq_I2s -> Array[File]\nvisium_slide_serial_number -> String\nfastq_R2s -> Array[File]+ \n}]\nstaging_data_buckets -> Array[String]\nrun_project_cohort_analysis -> Boolean\ndataset_doi_url -> String\nraw_data_bucket -> String \n}]",
   "pmdbs_spatial_visium_analysis.spaceranger_reference_data": "File",
   "pmdbs_spatial_visium_analysis.visium_probe_set_csv": "File",
   "pmdbs_spatial_visium_analysis.filter_cells_min_counts": "Int (optional, default = 5000)",
