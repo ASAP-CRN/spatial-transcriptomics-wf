@@ -308,21 +308,18 @@ task spaceranger_count {
 			~{write_lines(fastq_I1s)} \
 			~{write_lines(fastq_I2s)})
 
-		# Get sample from fastq filename
-		sample=$(basename ~{fastq_R1s[0]} | sed -E 's/_S[0-9]+_R1_001\.f(ast)?q\.gz$//')
-
 		spaceranger --version
 
 		# TODO once teams submit data,
 		## Rename image?
 		## Determine if CytAssist was used because it'll change the command options
-		## What version of Transcriptome v1 or v2
+		### What version of Transcriptome v1 or v2 for probe set
 		/usr/bin/time \
 		spaceranger count \
 			--id=~{sample_id} \
 			--transcriptome="$(pwd)/spaceranger_refdata" \
 			--fastqs="$(pwd)/fastqs" \
-			--sample="${sample}" \
+			--sample=~{sample_id} \
 			--image=~{visium_brightfield_image} \
 			--slide=~{visium_slide_serial_number} \
 			--area=~{visium_capture_area} \
