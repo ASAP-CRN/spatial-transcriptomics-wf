@@ -388,7 +388,7 @@ task spaceranger_count {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 10
+		bootDiskSizeGb: 15
 		zones: zones
 	}
 
