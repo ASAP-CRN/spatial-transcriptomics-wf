@@ -12,7 +12,7 @@ workflow preprocess {
 		Array[Sample] samples
 
 		File spaceranger_reference_data
-		File visium_probe_set_csv
+		File? visium_probe_set_csv
 
 		String workflow_name
 		String workflow_version
@@ -267,7 +267,7 @@ task spaceranger_count {
 		String visium_capture_area
 
 		File spaceranger_reference_data
-		File visium_probe_set_csv
+		File? visium_probe_set_csv
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -308,6 +308,9 @@ task spaceranger_count {
 			~{write_lines(fastq_I1s)} \
 			~{write_lines(fastq_I2s)})
 
+		# Get sample from fastq filename
+		sample=$(basename ~{fastq_R1s[0]} | sed -E 's/_S[0-9]+_R1_001\.f(ast)?q\.gz$//')
+
 		spaceranger --version
 
 		# TODO once teams submit data,
@@ -319,8 +322,8 @@ task spaceranger_count {
 			--id=~{sample_id} \
 			--transcriptome="$(pwd)/spaceranger_refdata" \
 			--fastqs="$(pwd)/fastqs" \
-			--cytaimage=~{visium_brightfield_image} \
-			--probe-set=~{visium_probe_set_csv} \
+			--sample="${sample}" \
+			--image=~{visium_brightfield_image} \
 			--slide=~{visium_slide_serial_number} \
 			--area=~{visium_capture_area} \
 			--localcores=~{threads} \
@@ -403,7 +406,7 @@ task spaceranger_count {
 		visium_slide_serial_number: {help: "The 10x Visium slide serial number obtained from the ASAP sample metadata. The unique identifier printed on the label of each Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary."}
 		visium_capture_area: {help: "The 10x Visium slide capture area obtained from the ASAP sample metadata. Active regions for capturing expression data on a Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary."}
 		spaceranger_reference_data: {help: "Space Ranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads."}
-		visium_probe_set_csv: {help: "Visium probe-based assays target genes in Space Ranger transcriptome; see https://www.10xgenomics.com/support/software/space-ranger/downloads."}
+		visium_probe_set_csv: {help: "Visium probe-based assays target genes in Space Ranger transcriptome; see https://www.10xgenomics.com/support/software/space-ranger/downloads (optional; depends on type of Visium used)."}
 		raw_data_path: {help: "Raw data bucket path for spaceranger count outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess/spaceranger_count/<spaceranger_count_task_version>`)."}
 		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
 		billing_project: {help: "Billing project to charge GCP costs."}

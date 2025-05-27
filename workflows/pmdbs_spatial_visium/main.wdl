@@ -13,7 +13,7 @@ workflow pmdbs_spatial_visium_analysis {
 		Array[Project] projects
 
 		File spaceranger_reference_data
-		File visium_probe_set_csv
+		File? visium_probe_set_csv
 
 		# Processing parameters
 		Int filter_cells_min_counts = 5000
