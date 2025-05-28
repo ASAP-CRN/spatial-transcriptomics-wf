@@ -460,7 +460,7 @@ task counts_to_adata {
 		memory: "16 GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 10
+		bootDiskSizeGb: 15
 		zones: zones
 	}
 
@@ -523,7 +523,7 @@ task qc {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 10
+		bootDiskSizeGb: 15
 		zones: zones
 	}
 
