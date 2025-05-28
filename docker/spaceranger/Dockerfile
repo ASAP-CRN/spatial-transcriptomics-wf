@@ -22,7 +22,7 @@ RUN apt-get -qq update \
 ARG SPACERANGER_VERSION
 ENV SPACERANGER_VERSION "${SPACERANGER_VERSION}"
 # N.B. this must be passed as a build arg (using the utility script: -b SPACERANGER_DOWNLOAD_QUERY_STRING='xxyy')
-#   Enter information here: https://www.10xgenomics.com/support/software/space-ranger/downloads
+#   Enter information here: https://www.10xgenomics.com/support/software/space-ranger/downloads/previous-versions
 #   The value of SPACERANGER_DOWNLOAD_QUERY_STRING = everything following the ? in the cURL request URL (no quotes)
 ARG SPACERANGER_DOWNLOAD_QUERY_STRING
 RUN curl -o spaceranger-${SPACERANGER_VERSION}.tar.gz \
