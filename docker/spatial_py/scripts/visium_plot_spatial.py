@@ -15,7 +15,7 @@ def main(args):
 
     sq.pl.spatial_scatter(
         adata,
-        library_key="sample",
+        library_key="visium_slide_ref",
         color=colors,
         title=titles,
     )

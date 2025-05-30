@@ -15,7 +15,7 @@ def main(args):
     genes = adata.var_names[adata.var["highly_variable"]].tolist()
     sq.gr.spatial_neighbors(
         adata,
-        library_key="sample",
+        library_key="visium_slide_ref",
         coord_type="generic",
         delaunay=True,
     )
@@ -34,7 +34,7 @@ def main(args):
     titles = [f"{sample} - {color}" for sample in samples for color in top_3_variable_gene_list]
     sq.pl.spatial_scatter(
         adata,
-        library_key="sample",
+        library_key="visium_slide_ref",
         color=top_3_variable_gene_list,
         title=titles,
     )

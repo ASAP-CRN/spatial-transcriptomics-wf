@@ -13,10 +13,10 @@ def main(args):
     adata = sq.read.visium(
         path=args.spaceranger_spatial_dir,
         counts_file="filtered_feature_bc_matrix.h5",
-        library_id=args.sample_id,
+        library_id=args.slide,
     )
 
-    # Gene names is the index for adata.var, but there are duplicates genes so this will make it unique (e.g. TBCE vs. TBCE-1)
+    # Barcodes (or genes depending on Visium version) are the index for adata.var, if there are duplicates this will make it unique (e.g. TBCE vs. TBCE-1)
     adata.var_names_make_unique()
 
     # Add metadata
