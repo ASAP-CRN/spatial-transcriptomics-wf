@@ -117,6 +117,8 @@ workflow preprocess {
 					dataset_id = dataset_id,
 					sample_id = sample.sample_id,
 					batch = select_first([sample.batch]),
+					visium_slide_serial_number = sample.visium_slide_serial_number,
+					visium_capture_area = sample.visium_capture_area,
 					spaceranger_spatial_tar_gz = spatial_outputs_tar_gz_output,
 					raw_data_path = adata_raw_data_path,
 					workflow_info = workflow_info,
@@ -418,6 +420,8 @@ task counts_to_adata {
 		String dataset_id
 		String sample_id
 		String batch
+		String visium_slide_serial_number
+		String visium_capture_area
 
 		File spaceranger_spatial_tar_gz
 
@@ -440,6 +444,8 @@ task counts_to_adata {
 			--dataset ~{dataset_id} \
 			--sample-id ~{sample_id} \
 			--batch ~{batch} \
+			--slide ~{visium_slide_serial_number} \
+			--area ~{visium_capture_area} \
 			--spaceranger-spatial-dir spatial_outputs \
 			--adata-output ~{sample_id}.initial_adata_object.h5ad
 
@@ -473,6 +479,8 @@ task counts_to_adata {
 		dataset_id: {help: "Generated ASAP dataset ID; stored in the AnnData objects."}
 		sample_id: {help: "Generated ASAP sample ID; stored in the AnnData objects and used to name output files."}
 		batch: {help: "The sample's batch; stored in the AnnData objects."}
+		visium_slide_serial_number: {help: "The 10x Visium slide serial number obtained from the ASAP sample metadata. The unique identifier printed on the label of each Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary."}
+		visium_capture_area: {help: "The 10x Visium slide capture area obtained from the ASAP sample metadata. Active regions for capturing expression data on a Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary."}
 		spaceranger_spatial_tar_gz: {help: "Spaceranger spatial outputs directory (`<sample>/outs`; must be unmodified)."}
 		raw_data_path: {help: "Raw data bucket path for counts to adata outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess/counts_to_adata/<counts_to_adata_task_version>`)."}
 		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}

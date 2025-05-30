@@ -25,6 +25,8 @@ def main(args):
     adata.obs["sample"] = args.sample_id
     adata.obs["batch"] = args.batch
     adata.obs["batch_id"] = f"{args.team_id}_{args.dataset_id}_{args.batch}"
+    adata.obs["visium_slide_ref"] = args.slide
+    adata.obs["visium_capture_area"] = args.area
     
     # Save adata object
     adata.write_h5ad(filename=args.adata_output, compression="gzip")
@@ -61,6 +63,20 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="Batch from which the sample/dataset originated"
+    )
+    parser.add_argument(
+        "-i",
+        "--slide",
+        type=str,
+        required=True,
+        help="The 10x Visium slide serial number"
+    )
+    parser.add_argument(
+        "-a",
+        "--area",
+        type=str,
+        required=True,
+        help="The 10x Visium slide capture area"
     )
     parser.add_argument(
         "-f",
