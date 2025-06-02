@@ -385,7 +385,7 @@ task dcc_to_rds {
 
 		unzip -d ./dcc_files_dir -j ~{geomxngs_dcc_zip}
 
-		Rscript /opt/scripts/geomx_counts_to_rds.R \
+		Rscript geomx_counts_to_rds.R \
 			--team-id ~{team_id} \
 			--dataset-id ~{dataset_id} \
 			--sample-id ~{sample_id} \
@@ -466,7 +466,7 @@ task qc {
 	command <<<
 		set -euo pipefail
 
-		Rscript /opt/scripts/geomx_qc.R \
+		Rscript geomx_qc.R \
 			--sample-id ~{sample_id} \
 			--input ~{initial_rds_object} \
 			--min-reads ~{min_segment_reads} \
