@@ -432,7 +432,7 @@ task counts_to_adata {
 		String zones
 	}
 
-	Int disk_size = ceil(size([spaceranger_spatial_tar_gz], "GB") * 2 + 20)
+	Int disk_size = ceil(size([spaceranger_spatial_tar_gz], "GB") * 2 + 30)
 
 	command <<<
 		set -euo pipefail
