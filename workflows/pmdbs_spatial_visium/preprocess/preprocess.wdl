@@ -432,7 +432,7 @@ task counts_to_adata {
 		String zones
 	}
 
-	Int disk_size = ceil(size([spaceranger_spatial_tar_gz], "GB") * 2 + 30)
+	Int disk_size = ceil(size([spaceranger_spatial_tar_gz], "GB") * 2 + 20)
 
 	command <<<
 		set -euo pipefail
@@ -463,7 +463,7 @@ task counts_to_adata {
 	runtime {
 		docker: "~{container_registry}/spatial_py:1.0.0"
 		cpu: 2
-		memory: "16 GB"
+		memory: "4 GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
 		bootDiskSizeGb: 15
