@@ -215,7 +215,7 @@ task filter_and_normalize {
 		set -euo pipefail
 
 		# Select ROI/AOI segments and genes based on LOQ and normalization
-		Rscript geomx_process.R \
+		geomx_process \
 			--sample-id ~{sample_id} \
 			--input ~{preprocessed_rds_object} \
 			--celltype-markers ~{cell_type_markers_list} \
@@ -282,7 +282,7 @@ task rds_to_adata {
 	command <<<
 		set -euo pipefail
 
-		Rscript geomx_rds_to_adata.R \
+		geomx_rds_to_adata \
 			--input ~{processed_rds_object} \
 			--output-prefix ~{sample_id}.processed
 	>>>

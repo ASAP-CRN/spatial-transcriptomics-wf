@@ -65,7 +65,7 @@ task spatially_variable_gene_analysis {
 	command <<<
 		set -euo pipefail
 
-		python3 visium_spatially_variable_genes.py \
+		visium_spatially_variable_genes \
 			--cohort-id ~{cohort_id} \
 			--adata-input ~{clustered_adata_object} \
 			--adata-output ~{cohort_id}.final_adata_object.h5ad

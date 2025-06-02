@@ -81,7 +81,7 @@ task integrate_sample_data {
 	command <<<
 		set -euo pipefail
 
-		python3 integrate_harmony.py \
+		integrate_harmony \
 			--adata-input ~{processed_adata_object} \
 			--batch-key ~{batch_key} \
 			--adata-output ~{cohort_id}.harmony_integrated.h5ad
@@ -135,7 +135,7 @@ task cluster {
 	command <<<
 		set -euo pipefail
 
-		python3 cluster.py \
+		cluster \
 			--adata-input ~{integrated_adata_object} \
 			--n-comps ~{n_comps} \
 			--resolution ~{leiden_resolution} \

@@ -439,7 +439,7 @@ task counts_to_adata {
 
 		tar -xzvf ~{spaceranger_spatial_tar_gz}
 
-		python3 visium_counts_to_adata.py \
+		visium_counts_to_adata \
 			--team ~{team_id} \
 			--dataset ~{dataset_id} \
 			--sample-id ~{sample_id} \
@@ -510,7 +510,7 @@ task qc {
 	command <<<
 		set -euo pipefail
 
-		python3 visium_qc.py \
+		visium_qc \
 			--adata-input ~{initial_adata_object} \
 			--qc-adata-output ~{sample_id}.qc.h5ad
 

@@ -240,7 +240,7 @@ task merge_and_plot_qc_metrics {
 	command <<<
 		set -euo pipefail
 
-		python3 visium_merge_and_plot_qc.py \
+		visium_merge_and_plot_qc \
 			--adata-paths-input ~{sep=' ' preprocessed_adata_objects} \
 			--qc-plots-prefix ~{cohort_id} \
 			--merged-adata-output ~{cohort_id}.merged_adata_object.h5ad
@@ -313,7 +313,7 @@ task filter_and_normalize {
 	command <<<
 		set -euo pipefail
 
-		python3 visium_process.py \
+		visium_process \
 			--adata-input ~{merged_adata_object} \
 			--min-counts ~{filter_cells_min_counts} \
 			--min-genes ~{filter_cells_min_genes} \
@@ -387,7 +387,7 @@ task plot_spatial {
 	command <<<
 		set -euo pipefail
 
-		python3 visium_plot_spatial.py \
+		visium_plot_spatial \
 			--adata-input ~{clustered_adata_object} \
 			--plots-prefix ~{cohort_id}
 
