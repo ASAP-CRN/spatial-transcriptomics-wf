@@ -32,8 +32,8 @@ def main(args):
 
     top_3_variable_gene_list = adata.uns["moranI"].head(3).index.tolist()
     top_3_variable_gene_list.append("leiden")
-    samples = adata.obs["sample"].unique().tolist()
-    titles = [f"{sample} - {color}" for sample in samples for color in top_3_variable_gene_list]
+    slides = adata.obs["visium_slide_ref"].unique().tolist()
+    titles = [f"{slide} - {color}" for slide in slides for color in top_3_variable_gene_list]
     sq.pl.spatial_scatter(
         adata,
         library_key="visium_slide_ref",
