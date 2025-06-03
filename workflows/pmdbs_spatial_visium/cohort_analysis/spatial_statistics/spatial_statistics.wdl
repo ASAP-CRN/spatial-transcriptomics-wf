@@ -29,7 +29,7 @@ workflow spatial_statistics {
 		# Moran’s I global spatial auto-correlation statistics
 		File final_adata_object = spatially_variable_gene_analysis.final_adata_object #!FileCoercion
 		File moran_top_10_variable_genes_csv = spatially_variable_gene_analysis.moran_top_10_variable_genes_csv #!FileCoercion
-		File moran_top_3_variable_genes_spatial_scatter_plot_png = spatially_variable_gene_analysis.moran_top_3_variable_genes_spatial_scatter_plot_png #!FileCoercion
+		File moran_top_4_variable_genes_spatial_scatter_plot_png = spatially_variable_gene_analysis.moran_top_4_variable_genes_spatial_scatter_plot_png #!FileCoercion
 	}
 
 	meta {
@@ -76,13 +76,13 @@ task spatially_variable_gene_analysis {
 			-i ~{write_tsv(workflow_info)} \
 			-o "~{cohort_id}.final_adata_object.h5ad" \
 			-o "~{cohort_id}.moran_top_10_variable_genes.csv" \
-			-o "~{cohort_id}.moran_top_3_variable_genes_spatial_scatter.png"
+			-o "~{cohort_id}.moran_top_4_variable_genes_spatial_scatter.png"
 	>>>
 
 	output {
 		String final_adata_object = "~{raw_data_path}/~{cohort_id}.final_adata_object.h5ad"
 		String moran_top_10_variable_genes_csv = "~{raw_data_path}/~{cohort_id}.moran_top_10_variable_genes.csv"
-		String moran_top_3_variable_genes_spatial_scatter_plot_png = "~{raw_data_path}/~{cohort_id}.moran_top_3_variable_genes_spatial_scatter.png"
+		String moran_top_4_variable_genes_spatial_scatter_plot_png = "~{raw_data_path}/~{cohort_id}.moran_top_4_variable_genes_spatial_scatter.png"
 	}
 
 	runtime {

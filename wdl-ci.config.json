@@ -487,8 +487,8 @@
                     "count_columns"
                   ]
                 },
-                "moran_top_3_variable_genes_spatial_scatter_plot_png": {
-                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.moran_top_3_variable_genes_spatial_scatter.png",
+                "moran_top_4_variable_genes_spatial_scatter_plot_png": {
+                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.moran_top_4_variable_genes_spatial_scatter.png",
                   "test_tasks": [
                     "compare_file_basename",
                     "png_validator",

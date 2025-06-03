@@ -317,7 +317,7 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
     │   ├── ${cohort_id}.spatial_scatter.png
     │   ├── ${cohort_id}.final_adata_object.h5ad
     │   ├── ${cohort_id}.moran_top_10_variable_genes.csv
-    │   ├── ${cohort_id}.moran_top_3_variable_genes_spatial_scatter.png
+    │   ├── ${cohort_id}.moran_top_4_variable_genes_spatial_scatter.png
     │   └── MANIFEST.tsv
     └── preprocess
         ├── ${sampleA_id}.raw_feature_bc_matrix.h5

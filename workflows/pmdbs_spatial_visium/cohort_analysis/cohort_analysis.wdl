@@ -151,7 +151,7 @@ workflow cohort_analysis {
 		[	
 			spatial_statistics.final_adata_object,
 			spatial_statistics.moran_top_10_variable_genes_csv,
-			spatial_statistics.moran_top_3_variable_genes_spatial_scatter_plot_png
+			spatial_statistics.moran_top_4_variable_genes_spatial_scatter_plot_png
 		]
 	]) #!StringCoercion
 
@@ -186,7 +186,7 @@ workflow cohort_analysis {
 		# Spatial statistics outputs
 		File final_adata_object = spatial_statistics.final_adata_object
 		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
-		File moran_top_3_variable_genes_spatial_scatter_plot_png = spatial_statistics.moran_top_3_variable_genes_spatial_scatter_plot_png
+		File moran_top_4_variable_genes_spatial_scatter_plot_png = spatial_statistics.moran_top_4_variable_genes_spatial_scatter_plot_png
 
 		Array[File] preprocess_manifest_tsvs = upload_preprocess_files.manifests #!FileCoercion
 		Array[File] cohort_analysis_manifest_tsvs = upload_cohort_analysis_files.manifests #!FileCoercion
