@@ -148,7 +148,7 @@
                   "gs://asap-raw-team-edwards-pmdbs-spatial-geomx-th/fastqs/DSP_1001660018649_A_A02_S2_L001_R2_001.fastq.gz",
                   "gs://asap-raw-team-edwards-pmdbs-spatial-geomx-th/fastqs/DSP_1001660018649_A_A02_S2_L002_R2_001.fastq.gz"
                 ],
-                "geomx_config_ini": "gs://asap-raw-team-edwards-pmdbs-spatial-geomx-th/artifacts/config_files/11FEB2025_HWTA_DNAstack_merged_config.ini",
+                "geomx_config_ini": "gs://asap-raw-team-edwards-pmdbs-spatial-geomx-th/spatial/config_files/11FEB2025_HWTA_DNAstack_merged_config.ini",
                 "raw_data_path": "${fastq_to_dcc_raw_data_path}",
                 "workflow_info": "${geomx_workflow_info}",
                 "billing_project": "${billing_project}",
@@ -185,7 +185,7 @@
                 "sample_id": "${geomx_sample_id}",
                 "batch": "1",
                 "geomxngs_dcc_zip": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_sample_id}.DCC.zip",
-                "geomx_lab_annotation_xlsx": "gs://asap-raw-team-edwards-pmdbs-spatial-geomx-th/artifacts/annotation_files/cleaned_DNAstack_GeoMx_round_1_YH_20230719T2320_LabWorksheet.xlsx",
+                "geomx_lab_annotation_xlsx": "gs://asap-raw-team-edwards-pmdbs-spatial-geomx-th/spatial/annotation_files/cleaned_DNAstack_GeoMx_round_1_YH_20230719T2320_LabWorksheet.xlsx",
                 "geomxngs_config_pkc": "${input_resources_file_path}/Hs_R_NGS_WTA_v1.0.pkc",
                 "raw_data_path": "${dcc_to_rds_raw_data_path}",
                 "workflow_info": "${geomx_workflow_info}",
@@ -343,14 +343,14 @@
       "tasks": {
         "merge_and_plot_qc_metrics": {
           "key": "merge_and_plot_qc_metrics",
-          "digest": "jrqp3sbj7hhycymcdtz6gsum3ingixhq",
+          "digest": "",
           "tests": [
             {
               "inputs": {
                 "cohort_id": "${visium_team_id}",
                 "preprocessed_adata_objects": [
                   "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.qc.h5ad",
-                  "${visium_input_file_path}/${preprocess_workflow_name}/TEST_002_Rep2.qc.h5ad"
+                  "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id_2}.qc.h5ad"
                 ],
                 "raw_data_path": "${visium_cohort_analysis_raw_data_path}",
                 "workflow_info": "${visium_workflow_info}",
@@ -383,7 +383,7 @@
         },
         "process": {
           "key": "process",
-          "digest": "25xj3r6qo4doxodcpmn3pg2w2sxu3ihn",
+          "digest": "",
           "tests": [
             {
               "inputs": {
@@ -508,32 +508,23 @@
       "tasks": {
         "spaceranger_count": {
           "key": "spaceranger_count",
-          "digest": "wgfyfukb7t2wk5d5qvkakcscdpzrfevr",
+          "digest": "",
           "tests": [
             {
               "inputs": {
                 "sample_id": "${visium_sample_id}",
                 "fastq_R1s": [
-                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L001_R1_001.fastq.gz",
-                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L002_R1_001.fastq.gz"
+                  "gs://asap-raw-team-cragg-mouse-spatial-visium-striatum/fastqs/6OHDA_ST.20220719.run2.V11D08-305_A1_S1_R1_001.fastq.gz"
                 ],
                 "fastq_R2s": [
-                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L001_R2_001.fastq.gz",
-                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L002_R2_001.fastq.gz"
+                  "gs://asap-raw-team-cragg-mouse-spatial-visium-striatum/fastqs/6OHDA_ST.20220719.run2.V11D08-305_A1_S1_R2_001.fastq.gz"
                 ],
-                "fastq_I1s": [
-                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L001_I1_001.fastq.gz",
-                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L002_I1_001.fastq.gz"
-                ],
-                "fastq_I2s": [
-                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L001_I2_001.fastq.gz",
-                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L002_I2_001.fastq.gz"
-                ],
-                "visium_brightfield_image": "gs://asap-workflow-dev/pmdbs_spatial_visium_karen/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_image.tif",
-                "visium_slide_serial_number": "V52Y23-098",
-                "visium_capture_area": "B1",
+                "fastq_I1s": [],
+                "fastq_I2s": [],
+                "visium_brightfield_image": "gs://asap-raw-team-cragg-mouse-spatial-visium-striatum/spatial/images/220505-sf-ParkinsonProject_V11D08-305_A1-Spot000003.jpg",
+                "visium_slide_serial_number": "V11D08-305",
+                "visium_capture_area": "A1",
                 "spaceranger_reference_data": "${input_resources_file_path}/refdata-gex-mm10-2020-A.tar.gz",
-                "visium_probe_set_csv": "gs://asap-workflow-dev/pmdbs_spatial_visium_karen/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_probe_set.csv",
                 "raw_data_path": "${spaceranger_count_raw_data_path}",
                 "workflow_info": "${visium_workflow_info}",
                 "billing_project": "${billing_project}",
@@ -622,7 +613,7 @@
         },
         "counts_to_adata": {
           "key": "counts_to_adata",
-          "digest": "53a3lp274dgttbixvt4rohgnre4wj7o6",
+          "digest": "",
           "tests": [
             {
               "inputs": {
@@ -651,7 +642,7 @@
         },
         "qc": {
           "key": "qc",
-          "digest": "45nmxr6mcx6j2lcmhbh55w55r5tur7ut",
+          "digest": "",
           "tests": [
             {
               "inputs": {
@@ -712,9 +703,10 @@
       "cohort_analysis_workflow_name": "cohort_analysis",
       "geomx_cohort_analysis_workflow_version": "1.0.0",
       "geomx_cohort_analysis_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${geomx_workflow_name}/${cohort_analysis_workflow_name}/${geomx_cohort_analysis_workflow_version}/${run_timestamp}",
-      "visium_team_id": "team-test",
-      "visium_dataset_id": "DS_TEST_002",
-      "visium_sample_id": "TEST_002_Rep1",
+      "visium_team_id": "team-cragg",
+      "visium_dataset_id": "DS_MOUSE_0014",
+      "visium_sample_id": "ASAP_MOUSE_000001_s001_Rep2",
+      "visium_sample_id_2": "ASAP_MOUSE_000002_s001_Rep1",
       "visium_workflow_name": "pmdbs_spatial_visium",
       "visium_workflow_version": "v1.0.0",
       "visium_workflow_release": "https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/releases/tag/pmdbs_spatial_visium_analysis-${visium_workflow_version}",
