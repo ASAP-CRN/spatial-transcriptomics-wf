@@ -6,3 +6,7 @@ inputs.test_data*.json
 # R
 .Rhistory
 
+# wdl-ci files
+.wdltest.changes.json
+.wdltest.submission.json
+
