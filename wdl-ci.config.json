@@ -5,8 +5,8 @@
       "name": "",
       "description": "",
       "tasks": {
-        "process": {
-          "key": "process",
+        "filter_and_normalize": {
+          "key": "filter_and_normalize",
           "digest": "vw63bt3nqzcepfevgvvelyj4lgway25h",
           "tests": [
             {
@@ -125,6 +125,11 @@
               }
             }
           ]
+        },
+        "filter_and_normalize": {
+          "key": "filter_and_normalize",
+          "digest": "tz4g5ss4agc5wh36acwqhb4s2byalsj2",
+          "tests": []
         }
       }
     },
@@ -266,6 +271,11 @@
               }
             }
           ]
+        },
+        "check_output_files_exist": {
+          "key": "check_output_files_exist",
+          "digest": "bffhkxzxjypfmn6e5q67wxqe24dn6sdt",
+          "tests": []
         }
       }
     },
@@ -343,7 +353,7 @@
       "tasks": {
         "merge_and_plot_qc_metrics": {
           "key": "merge_and_plot_qc_metrics",
-          "digest": "",
+          "digest": "wdftt2go7srksorwrehbpiy5wktnhwpf",
           "tests": [
             {
               "inputs": {
@@ -381,8 +391,8 @@
             }
           ]
         },
-        "process": {
-          "key": "process",
+        "filter_and_normalize": {
+          "key": "filter_and_normalize",
           "digest": "",
           "tests": [
             {
@@ -508,22 +518,30 @@
       "tasks": {
         "spaceranger_count": {
           "key": "spaceranger_count",
-          "digest": "",
+          "digest": "cy6lzvaf5narlpc5w3ggnmf7abgkflw7",
           "tests": [
             {
               "inputs": {
-                "sample_id": "${visium_sample_id}",
+                "sample_id": "TEST_002_Rep1",
                 "fastq_R1s": [
-                  "gs://asap-raw-team-cragg-mouse-spatial-visium-striatum/fastqs/6OHDA_ST.20220719.run2.V11D08-305_A1_S1_R1_001.fastq.gz"
+                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L001_R1_001.fastq.gz",
+                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L002_R1_001.fastq.gz",
                 ],
                 "fastq_R2s": [
-                  "gs://asap-raw-team-cragg-mouse-spatial-visium-striatum/fastqs/6OHDA_ST.20220719.run2.V11D08-305_A1_S1_R2_001.fastq.gz"
+                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L001_R2_001.fastq.gz",
+                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L002_R2_001.fastq.gz"
                 ],
-                "fastq_I1s": [],
-                "fastq_I2s": [],
-                "visium_brightfield_image": "gs://asap-raw-team-cragg-mouse-spatial-visium-striatum/spatial/images/220505-sf-ParkinsonProject_V11D08-305_A1-Spot000003.jpg",
-                "visium_slide_serial_number": "V11D08-305",
-                "visium_capture_area": "A1",
+                "fastq_I1s": [
+                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L001_I1_001.fastq.gz",
+                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L002_I1_001.fastq.gz"
+                ],
+                "fastq_I2s": [
+                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L001_I2_001.fastq.gz",
+                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L002_I2_001.fastq.gz"
+                ],
+                "visium_brightfield_image": "CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_image.tif",
+                "visium_slide_serial_number": "V52Y23-098",
+                "visium_capture_area": "B1",
                 "spaceranger_reference_data": "${input_resources_file_path}/refdata-gex-mm10-2020-A.tar.gz",
                 "raw_data_path": "${spaceranger_count_raw_data_path}",
                 "workflow_info": "${visium_workflow_info}",
@@ -667,6 +685,125 @@
               }
             }
           ]
+        },
+        "check_output_files_exist": {
+          "key": "check_output_files_exist",
+          "digest": "46hnnizzjx7ltyqbop6vpc5r5ygele3u",
+          "tests": []
+        }
+      }
+    },
+    "wf-common/wdl/structs.wdl": {
+      "key": "wf-common/wdl/structs.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
+    },
+    "wf-common/wdl/tasks/upload_final_outputs.wdl": {
+      "key": "wf-common/wdl/tasks/upload_final_outputs.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "upload_final_outputs": {
+          "key": "upload_final_outputs",
+          "digest": "6zwff2jkc2rhcuey74wxstmob4bduczy",
+          "tests": []
+        }
+      }
+    },
+    "wf-common/wdl/tasks/write_cohort_sample_list.wdl": {
+      "key": "wf-common/wdl/tasks/write_cohort_sample_list.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "write_cohort_sample_list": {
+          "key": "write_cohort_sample_list",
+          "digest": "cn33tbof6zcgr72pzjgzqplvbtzg47bk",
+          "tests": []
+        }
+      }
+    },
+    "wf-common/wdl/tasks/multiqc.wdl": {
+      "key": "wf-common/wdl/tasks/multiqc.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "multiqc": {
+          "key": "multiqc",
+          "digest": "4t2scgtx77z3trxdxi7rdodw2e3ywki2",
+          "tests": []
+        }
+      }
+    },
+    "wf-common/wdl/tasks/fastqc.wdl": {
+      "key": "wf-common/wdl/tasks/fastqc.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "fastqc": {
+          "key": "fastqc",
+          "digest": "bhllguwdae3ynfe7nbgxn7ihq4qjec3d",
+          "tests": []
+        }
+      }
+    },
+    "wf-common/wdl/tasks/get_workflow_metadata.wdl": {
+      "key": "wf-common/wdl/tasks/get_workflow_metadata.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "get_workflow_metadata": {
+          "key": "get_workflow_metadata",
+          "digest": "xlrigezj3ohrqa2s5xe4n2obfplscjm3",
+          "tests": []
+        }
+      }
+    },
+    "workflows/pmdbs_spatial_geomx/structs.wdl": {
+      "key": "workflows/pmdbs_spatial_geomx/structs.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
+    },
+    "workflows/pmdbs_spatial_geomx/main.wdl": {
+      "key": "workflows/pmdbs_spatial_geomx/main.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
+    },
+    "workflows/pmdbs_spatial_visium/structs.wdl": {
+      "key": "workflows/pmdbs_spatial_visium/structs.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
+    },
+    "workflows/pmdbs_spatial_visium/main.wdl": {
+      "key": "workflows/pmdbs_spatial_visium/main.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {}
+    },
+    "pmdbs-spatial-transcriptomics-wdl-ci-custom-test-dir/check_zip.wdl": {
+      "key": "pmdbs-spatial-transcriptomics-wdl-ci-custom-test-dir/check_zip.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "check_zip": {
+          "key": "check_zip",
+          "digest": "57rodepomoc477nwma6pqc3vpf7rbpgy",
+          "tests": []
+        }
+      }
+    },
+    "pmdbs-spatial-transcriptomics-wdl-ci-custom-test-dir/image_validator.wdl": {
+      "key": "pmdbs-spatial-transcriptomics-wdl-ci-custom-test-dir/image_validator.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "image_validator": {
+          "key": "image_validator",
+          "digest": "gnolkzxnd3l7eee7rr3eurqdnvfpggq7",
+          "tests": []
         }
       }
     }
