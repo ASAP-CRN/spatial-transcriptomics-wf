@@ -525,7 +525,7 @@
                 "sample_id": "TEST_002_Rep1",
                 "fastq_R1s": [
                   "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L001_R1_001.fastq.gz",
-                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L002_R1_001.fastq.gz",
+                  "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L002_R1_001.fastq.gz"
                 ],
                 "fastq_R2s": [
                   "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L001_R2_001.fastq.gz",
