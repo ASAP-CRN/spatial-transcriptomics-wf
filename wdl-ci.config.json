@@ -7,63 +7,8 @@
       "tasks": {
         "filter_and_normalize": {
           "key": "filter_and_normalize",
-          "digest": "vw63bt3nqzcepfevgvvelyj4lgway25h",
-          "tests": [
-            {
-              "inputs": {
-                "preprocessed_rds_object": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_sample_id}.qc.rds",
-                "cell_type_markers_list": "${input_resources_file_path}/celltype_marker_table.csv",
-                "min_genes_detected_in_percent_segment": "0.01",
-                "raw_data_path": "${geomx_cohort_analysis_raw_data_path}",
-                "workflow_info": "${geomx_workflow_info}",
-                "billing_project": "${billing_project}",
-                "container_registry": "${container_registry}",
-                "zones": "${zones}"
-              },
-              "output_tests": {
-                "processed_rds_object": {
-                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_sample_id}.processed.rds",
-                  "test_tasks": [
-                    "compare_file_basename",
-                    "check_rds"
-                  ]
-                },
-                "segment_gene_detection_plot_png": {
-                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_sample_id}.segment_gene_detection_plot.png",
-                  "test_tasks": [
-                    "compare_file_basename",
-                    "png_validator",
-                    "image_validator"
-                  ]
-                },
-                "gene_detection_rate_csv": {
-                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_sample_id}.gene_detection_rate.csv",
-                  "test_tasks": [
-                    "compare_file_basename",
-                    "check_empty_lines",
-                    "check_comma_separated",
-                    "count_columns"
-                  ]
-                },
-                "q3_negprobe_plot_png": {
-                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_sample_id}.q3_negprobe_plot.png",
-                  "test_tasks": [
-                    "compare_file_basename",
-                    "png_validator",
-                    "image_validator"
-                  ]
-                },
-                "normalization_plot_png": {
-                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_sample_id}.normalization_plot.png",
-                  "test_tasks": [
-                    "compare_file_basename",
-                    "png_validator",
-                    "image_validator"
-                  ]
-                }
-              }
-            }
-          ]
+          "digest": "tz4g5ss4agc5wh36acwqhb4s2byalsj2",
+          "tests": []
         },
         "rds_to_adata": {
           "key": "rds_to_adata",
@@ -125,11 +70,6 @@
               }
             }
           ]
-        },
-        "filter_and_normalize": {
-          "key": "filter_and_normalize",
-          "digest": "tz4g5ss4agc5wh36acwqhb4s2byalsj2",
-          "tests": []
         }
       }
     },
@@ -393,7 +333,7 @@
         },
         "filter_and_normalize": {
           "key": "filter_and_normalize",
-          "digest": "",
+          "digest": "m42wxx36vvgvaxcojc5qagxdfxu6z6mi",
           "tests": [
             {
               "inputs": {
