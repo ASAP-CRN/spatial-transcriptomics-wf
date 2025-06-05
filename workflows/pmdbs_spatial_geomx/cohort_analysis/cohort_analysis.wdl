@@ -246,6 +246,7 @@ task filter_and_normalize {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		maxRetries: 3
 		bootDiskSizeGb: 10
 		zones: zones
 	}
@@ -297,6 +298,7 @@ task rds_to_adata {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		maxRetries: 3
 		bootDiskSizeGb: 10
 		zones: zones
 	}
@@ -360,6 +362,7 @@ task merge_and_prep {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		maxRetries: 3
 		bootDiskSizeGb: 10
 		zones: zones
 	}

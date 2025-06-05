@@ -245,6 +245,7 @@ task check_output_files_exist {
 		memory: "4 GB"
 		disks: "local-disk 20 HDD"
 		preemptible: 3
+		maxRetries: 3
 		zones: zones
 	}
 
@@ -336,6 +337,7 @@ task fastq_to_dcc {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		maxRetries: 3
 		bootDiskSizeGb: 10
 		zones: zones
 	}
@@ -412,6 +414,7 @@ task dcc_to_rds {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		maxRetries: 3
 		bootDiskSizeGb: 10
 		zones: zones
 	}
@@ -503,6 +506,7 @@ task qc {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		maxRetries: 3
 		bootDiskSizeGb: 10
 		zones: zones
 	}

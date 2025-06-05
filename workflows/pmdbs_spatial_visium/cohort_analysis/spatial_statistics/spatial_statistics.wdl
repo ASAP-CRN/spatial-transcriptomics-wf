@@ -91,6 +91,7 @@ task spatially_variable_gene_analysis {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		maxRetries: 3
 		bootDiskSizeGb: 15
 		zones: zones
 	}
