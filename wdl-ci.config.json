@@ -621,6 +621,8 @@
                 "dataset_id": "${visium_dataset_id}",
                 "sample_id": "${visium_sample_id}",
                 "batch": "1",
+                "visium_slide_serial_number": "V11D08-305",
+                "visium_capture_area": "A1",
                 "spaceranger_spatial_tar_gz": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.spaceranger_spatial_outputs.tar.gz",
                 "raw_data_path": "${counts_to_adata_raw_data_path}",
                 "workflow_info": "${visium_workflow_info}",
