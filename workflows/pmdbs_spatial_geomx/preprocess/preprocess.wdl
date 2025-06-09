@@ -295,7 +295,7 @@ task fastq_to_dcc {
 
 		expect <<EOF
 		set timeout -1
-		/usr/bin/time -v spawn geomxngspipeline \
+		spawn geomxngspipeline \
 			--ini=~{geomx_config_ini} \
 			--in="$(pwd)/fastqs" \
 			--out="~{sample_id}_geomxngs_out_dir" \
