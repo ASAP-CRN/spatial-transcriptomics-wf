@@ -338,7 +338,7 @@ task fastq_to_dcc {
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
 		maxRetries: 3
-		bootDiskSizeGb: 10
+		bootDiskSizeGb: 15
 		zones: zones
 	}
 
@@ -415,7 +415,7 @@ task dcc_to_rds {
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
 		maxRetries: 3
-		bootDiskSizeGb: 10
+		bootDiskSizeGb: 15
 		zones: zones
 	}
 
@@ -507,7 +507,7 @@ task qc {
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
 		maxRetries: 3
-		bootDiskSizeGb: 10
+		bootDiskSizeGb: 15
 		zones: zones
 	}
 
