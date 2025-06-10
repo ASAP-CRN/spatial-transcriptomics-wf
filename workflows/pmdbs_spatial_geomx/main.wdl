@@ -62,7 +62,7 @@ workflow pmdbs_spatial_geomx_analysis {
 				team_id = project.team_id,
 				dataset_id = project.dataset_id,
 				dataset_doi_url = project.dataset_doi_url,
-				samples = project.samples,
+				slides = project.slides,
 				geomx_config_ini = project.geomx_config_ini,
 				geomxngs_config_pkc = geomxngs_config_pkc,
 				min_segment_reads = min_segment_reads,

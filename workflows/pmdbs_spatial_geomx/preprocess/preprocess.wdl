@@ -9,7 +9,7 @@ workflow preprocess {
 		String team_id
 		String dataset_id
 		String dataset_doi_url
-		Array[Sample] samples
+		Array[Slide] slides
 
 		File geomx_config_ini
 		File geomxngs_config_pkc
@@ -47,10 +47,10 @@ workflow preprocess {
 	String rds_raw_data_path = "~{workflow_raw_data_path_prefix}/dcc_to_rds/~{dcc_to_rds_task_version}"
 	String qc_raw_data_path = "~{workflow_raw_data_path_prefix}/qc/~{qc_task_version}"
 
-	scatter (sample_object in samples) {
-		String fastq_to_dcc_output = "~{dcc_raw_data_path}/~{sample_object.sample_id}.geomxngs_out_dir.tar.gz"
-		String dcc_to_rds_output = "~{rds_raw_data_path}/~{sample_object.sample_id}.NanoStringGeoMxSet.rds"
-		String qc_output = "~{qc_raw_data_path}/~{sample_object.sample_id}.qc.rds"
+	scatter (slide_object in slides) {
+		String fastq_to_dcc_output = "~{dcc_raw_data_path}/~{slide_object.geomx_slide_id}.geomxngs_out_dir.tar.gz"
+		String dcc_to_rds_output = "~{rds_raw_data_path}/~{slide_object.geomx_slide_id}.NanoStringGeoMxSet.rds"
+		String qc_output = "~{qc_raw_data_path}/~{slide_object.geomx_slide_id}.qc.rds"
 	}
 
 	# For each sample, outputs an array of true/false: [fastq_to_dcc_complete, dcc_to_rds_complete, qc_complete]
@@ -63,24 +63,29 @@ workflow preprocess {
 			zones = zones
 	}
 
-	scatter (sample_index in range(length(samples))) {
-		Sample sample = samples[sample_index]
+	scatter (slide_index in range(length(slides))) {
+		Slide slide = slides[slide_index]
 
-		Array[String] project_sample_id = [team_id, sample.sample_id, dataset_doi_url]
+		scatter (sample_index in range(length(slide.samples))) {
+			Sample sample = slide.samples[sample_index]
+			Array[String] project_sample_id = [team_id, sample.sample_id, dataset_doi_url]
+			Array[File] fastq_R1s = sample.fastq_R1s
+			Array[File] fastq_R2s = sample.fastq_R2s
+		}
 
-		String fastq_to_dcc_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][0]
-		String dcc_to_rds_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][1]
-		String qc_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][2]
+		String fastq_to_dcc_complete = check_output_files_exist.sample_preprocessing_complete[slide_index][0]
+		String dcc_to_rds_complete = check_output_files_exist.sample_preprocessing_complete[slide_index][1]
+		String qc_complete = check_output_files_exist.sample_preprocessing_complete[slide_index][2]
 
-		String fastq_to_dcc_geomxngs_dcc_zip = "~{dcc_raw_data_path}/~{sample.sample_id}.DCC.zip"
-		String fastq_to_dcc_geomxngs_output_tar_gz = "~{dcc_raw_data_path}/~{sample.sample_id}.geomxngs_out_dir.tar.gz"
+		String fastq_to_dcc_geomxngs_dcc_zip = "~{dcc_raw_data_path}/~{slide.geomx_slide_id}.DCC.zip"
+		String fastq_to_dcc_geomxngs_output_tar_gz = "~{dcc_raw_data_path}/~{slide.geomx_slide_id}.geomxngs_out_dir.tar.gz"
 
 		if (fastq_to_dcc_complete == "false") {
 			call fastq_to_dcc {
 				input:
-					sample_id = sample.sample_id,
-					fastq_R1s = sample.fastq_R1s,
-					fastq_R2s = sample.fastq_R2s,
+					slide_id = slide.geomx_slide_id,
+					fastq_R1s = flatten(fastq_R1s),
+					fastq_R2s = flatten(fastq_R2s),
 					geomx_config_ini = geomx_config_ini,
 					raw_data_path = dcc_raw_data_path,
 					workflow_info = workflow_info,
@@ -93,17 +98,16 @@ workflow preprocess {
 		File geomxngs_dcc_zip_output = select_first([fastq_to_dcc.geomxngs_dcc_zip, fastq_to_dcc_geomxngs_dcc_zip]) #!FileCoercion
 		File geomxngs_output_tar_gz_output = select_first([fastq_to_dcc.geomxngs_output_tar_gz, fastq_to_dcc_geomxngs_output_tar_gz]) #!FileCoercion
 
-		String dcc_to_rds_object = "~{rds_raw_data_path}/~{sample.sample_id}.NanoStringGeoMxSet.rds"
+		String dcc_to_rds_object = "~{rds_raw_data_path}/~{slide.geomx_slide_id}.NanoStringGeoMxSet.rds"
 
 		if (dcc_to_rds_complete == "false") {
 			call dcc_to_rds {
 				input:
 					team_id = team_id,
 					dataset_id = dataset_id,
-					sample_id = sample.sample_id,
-					batch = select_first([sample.batch]),
+					slide_id = slide.geomx_slide_id,
 					geomxngs_dcc_zip = geomxngs_dcc_zip_output,
-					geomx_lab_annotation_xlsx = sample.geomx_lab_annotation_xlsx,
+					geomx_lab_annotation_xlsx = slide.geomx_lab_annotation_xlsx,
 					geomxngs_config_pkc = geomxngs_config_pkc,
 					raw_data_path = rds_raw_data_path,
 					workflow_info = workflow_info,
@@ -111,19 +115,28 @@ workflow preprocess {
 					container_registry = container_registry,
 					zones = zones
 			}
+
+			# scatter (sample_index in range(length(slide.samples))) {
+			#	Sample sample = slide.samples[sample_index]
+			#	call add_sample_metadata {
+			#		input:
+			#			sample_id = sample.sample_id,
+			#			batch = select_first([sample.batch])
+			#	}
+			# }
 		}
 
 		File initial_rds_object_output = select_first([dcc_to_rds.initial_rds_object, dcc_to_rds_object]) #!FileCoercion
 
-		String qc_metrics_rds_object = "~{qc_raw_data_path}/~{sample.sample_id}.qc.rds"
-		String qc_segment_summary_csv = "~{qc_raw_data_path}/~{sample.sample_id}.segment_qc_summary.csv"
-		String qc_probe_summary_csv = "~{qc_raw_data_path}/~{sample.sample_id}.probe_qc_summary.csv"
-		String qc_gene_count_csv = "~{qc_raw_data_path}/~{sample.sample_id}.gene_count.csv"
+		String qc_metrics_rds_object = "~{qc_raw_data_path}/~{slide.geomx_slide_id}.qc.rds"
+		String qc_segment_summary_csv = "~{qc_raw_data_path}/~{slide.geomx_slide_id}.segment_qc_summary.csv"
+		String qc_probe_summary_csv = "~{qc_raw_data_path}/~{slide.geomx_slide_id}.probe_qc_summary.csv"
+		String qc_gene_count_csv = "~{qc_raw_data_path}/~{slide.geomx_slide_id}.gene_count.csv"
 
 		if (qc_complete == "false") {
 			call qc {
 				input:
-					sample_id = sample.sample_id,
+					slide_id = slide.geomx_slide_id,
 					initial_rds_object = initial_rds_object_output,
 					min_segment_reads = min_segment_reads,
 					min_percent_reads_trimmed = min_percent_reads_trimmed,
@@ -150,7 +163,7 @@ workflow preprocess {
 
 	output {
 		# Sample list
-		Array[Array[String]] project_sample_ids = project_sample_id
+		Array[Array[String]] project_sample_ids = flatten(project_sample_id)
 
 		# GeoMxNGSPipeline outputs including converted DCC files
 		Array[File] geomxngs_dcc_zip = geomxngs_dcc_zip_output #!FileCoercion
@@ -264,7 +277,7 @@ task check_output_files_exist {
 
 task fastq_to_dcc {
 	input {
-		String sample_id
+		String slide_id
 
 		Array[File] fastq_R1s
 		Array[File] fastq_R2s
@@ -293,42 +306,47 @@ task fastq_to_dcc {
 			~{write_lines(fastq_R1s)} \
 			~{write_lines(fastq_R2s)})
 
+		if [ ! "$(ls -A fastqs)" ]; then
+			echo "[ERROR] 'fastqs/' directory is empty"
+			exit 1
+		fi
+
 		expect <<EOF
 		set timeout -1
 		spawn geomxngspipeline \
 			--ini=~{geomx_config_ini} \
 			--in="$(pwd)/fastqs" \
-			--out="~{sample_id}_geomxngs_out_dir" \
+			--out="~{slide_id}_geomxngs_out_dir" \
 			--check-illumina-naming=false
 		send -- "2"
 		expect eof
 		EOF
 
 		# Only keep the sample that was processed or else all samples in the config (.ini) file is processed with zero RTS_ID count causing errors downstream
-		mkdir ~{sample_id}.DCC
+		mkdir ~{slide_id}.DCC
 		touch sample_names.txt
 		while read -r file || [[ -n "${file}" ]]; do
 			basename "$file" | cut -d '_' -f 1-4 | grep "^DSP"
 		done < <(ls fastqs) > sample_names.txt
 		sed 's/$/.dcc/' sample_names.txt > sample_names_with_dcc.txt
 		while read -r file || [[ -n "${file}" ]]; do
-			cp ~{sample_id}_geomxngs_out_dir/"$file" ./~{sample_id}.DCC/
+			cp ~{slide_id}_geomxngs_out_dir/"$file" ./~{slide_id}.DCC/
 		done < sample_names_with_dcc.txt
-		zip -r ~{sample_id}.DCC.zip ~{sample_id}.DCC
+		zip -r ~{slide_id}.DCC.zip ~{slide_id}.DCC
 
-		tar -czvf "~{sample_id}.geomxngs_out_dir.tar.gz" "~{sample_id}_geomxngs_out_dir"
+		tar -czvf "~{slide_id}.geomxngs_out_dir.tar.gz" "~{slide_id}_geomxngs_out_dir"
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{sample_id}.DCC.zip" \
-			-o "~{sample_id}.geomxngs_out_dir.tar.gz"
+			-o "~{slide_id}.DCC.zip" \
+			-o "~{slide_id}.geomxngs_out_dir.tar.gz"
 	>>>
 
 	output {
-		String geomxngs_dcc_zip = "~{raw_data_path}/~{sample_id}.DCC.zip"
-		String geomxngs_output_tar_gz = "~{raw_data_path}/~{sample_id}.geomxngs_out_dir.tar.gz"
+		String geomxngs_dcc_zip = "~{raw_data_path}/~{slide_id}.DCC.zip"
+		String geomxngs_output_tar_gz = "~{raw_data_path}/~{slide_id}.geomxngs_out_dir.tar.gz"
 	}
 
 	runtime {
@@ -347,7 +365,7 @@ task fastq_to_dcc {
 	}
 
 	parameter_meta {
-		sample_id: {help: "Generated ASAP sample ID; used to name output files."}
+		#sample_id: {help: "Generated ASAP sample ID; used to name output files."}
 		fastq_R1s: {help: "Sample's read 1 FASTQ file."}
 		fastq_R2s: {help: "Sample's read 2 FASTQ file."}
 		geomx_config_ini: {help: "The configuration (.ini) file, containing pipeline processing parameters that is used by the GeoMx NGS pipeline to assist in converting the FASTQ files to DCC files. It is from the GeoMx DSP readout package."}
@@ -363,8 +381,7 @@ task dcc_to_rds {
 	input {
 		String team_id
 		String dataset_id
-		String sample_id
-		String batch
+		String slide_id
 
 		File geomxngs_dcc_zip
 
@@ -390,22 +407,22 @@ task dcc_to_rds {
 		geomx_counts_to_rds \
 			--team-id ~{team_id} \
 			--dataset-id ~{dataset_id} \
-			--sample-id ~{sample_id} \
-			--batch ~{batch} \
+			--sample-id ~{slide_id} \
+			--batch ~{slide_id} \
 			--dcc-dir ./dcc_files_dir \
 			--pkc-file ~{geomxngs_config_pkc} \
 			--annotation-file ~{geomx_lab_annotation_xlsx} \
-			--output ~{sample_id}.NanoStringGeoMxSet.rds
+			--output ~{slide_id}.NanoStringGeoMxSet.rds
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{sample_id}.NanoStringGeoMxSet.rds"
+			-o "~{slide_id}.NanoStringGeoMxSet.rds"
 	>>>
 
 	output {
-		String initial_rds_object = "~{raw_data_path}/~{sample_id}.NanoStringGeoMxSet.rds"
+		String initial_rds_object = "~{raw_data_path}/~{slide_id}.NanoStringGeoMxSet.rds"
 	}
 
 	runtime {
@@ -426,8 +443,8 @@ task dcc_to_rds {
 	parameter_meta {
 		team_id: {help: "Name of the CRN Team; stored in the NanoStringGeoMxSet objects."}
 		dataset_id: {help: "Generated ASAP dataset ID; stored in the NanoStringGeoMxSet objects."}
-		sample_id: {help: "Generated ASAP sample ID; stored in the NanoStringGeoMxSet objects and used to name output files."}
-		batch: {help: "The sample's batch; stored in the NanoStringGeoMxSet objects."}
+		#sample_id: {help: "Generated ASAP sample ID; stored in the NanoStringGeoMxSet objects and used to name output files."}
+		#batch: {help: "The sample's batch; stored in the NanoStringGeoMxSet objects."}
 		geomxngs_dcc_zip: {help: "DCC files for each sample compressed in a ZIP file."}
 		geomx_lab_annotation_xlsx: {help: "The annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx DSP readout package."}
 		geomxngs_config_pkc: {help: "The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers."}
@@ -441,7 +458,7 @@ task dcc_to_rds {
 
 task qc {
 	input {
-		String sample_id
+		String slide_id
 
 		File initial_rds_object
 
@@ -470,7 +487,7 @@ task qc {
 		set -euo pipefail
 
 		geomx_qc \
-			--sample-id ~{sample_id} \
+			--sample-id ~{slide_id} \
 			--input ~{initial_rds_object} \
 			--min-reads ~{min_segment_reads} \
 			--percent-trimmed ~{min_percent_reads_trimmed} \
@@ -481,23 +498,23 @@ task qc {
 			--max-ntc-count ~{max_ntc_count} \
 			--min-nuclei ~{min_nuclei} \
 			--min-area ~{min_segment_area} \
-			--output ~{sample_id}.qc.rds
+			--output ~{slide_id}.qc.rds
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{sample_id}.qc.rds" \
-			-o "~{sample_id}.segment_qc_summary.csv" \
-			-o "~{sample_id}.probe_qc_summary.csv" \
-			-o "~{sample_id}.gene_count.csv"
+			-o "~{slide_id}.qc.rds" \
+			-o "~{slide_id}.segment_qc_summary.csv" \
+			-o "~{slide_id}.probe_qc_summary.csv" \
+			-o "~{slide_id}.gene_count.csv"
 	>>>
 
 	output {
-		String qc_rds_object = "~{raw_data_path}/~{sample_id}.qc.rds"
-		String segment_qc_summary_csv = "~{raw_data_path}/~{sample_id}.segment_qc_summary.csv"
-		String probe_qc_summary_csv = "~{raw_data_path}/~{sample_id}.probe_qc_summary.csv"
-		String gene_count_csv = "~{raw_data_path}/~{sample_id}.gene_count.csv"
+		String qc_rds_object = "~{raw_data_path}/~{slide_id}.qc.rds"
+		String segment_qc_summary_csv = "~{raw_data_path}/~{slide_id}.segment_qc_summary.csv"
+		String probe_qc_summary_csv = "~{raw_data_path}/~{slide_id}.probe_qc_summary.csv"
+		String gene_count_csv = "~{raw_data_path}/~{slide_id}.gene_count.csv"
 	}
 
 	runtime {
