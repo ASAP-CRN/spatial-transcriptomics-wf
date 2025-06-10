@@ -306,7 +306,9 @@ task fastq_to_dcc {
 			~{write_lines(fastq_R1s)} \
 			~{write_lines(fastq_R2s)})
 
-		if [ ! "$(ls -A fastqs)" ]; then
+		echo "Files present in 'fastqs/' directory:"
+		ls -A $(pwd)/fastqs
+		if [ ! "$(ls -A $(pwd)/fastqs)" ]; then
 			echo "[ERROR] 'fastqs/' directory is empty"
 			exit 1
 		fi
