@@ -240,11 +240,12 @@ task check_output_files_exist {
 	}
 
 	runtime {
-		docker: "gcr.io/google.com/cloudsdktool/google-cloud-cli:444.0.0-slim"
+		docker: "gcr.io/google.com/cloudsdktool/google-cloud-cli:524.0.0-slim"
 		cpu: 2
 		memory: "4 GB"
 		disks: "local-disk 20 HDD"
 		preemptible: 3
+		maxRetries: 3
 		zones: zones
 	}
 
@@ -336,6 +337,7 @@ task fastq_to_dcc {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		maxRetries: 3
 		bootDiskSizeGb: 10
 		zones: zones
 	}
@@ -385,7 +387,7 @@ task dcc_to_rds {
 
 		unzip -d ./dcc_files_dir -j ~{geomxngs_dcc_zip}
 
-		Rscript /opt/scripts/geomx_counts_to_rds.R \
+		geomx_counts_to_rds \
 			--team-id ~{team_id} \
 			--dataset-id ~{dataset_id} \
 			--sample-id ~{sample_id} \
@@ -412,6 +414,7 @@ task dcc_to_rds {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		maxRetries: 3
 		bootDiskSizeGb: 10
 		zones: zones
 	}
@@ -466,7 +469,7 @@ task qc {
 	command <<<
 		set -euo pipefail
 
-		Rscript /opt/scripts/geomx_qc.R \
+		geomx_qc \
 			--sample-id ~{sample_id} \
 			--input ~{initial_rds_object} \
 			--min-reads ~{min_segment_reads} \
@@ -503,6 +506,7 @@ task qc {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		maxRetries: 3
 		bootDiskSizeGb: 10
 		zones: zones
 	}

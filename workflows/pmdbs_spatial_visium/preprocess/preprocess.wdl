@@ -12,7 +12,7 @@ workflow preprocess {
 		Array[Sample] samples
 
 		File spaceranger_reference_data
-		File visium_probe_set_csv
+		File? visium_probe_set_csv
 
 		String workflow_name
 		String workflow_version
@@ -117,6 +117,8 @@ workflow preprocess {
 					dataset_id = dataset_id,
 					sample_id = sample.sample_id,
 					batch = select_first([sample.batch]),
+					visium_slide_serial_number = sample.visium_slide_serial_number,
+					visium_capture_area = sample.visium_capture_area,
 					spaceranger_spatial_tar_gz = spatial_outputs_tar_gz_output,
 					raw_data_path = adata_raw_data_path,
 					workflow_info = workflow_info,
@@ -233,11 +235,12 @@ task check_output_files_exist {
 	}
 
 	runtime {
-		docker: "gcr.io/google.com/cloudsdktool/google-cloud-cli:444.0.0-slim"
+		docker: "gcr.io/google.com/cloudsdktool/google-cloud-cli:524.0.0-slim"
 		cpu: 2
 		memory: "4 GB"
 		disks: "local-disk 20 HDD"
 		preemptible: 3
+		maxRetries: 3
 		zones: zones
 	}
 
@@ -267,7 +270,7 @@ task spaceranger_count {
 		String visium_capture_area
 
 		File spaceranger_reference_data
-		File visium_probe_set_csv
+		File? visium_probe_set_csv
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -313,14 +316,14 @@ task spaceranger_count {
 		# TODO once teams submit data,
 		## Rename image?
 		## Determine if CytAssist was used because it'll change the command options
-		## What version of Transcriptome v1 or v2
+		### What version of Transcriptome v1 or v2 for probe set
 		/usr/bin/time \
 		spaceranger count \
 			--id=~{sample_id} \
 			--transcriptome="$(pwd)/spaceranger_refdata" \
 			--fastqs="$(pwd)/fastqs" \
-			--cytaimage=~{visium_brightfield_image} \
-			--probe-set=~{visium_probe_set_csv} \
+			--sample=~{sample_id} \
+			--image=~{visium_brightfield_image} \
 			--slide=~{visium_slide_serial_number} \
 			--area=~{visium_capture_area} \
 			--localcores=~{threads} \
@@ -385,7 +388,8 @@ task spaceranger_count {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 10
+		maxRetries: 3
+		bootDiskSizeGb: 15
 		zones: zones
 	}
 
@@ -403,7 +407,7 @@ task spaceranger_count {
 		visium_slide_serial_number: {help: "The 10x Visium slide serial number obtained from the ASAP sample metadata. The unique identifier printed on the label of each Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary."}
 		visium_capture_area: {help: "The 10x Visium slide capture area obtained from the ASAP sample metadata. Active regions for capturing expression data on a Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary."}
 		spaceranger_reference_data: {help: "Space Ranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads."}
-		visium_probe_set_csv: {help: "Visium probe-based assays target genes in Space Ranger transcriptome; see https://www.10xgenomics.com/support/software/space-ranger/downloads."}
+		visium_probe_set_csv: {help: "Visium probe-based assays target genes in Space Ranger transcriptome; see https://www.10xgenomics.com/support/software/space-ranger/downloads (optional; depends on type of Visium used)."}
 		raw_data_path: {help: "Raw data bucket path for spaceranger count outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess/spaceranger_count/<spaceranger_count_task_version>`)."}
 		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
 		billing_project: {help: "Billing project to charge GCP costs."}
@@ -418,6 +422,8 @@ task counts_to_adata {
 		String dataset_id
 		String sample_id
 		String batch
+		String visium_slide_serial_number
+		String visium_capture_area
 
 		File spaceranger_spatial_tar_gz
 
@@ -435,11 +441,13 @@ task counts_to_adata {
 
 		tar -xzvf ~{spaceranger_spatial_tar_gz}
 
-		python3 /opt/scripts/visium_counts_to_adata.py \
+		visium_counts_to_adata \
 			--team ~{team_id} \
 			--dataset ~{dataset_id} \
 			--sample-id ~{sample_id} \
 			--batch ~{batch} \
+			--slide ~{visium_slide_serial_number} \
+			--area ~{visium_capture_area} \
 			--spaceranger-spatial-dir spatial_outputs \
 			--adata-output ~{sample_id}.initial_adata_object.h5ad
 
@@ -457,10 +465,11 @@ task counts_to_adata {
 	runtime {
 		docker: "~{container_registry}/spatial_py:1.0.0"
 		cpu: 2
-		memory: "16 GB"
+		memory: "4 GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 10
+		maxRetries: 3
+		bootDiskSizeGb: 15
 		zones: zones
 	}
 
@@ -473,6 +482,8 @@ task counts_to_adata {
 		dataset_id: {help: "Generated ASAP dataset ID; stored in the AnnData objects."}
 		sample_id: {help: "Generated ASAP sample ID; stored in the AnnData objects and used to name output files."}
 		batch: {help: "The sample's batch; stored in the AnnData objects."}
+		visium_slide_serial_number: {help: "The 10x Visium slide serial number obtained from the ASAP sample metadata. The unique identifier printed on the label of each Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary."}
+		visium_capture_area: {help: "The 10x Visium slide capture area obtained from the ASAP sample metadata. Active regions for capturing expression data on a Visium slide; see https://www.10xgenomics.com/support/software/space-ranger/3.0/getting-started/space-ranger-glossary."}
 		spaceranger_spatial_tar_gz: {help: "Spaceranger spatial outputs directory (`<sample>/outs`; must be unmodified)."}
 		raw_data_path: {help: "Raw data bucket path for counts to adata outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/preprocess/counts_to_adata/<counts_to_adata_task_version>`)."}
 		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
@@ -502,7 +513,7 @@ task qc {
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/visium_qc.py \
+		visium_qc \
 			--adata-input ~{initial_adata_object} \
 			--qc-adata-output ~{sample_id}.qc.h5ad
 
@@ -523,7 +534,8 @@ task qc {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 10
+		maxRetries: 3
+		bootDiskSizeGb: 15
 		zones: zones
 	}
 

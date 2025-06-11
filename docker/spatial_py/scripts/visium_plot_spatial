@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import argparse
 import pandas as pd
 import numpy as np
@@ -9,13 +11,13 @@ import squidpy as sq
 def main(args):
     adata = sc.read_h5ad(args.adata_input)
 
-    samples = adata.obs["sample"].unique().tolist()
+    slides = adata.obs["visium_slide_ref"].unique().tolist()
     colors = ["total_counts", "n_genes_by_counts", "batch", "leiden"]
-    titles = [f"{sample} - {color}" for sample in samples for color in colors]
+    titles = [f"{slide} - {color}" for slide in slides for color in colors]
 
     sq.pl.spatial_scatter(
         adata,
-        library_key="sample",
+        library_key="visium_slide_ref",
         color=colors,
         title=titles,
     )

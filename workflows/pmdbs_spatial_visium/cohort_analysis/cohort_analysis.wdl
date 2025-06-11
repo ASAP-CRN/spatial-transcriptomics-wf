@@ -151,7 +151,7 @@ workflow cohort_analysis {
 		[	
 			spatial_statistics.final_adata_object,
 			spatial_statistics.moran_top_10_variable_genes_csv,
-			spatial_statistics.moran_top_3_variable_genes_spatial_scatter_plot_png
+			spatial_statistics.moran_top_4_variable_genes_spatial_scatter_plot_png
 		]
 	]) #!StringCoercion
 
@@ -186,7 +186,7 @@ workflow cohort_analysis {
 		# Spatial statistics outputs
 		File final_adata_object = spatial_statistics.final_adata_object
 		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
-		File moran_top_3_variable_genes_spatial_scatter_plot_png = spatial_statistics.moran_top_3_variable_genes_spatial_scatter_plot_png
+		File moran_top_4_variable_genes_spatial_scatter_plot_png = spatial_statistics.moran_top_4_variable_genes_spatial_scatter_plot_png
 
 		Array[File] preprocess_manifest_tsvs = upload_preprocess_files.manifests #!FileCoercion
 		Array[File] cohort_analysis_manifest_tsvs = upload_cohort_analysis_files.manifests #!FileCoercion
@@ -240,7 +240,7 @@ task merge_and_plot_qc_metrics {
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/visium_merge_and_plot_qc.py \
+		visium_merge_and_plot_qc \
 			--adata-paths-input ~{sep=' ' preprocessed_adata_objects} \
 			--qc-plots-prefix ~{cohort_id} \
 			--merged-adata-output ~{cohort_id}.merged_adata_object.h5ad
@@ -268,7 +268,8 @@ task merge_and_plot_qc_metrics {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 10
+		maxRetries: 3
+		bootDiskSizeGb: 15
 		zones: zones
 	}
 
@@ -313,7 +314,7 @@ task filter_and_normalize {
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/visium_process.py \
+		visium_process \
 			--adata-input ~{merged_adata_object} \
 			--min-counts ~{filter_cells_min_counts} \
 			--min-genes ~{filter_cells_min_genes} \
@@ -343,7 +344,8 @@ task filter_and_normalize {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 10
+		maxRetries: 3
+		bootDiskSizeGb: 15
 		zones: zones
 	}
 
@@ -387,7 +389,7 @@ task plot_spatial {
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/visium_plot_spatial.py \
+		visium_plot_spatial \
 			--adata-input ~{clustered_adata_object} \
 			--plots-prefix ~{cohort_id}
 
@@ -408,7 +410,8 @@ task plot_spatial {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		bootDiskSizeGb: 10
+		maxRetries: 3
+		bootDiskSizeGb: 15
 		zones: zones
 	}
 

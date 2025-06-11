@@ -215,7 +215,7 @@ task filter_and_normalize {
 		set -euo pipefail
 
 		# Select ROI/AOI segments and genes based on LOQ and normalization
-		Rscript /opt/scripts/geomx_process.R \
+		geomx_process \
 			--sample-id ~{sample_id} \
 			--input ~{preprocessed_rds_object} \
 			--celltype-markers ~{cell_type_markers_list} \
@@ -246,6 +246,7 @@ task filter_and_normalize {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		maxRetries: 3
 		bootDiskSizeGb: 10
 		zones: zones
 	}
@@ -282,7 +283,7 @@ task rds_to_adata {
 	command <<<
 		set -euo pipefail
 
-		Rscript /opt/scripts/geomx_rds_to_adata.R \
+		geomx_rds_to_adata \
 			--input ~{processed_rds_object} \
 			--output-prefix ~{sample_id}.processed
 	>>>
@@ -297,6 +298,7 @@ task rds_to_adata {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		maxRetries: 3
 		bootDiskSizeGb: 10
 		zones: zones
 	}
@@ -333,7 +335,7 @@ task merge_and_prep {
 	command <<<
 		set -euo pipefail
 
-		python3 /opt/scripts/geomx_merge_and_prep.py \
+		geomx_merge_and_prep \
 			--adata-paths-input ~{sep=' ' processed_adata_objects} \
 			--n-top-genes ~{n_top_genes} \
 			--n-comps ~{n_comps} \
@@ -360,6 +362,7 @@ task merge_and_prep {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
+		maxRetries: 3
 		bootDiskSizeGb: 10
 		zones: zones
 	}

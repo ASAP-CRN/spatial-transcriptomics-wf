@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import argparse
 import anndata as ad
 import pandas as pd
@@ -18,7 +20,7 @@ def main(args):
         sample_id = adata.obs["sample"].unique()
         adatas[sample_id[0]] = adata
 
-    merged_adata = ad.concat(adatas, index_unique="_", merge="same", uns_merge="unique")
+    merged_adata = ad.concat(adatas, index_unique="_", merge="same", uns_merge="first")
 
     if not "spatial" in merged_adata.uns:
         raise ValueError(f"adata.uns lost spatial information during merge. Exiting.")

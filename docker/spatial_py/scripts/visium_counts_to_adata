@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import argparse
 import pandas as pd
 import numpy as np
@@ -13,10 +15,10 @@ def main(args):
     adata = sq.read.visium(
         path=args.spaceranger_spatial_dir,
         counts_file="filtered_feature_bc_matrix.h5",
-        library_id=args.sample_id,
+        library_id=args.slide,
     )
 
-    # Gene names is the index for adata.var, but there are duplicates genes so this will make it unique (e.g. TBCE vs. TBCE-1)
+    # Barcodes (or genes depending on Visium version) are the index for adata.var, if there are duplicates this will make it unique (e.g. TBCE vs. TBCE-1)
     adata.var_names_make_unique()
 
     # Add metadata
@@ -25,6 +27,8 @@ def main(args):
     adata.obs["sample"] = args.sample_id
     adata.obs["batch"] = args.batch
     adata.obs["batch_id"] = f"{args.team_id}_{args.dataset_id}_{args.batch}"
+    adata.obs["visium_slide_ref"] = args.slide
+    adata.obs["visium_capture_area"] = args.area
     
     # Save adata object
     adata.write_h5ad(filename=args.adata_output, compression="gzip")
@@ -61,6 +65,20 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="Batch from which the sample/dataset originated"
+    )
+    parser.add_argument(
+        "-i",
+        "--slide",
+        type=str,
+        required=True,
+        help="The 10x Visium slide serial number"
+    )
+    parser.add_argument(
+        "-a",
+        "--area",
+        type=str,
+        required=True,
+        help="The 10x Visium slide capture area"
     )
     parser.add_argument(
         "-f",

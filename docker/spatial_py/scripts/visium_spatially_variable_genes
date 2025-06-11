@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import argparse
 import pandas as pd
 import numpy as np
@@ -15,7 +17,7 @@ def main(args):
     genes = adata.var_names[adata.var["highly_variable"]].tolist()
     sq.gr.spatial_neighbors(
         adata,
-        library_key="sample",
+        library_key="visium_slide_ref",
         coord_type="generic",
         delaunay=True,
     )
@@ -28,17 +30,16 @@ def main(args):
     )
     top_10_variable_genes = adata.uns["moranI"].head(10)
 
-    top_3_variable_gene_list = adata.uns["moranI"].head(3).index.tolist()
-    top_3_variable_gene_list.append("leiden")
-    samples = adata.obs["sample"].unique().tolist()
-    titles = [f"{sample} - {color}" for sample in samples for color in top_3_variable_gene_list]
+    top_4_variable_gene_list = adata.uns["moranI"].head(4).index.tolist()
+    slides = adata.obs["visium_slide_ref"].unique().tolist()
+    titles = [f"{slide} - {color}" for slide in slides for color in top_4_variable_gene_list]
     sq.pl.spatial_scatter(
         adata,
-        library_key="sample",
-        color=top_3_variable_gene_list,
+        library_key="visium_slide_ref",
+        color=top_4_variable_gene_list,
         title=titles,
     )
-    plt.savefig(f"{args.cohort_id}.moran_top_3_variable_genes_spatial_scatter.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"{args.cohort_id}.moran_top_4_variable_genes_spatial_scatter.png", dpi=300, bbox_inches="tight")
 
     # Save table and adata object
     top_10_variable_genes.to_csv(f"{args.cohort_id}.moran_top_10_variable_genes.csv")
