@@ -340,8 +340,8 @@ task fastq_to_dcc {
 		zip -r ~{slide_id}.DCC.zip ~{slide_id}.DCC
 
 		random_dcc=$(head -1 sample_names_with_dcc.txt)
-		detect_counts=$(grep "^Raw,0$" ./~{slide_id}.DCC/"${random_dcc}")
-		if [[ -z "${detect_counts}" ]]; then
+		detect_empty_counts=$(grep "^Raw,0$" ./~{slide_id}.DCC/"${random_dcc}")
+		if [[ -n "${detect_empty_counts}" ]]; then
 			echo "[ERROR] Checked a DCC file generated from present fastqs and there are no counts [${random_dcc}]. Exiting."
 			exit 1
 		fi
