@@ -297,21 +297,24 @@ task fastq_to_dcc {
 
 	command <<<
 		set -euo pipefail
-
+	
 		# Ensure fastqs are in the same directory
 		mkdir fastqs
 		while read -r fastq || [[ -n "${fastq}" ]]; do
-			ln -s "${fastq}" "fastqs/$(basename "$fastq")"
+			if [[ -n "${fastq}" ]]; then
+				fastq_basename=$(basename "${fastq}")
+				fastq_sample_id=$(cut -d'_' -f1-4 <<< "${fastq_basename}")
+				validated_fastq_name=$(fix_fastq_names --fastq "${fastq}" --sample-id "${fastq_sample_id}")
+				if [[ -e "fastqs/${validated_fastq_name}" ]]; then
+					echo "[ERROR] Something's gone wrong with fastq renaming; trying to create fastq [${validated_fastq_name}] but it already exists. Exiting."
+					exit 1
+				else
+					ln -s "${fastq}" "fastqs/${validated_fastq_name}"
+				fi
+			fi
 		done < <(cat \
 			~{write_lines(fastq_R1s)} \
-			~{write_lines(fastq_R2s)})
-
-		echo "Files present in 'fastqs/' directory:"
-		ls -A $(pwd)/fastqs
-		if [ ! "$(ls -A $(pwd)/fastqs)" ]; then
-			echo "[ERROR] 'fastqs/' directory is empty"
-			exit 1
-		fi
+			~{write_lines(fastq_R2s)}
 
 		expect <<EOF
 		set timeout -1
@@ -335,6 +338,13 @@ task fastq_to_dcc {
 			cp ~{slide_id}_geomxngs_out_dir/"$file" ./~{slide_id}.DCC/
 		done < sample_names_with_dcc.txt
 		zip -r ~{slide_id}.DCC.zip ~{slide_id}.DCC
+
+		random_dcc=$(head -1 sample_names_with_dcc.txt)
+		detect_counts=$(grep "^Raw,0$" ./~{slide_id}.DCC/"${random_dcc}")
+		if [[ -z "${detect_counts}" ]]; then
+			echo "[ERROR] Checked a DCC file generated from present fastqs and there are no counts [${random_dcc}]. Exiting."
+			exit 1
+		fi
 
 		tar -czvf "~{slide_id}.geomxngs_out_dir.tar.gz" "~{slide_id}_geomxngs_out_dir"
 
