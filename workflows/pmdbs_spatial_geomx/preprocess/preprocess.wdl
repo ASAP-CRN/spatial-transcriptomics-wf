@@ -314,7 +314,7 @@ task fastq_to_dcc {
 			fi
 		done < <(cat \
 			~{write_lines(fastq_R1s)} \
-			~{write_lines(fastq_R2s)}
+			~{write_lines(fastq_R2s)})
 
 		expect <<EOF
 		set timeout -1

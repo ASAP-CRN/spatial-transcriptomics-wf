@@ -1,7 +1,6 @@
 version 1.0
 
 struct Sample {
-	String geomx_sample_id
 	String sample_id
 	String? batch
 
