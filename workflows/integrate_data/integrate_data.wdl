@@ -97,7 +97,7 @@ task integrate_sample_data {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		maxRetries: 3
+		maxRetries: 2
 		bootDiskSizeGb: 10
 		zones: zones
 	}
@@ -162,7 +162,7 @@ task cluster {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		maxRetries: 3
+		maxRetries: 2
 		bootDiskSizeGb: 10
 		zones: zones
 	}

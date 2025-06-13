@@ -258,7 +258,7 @@ task check_output_files_exist {
 		memory: "4 GB"
 		disks: "local-disk 20 HDD"
 		preemptible: 3
-		maxRetries: 3
+		maxRetries: 2
 		zones: zones
 	}
 
@@ -293,7 +293,7 @@ task fastq_to_dcc {
 
 	Int threads = 8
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size(flatten([fastq_R1s, fastq_R2s]), "GB") * 2 + 50)
+	Int disk_size = ceil(size(flatten([fastq_R1s, fastq_R2s]), "GB") * 4 + 80)
 
 	command <<<
 		set -euo pipefail
@@ -367,7 +367,7 @@ task fastq_to_dcc {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		maxRetries: 3
+		maxRetries: 2
 		bootDiskSizeGb: 15
 		zones: zones
 	}
@@ -443,7 +443,7 @@ task dcc_to_rds {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		maxRetries: 3
+		maxRetries: 2
 		bootDiskSizeGb: 15
 		zones: zones
 	}
@@ -535,7 +535,7 @@ task qc {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		maxRetries: 3
+		maxRetries: 2
 		bootDiskSizeGb: 15
 		zones: zones
 	}

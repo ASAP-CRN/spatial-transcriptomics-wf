@@ -268,7 +268,7 @@ task merge_and_plot_qc_metrics {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		maxRetries: 3
+		maxRetries: 2
 		bootDiskSizeGb: 15
 		zones: zones
 	}
@@ -344,7 +344,7 @@ task filter_and_normalize {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		maxRetries: 3
+		maxRetries: 2
 		bootDiskSizeGb: 15
 		zones: zones
 	}
@@ -410,7 +410,7 @@ task plot_spatial {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		maxRetries: 3
+		maxRetries: 2
 		bootDiskSizeGb: 15
 		zones: zones
 	}
