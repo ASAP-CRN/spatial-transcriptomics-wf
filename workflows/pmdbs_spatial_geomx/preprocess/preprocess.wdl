@@ -293,7 +293,7 @@ task fastq_to_dcc {
 
 	Int threads = 8
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size(flatten([fastq_R1s, fastq_R2s]), "GB") * 4 + 80)
+	Int disk_size = ceil(size(flatten([fastq_R1s, fastq_R2s]), "GB") * 2 + 50)
 
 	command <<<
 		set -euo pipefail
@@ -340,7 +340,7 @@ task fastq_to_dcc {
 		zip -r ~{slide_id}.DCC.zip ~{slide_id}.DCC
 
 		random_dcc=$(head -1 sample_names_with_dcc.txt)
-		detect_empty_counts=$(grep "^Raw,0$" ./~{slide_id}.DCC/"${random_dcc}")
+		detect_empty_counts=$(grep "^Raw,0$" ./~{slide_id}.DCC/"${random_dcc}" || [[ $? == 1 ]])
 		if [[ -n "${detect_empty_counts}" ]]; then
 			echo "[ERROR] Checked a DCC file generated from present fastqs and there are no counts [${random_dcc}]. Exiting."
 			exit 1
