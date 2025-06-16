@@ -71,6 +71,8 @@ workflow preprocess {
 			Array[String] project_sample_id = [team_id, sample.sample_id, dataset_doi_url]
 			Array[File] fastq_R1s = sample.fastq_R1s
 			Array[File] fastq_R2s = sample.fastq_R2s
+			Array[String] sample_id = sample.sample_id,
+			Array[String] batch = select_first([sample.batch])
 		}
 
 		String fastq_to_dcc_complete = check_output_files_exist.sample_preprocessing_complete[slide_index][0]
@@ -106,6 +108,8 @@ workflow preprocess {
 					team_id = team_id,
 					dataset_id = dataset_id,
 					slide_id = slide.geomx_slide_id,
+					sample_id = sample_id,
+					batch = batch,
 					geomxngs_dcc_zip = geomxngs_dcc_zip_output,
 					geomx_lab_annotation_xlsx = slide.geomx_lab_annotation_xlsx,
 					geomxngs_config_pkc = geomxngs_config_pkc,
@@ -115,15 +119,6 @@ workflow preprocess {
 					container_registry = container_registry,
 					zones = zones
 			}
-
-			# scatter (sample_index in range(length(slide.samples))) {
-			#	Sample sample = slide.samples[sample_index]
-			#	call add_sample_metadata {
-			#		input:
-			#			sample_id = sample.sample_id,
-			#			batch = select_first([sample.batch])
-			#	}
-			# }
 		}
 
 		File initial_rds_object_output = select_first([dcc_to_rds.initial_rds_object, dcc_to_rds_object]) #!FileCoercion
@@ -187,7 +182,8 @@ workflow preprocess {
 		team_id: {help: "Name of the CRN Team; stored in the NanoStringGeoMxSet objects."}
 		dataset_id: {help: "Generated ASAP dataset ID; stored in the NanoStringGeoMxSet objects."}
 		dataset_doi_url: {help: "Generated Zenodo DOI URL referencing the dataset."}
-		samples: {help: "An array of Sample struct, set of samples and their associated reads and GeoMx experimental information including the annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx DSP readout package."}
+		slides: {help: "An array of Slide struct, set of slides and their Samples and GeoMx experimental information including the annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx DSP readout package."}
+		samples: {help: "An array of Sample struct, set of samples within a slide and their associated reads."}
 		geomx_config_ini: {help: "The configuration (.ini) file, containing pipeline processing parameters that is used by the GeoMx NGS pipeline to assist in converting the FASTQ files to DCC files. It is from the GeoMx DSP readout package."}
 		geomxngs_config_pkc: {help: "The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers."}
 		min_segment_reads: {help: "Minimum number of segment reads. [1000]"}
@@ -377,7 +373,7 @@ task fastq_to_dcc {
 	}
 
 	parameter_meta {
-		#sample_id: {help: "Generated ASAP sample ID; used to name output files."}
+		slide_id: {help: "GeoMx slide ID; used to name output files."}
 		fastq_R1s: {help: "Sample's read 1 FASTQ file."}
 		fastq_R2s: {help: "Sample's read 2 FASTQ file."}
 		geomx_config_ini: {help: "The configuration (.ini) file, containing pipeline processing parameters that is used by the GeoMx NGS pipeline to assist in converting the FASTQ files to DCC files. It is from the GeoMx DSP readout package."}
@@ -394,6 +390,8 @@ task dcc_to_rds {
 		String team_id
 		String dataset_id
 		String slide_id
+		Array[String] sample_id
+		Array[String] batch
 
 		File geomxngs_dcc_zip
 
@@ -419,8 +417,9 @@ task dcc_to_rds {
 		geomx_counts_to_rds \
 			--team-id ~{team_id} \
 			--dataset-id ~{dataset_id} \
-			--sample-id ~{slide_id} \
-			--batch ~{slide_id} \
+			--slide-id ~{slide_id} \
+			--sample-id ~{sep ' ' sample_id} \
+			--batch ~{sep ' ' batch} \
 			--dcc-dir ./dcc_files_dir \
 			--pkc-file ~{geomxngs_config_pkc} \
 			--annotation-file ~{geomx_lab_annotation_xlsx} \
@@ -455,8 +454,9 @@ task dcc_to_rds {
 	parameter_meta {
 		team_id: {help: "Name of the CRN Team; stored in the NanoStringGeoMxSet objects."}
 		dataset_id: {help: "Generated ASAP dataset ID; stored in the NanoStringGeoMxSet objects."}
-		#sample_id: {help: "Generated ASAP sample ID; stored in the NanoStringGeoMxSet objects and used to name output files."}
-		#batch: {help: "The sample's batch; stored in the NanoStringGeoMxSet objects."}
+		slide_id: {help: "GeoMx slide ID; used to name output files."}
+		sample_id: {help: "Generated ASAP sample ID; stored in the NanoStringGeoMxSet objects."}
+		batch: {help: "The sample's batch; stored in the NanoStringGeoMxSet objects."}
 		geomxngs_dcc_zip: {help: "DCC files for each sample compressed in a ZIP file."}
 		geomx_lab_annotation_xlsx: {help: "The annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx DSP readout package."}
 		geomxngs_config_pkc: {help: "The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers."}
@@ -499,7 +499,7 @@ task qc {
 		set -euo pipefail
 
 		geomx_qc \
-			--sample-id ~{slide_id} \
+			--slide-id ~{slide_id} \
 			--input ~{initial_rds_object} \
 			--min-reads ~{min_segment_reads} \
 			--percent-trimmed ~{min_percent_reads_trimmed} \
@@ -545,6 +545,7 @@ task qc {
 	}
 
 	parameter_meta {
+		slide_id: {help: "GeoMx slide ID; used to name output files."}
 		initial_rds_object: {help: "The initial RDS object converted from counts."}
 		min_segment_reads: {help: "Minimum number of segment reads. [1000]"}
 		min_percent_reads_trimmed: {help: "Minimum % of reads trimmed. [80]"}

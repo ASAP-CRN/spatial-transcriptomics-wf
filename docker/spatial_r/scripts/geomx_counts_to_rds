@@ -21,14 +21,19 @@ parser$add_argument(
 	help="Dataset ID"
 )
 parser$add_argument(
+	"--slide-id",
+	required=TRUE,
+	help="Slide ID"
+)
+parser$add_argument(
 	"--sample-id",
 	required=TRUE,
-	help="Sample ID"
+	help="Sample IDs"
 )
 parser$add_argument(
 	"--batch",
 	required=TRUE,
-	help="Batch"
+	help="Batches"
 )
 parser$add_argument(
 	"--dcc-dir",
@@ -83,6 +88,7 @@ geomxdata <- readNanoStringGeoMxSet(dccFiles = dcc_files,
 # Add metadata
 pData(geomxdata)$team <- args$team_id
 pData(geomxdata)$dataset <- args$dataset_id
+pData(geomxdata)$slide <- args$slide_id
 pData(geomxdata)$sample <- args$sample_id
 pData(geomxdata)$batch <- args$batch
 pData(geomxdata)$batch_id <- paste0(args$team_id, "_", args$dataset_id, "_", args$batch)

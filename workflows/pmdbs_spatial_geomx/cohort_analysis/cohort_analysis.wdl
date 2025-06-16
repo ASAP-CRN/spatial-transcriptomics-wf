@@ -206,7 +206,7 @@ task filter_and_normalize {
 		String zones
 	}
 
-	String sample_id = basename(preprocessed_rds_object, ".qc.rds")
+	String slide_id = basename(preprocessed_rds_object, ".qc.rds")
 
 	Int mem_gb = ceil(size([preprocessed_rds_object, cell_type_markers_list], "GB") * 2 + 20)
 	Int disk_size = ceil(size([preprocessed_rds_object, cell_type_markers_list], "GB") * 2 + 50)

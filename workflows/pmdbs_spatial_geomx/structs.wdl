@@ -24,6 +24,7 @@ struct Project {
 	Array[Slide] slides
 
 	File geomx_config_ini
+	File project_sample_metadata_csv
 
 	Boolean run_project_cohort_analysis
 

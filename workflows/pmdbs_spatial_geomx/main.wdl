@@ -209,7 +209,7 @@ workflow pmdbs_spatial_geomx_analysis {
 
 	parameter_meta {
 		cohort_id: {help: "Name of the cohort; used to name output files during cross-team downstream analysis."}
-		projects: {help: "The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis."}
+		projects: {help: "The project ID, set of slides and their associated samples, reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis."}
 		geomxngs_config_pkc: {help: "The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers."}
 		min_segment_reads: {help: "Minimum number of segment reads. [1000]"}
 		min_percent_reads_trimmed: {help: "Minimum % of reads trimmed. [80]"}
