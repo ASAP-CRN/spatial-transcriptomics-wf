@@ -11,7 +11,7 @@ struct Sample {
 }
 
 struct Slide {
-	String geomx_slide_id
+	String slide_id
 	File geomx_lab_annotation_xlsx
 
 	Array[Sample] samples
@@ -23,8 +23,8 @@ struct Project {
 	String dataset_doi_url
 	Array[Slide] slides
 
-	File geomx_config_ini
 	File project_sample_metadata_csv
+	File geomx_config_ini
 
 	Boolean run_project_cohort_analysis
 

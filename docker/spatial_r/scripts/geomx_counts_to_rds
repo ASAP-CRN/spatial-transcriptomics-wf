@@ -26,14 +26,9 @@ parser$add_argument(
 	help="Slide ID"
 )
 parser$add_argument(
-	"--sample-id",
+	"--sample-metadata",
 	required=TRUE,
-	help="Sample IDs"
-)
-parser$add_argument(
-	"--batch",
-	required=TRUE,
-	help="Batches"
+	help="Path to the QC'ed SAMPLE.csv metadata"
 )
 parser$add_argument(
 	"--dcc-dir",
@@ -86,11 +81,21 @@ geomxdata <- readNanoStringGeoMxSet(dccFiles = dcc_files,
 									experimentDataColNames = c("panel"))
 
 # Add metadata
+metadata <- read.csv(args$sample_metadata, header = TRUE, stringsAsFactors = FALSE)
+metadata <- metadata[, c("sample_id", "batch", "ASAP_sample_id")]
 pData(geomxdata)$team <- args$team_id
 pData(geomxdata)$dataset <- args$dataset_id
 pData(geomxdata)$slide <- args$slide_id
-pData(geomxdata)$sample <- args$sample_id
-pData(geomxdata)$batch <- args$batch
-pData(geomxdata)$batch_id <- paste0(args$team_id, "_", args$dataset_id, "_", args$batch)
+merged_pdata <- merge(
+	pData(geomxdata),
+	metadata,
+	by.x = "Sample_ID",
+	by.y = "sample_id",
+	all.x = TRUE,
+	sort = FALSE
+)
+merged_pdata$sample <- merged_pdata$Sample_ID
+merged_pdata$batch_id <- paste0(args$team_id, "_", args$dataset_id, "_", merged_pdata$batch)
+pData(geomxdata) <- merged_pdata
 
 saveRDS(geomxdata, file = args$output)

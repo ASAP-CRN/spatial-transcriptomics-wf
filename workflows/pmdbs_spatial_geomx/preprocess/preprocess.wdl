@@ -11,6 +11,7 @@ workflow preprocess {
 		String dataset_doi_url
 		Array[Slide] slides
 
+		File project_sample_metadata_csv
 		File geomx_config_ini
 		File geomxngs_config_pkc
 
@@ -48,9 +49,9 @@ workflow preprocess {
 	String qc_raw_data_path = "~{workflow_raw_data_path_prefix}/qc/~{qc_task_version}"
 
 	scatter (slide_object in slides) {
-		String fastq_to_dcc_output = "~{dcc_raw_data_path}/~{slide_object.geomx_slide_id}.geomxngs_out_dir.tar.gz"
-		String dcc_to_rds_output = "~{rds_raw_data_path}/~{slide_object.geomx_slide_id}.NanoStringGeoMxSet.rds"
-		String qc_output = "~{qc_raw_data_path}/~{slide_object.geomx_slide_id}.qc.rds"
+		String fastq_to_dcc_output = "~{dcc_raw_data_path}/~{slide_object.slide_id}.geomxngs_out_dir.tar.gz"
+		String dcc_to_rds_output = "~{rds_raw_data_path}/~{slide_object.slide_id}.NanoStringGeoMxSet.rds"
+		String qc_output = "~{qc_raw_data_path}/~{slide_object.slide_id}.qc.rds"
 	}
 
 	# For each sample, outputs an array of true/false: [fastq_to_dcc_complete, dcc_to_rds_complete, qc_complete]
@@ -71,21 +72,19 @@ workflow preprocess {
 			Array[String] project_sample_id = [team_id, sample.sample_id, dataset_doi_url]
 			Array[File] fastq_R1s = sample.fastq_R1s
 			Array[File] fastq_R2s = sample.fastq_R2s
-			Array[String] sample_id = sample.sample_id,
-			Array[String] batch = select_first([sample.batch])
 		}
 
 		String fastq_to_dcc_complete = check_output_files_exist.sample_preprocessing_complete[slide_index][0]
 		String dcc_to_rds_complete = check_output_files_exist.sample_preprocessing_complete[slide_index][1]
 		String qc_complete = check_output_files_exist.sample_preprocessing_complete[slide_index][2]
 
-		String fastq_to_dcc_geomxngs_dcc_zip = "~{dcc_raw_data_path}/~{slide.geomx_slide_id}.DCC.zip"
-		String fastq_to_dcc_geomxngs_output_tar_gz = "~{dcc_raw_data_path}/~{slide.geomx_slide_id}.geomxngs_out_dir.tar.gz"
+		String fastq_to_dcc_geomxngs_dcc_zip = "~{dcc_raw_data_path}/~{slide.slide_id}.DCC.zip"
+		String fastq_to_dcc_geomxngs_output_tar_gz = "~{dcc_raw_data_path}/~{slide.slide_id}.geomxngs_out_dir.tar.gz"
 
 		if (fastq_to_dcc_complete == "false") {
 			call fastq_to_dcc {
 				input:
-					slide_id = slide.geomx_slide_id,
+					slide_id = slide.slide_id,
 					fastq_R1s = flatten(fastq_R1s),
 					fastq_R2s = flatten(fastq_R2s),
 					geomx_config_ini = geomx_config_ini,
@@ -100,16 +99,15 @@ workflow preprocess {
 		File geomxngs_dcc_zip_output = select_first([fastq_to_dcc.geomxngs_dcc_zip, fastq_to_dcc_geomxngs_dcc_zip]) #!FileCoercion
 		File geomxngs_output_tar_gz_output = select_first([fastq_to_dcc.geomxngs_output_tar_gz, fastq_to_dcc_geomxngs_output_tar_gz]) #!FileCoercion
 
-		String dcc_to_rds_object = "~{rds_raw_data_path}/~{slide.geomx_slide_id}.NanoStringGeoMxSet.rds"
+		String dcc_to_rds_object = "~{rds_raw_data_path}/~{slide.slide_id}.NanoStringGeoMxSet.rds"
 
 		if (dcc_to_rds_complete == "false") {
 			call dcc_to_rds {
 				input:
 					team_id = team_id,
 					dataset_id = dataset_id,
-					slide_id = slide.geomx_slide_id,
-					sample_id = sample_id,
-					batch = batch,
+					slide_id = slide.slide_id,
+					project_sample_metadata_csv = project_sample_metadata_csv,
 					geomxngs_dcc_zip = geomxngs_dcc_zip_output,
 					geomx_lab_annotation_xlsx = slide.geomx_lab_annotation_xlsx,
 					geomxngs_config_pkc = geomxngs_config_pkc,
@@ -123,15 +121,15 @@ workflow preprocess {
 
 		File initial_rds_object_output = select_first([dcc_to_rds.initial_rds_object, dcc_to_rds_object]) #!FileCoercion
 
-		String qc_metrics_rds_object = "~{qc_raw_data_path}/~{slide.geomx_slide_id}.qc.rds"
-		String qc_segment_summary_csv = "~{qc_raw_data_path}/~{slide.geomx_slide_id}.segment_qc_summary.csv"
-		String qc_probe_summary_csv = "~{qc_raw_data_path}/~{slide.geomx_slide_id}.probe_qc_summary.csv"
-		String qc_gene_count_csv = "~{qc_raw_data_path}/~{slide.geomx_slide_id}.gene_count.csv"
+		String qc_metrics_rds_object = "~{qc_raw_data_path}/~{slide.slide_id}.qc.rds"
+		String qc_segment_summary_csv = "~{qc_raw_data_path}/~{slide.slide_id}.segment_qc_summary.csv"
+		String qc_probe_summary_csv = "~{qc_raw_data_path}/~{slide.slide_id}.probe_qc_summary.csv"
+		String qc_gene_count_csv = "~{qc_raw_data_path}/~{slide.slide_id}.gene_count.csv"
 
 		if (qc_complete == "false") {
 			call qc {
 				input:
-					slide_id = slide.geomx_slide_id,
+					slide_id = slide.slide_id,
 					initial_rds_object = initial_rds_object_output,
 					min_segment_reads = min_segment_reads,
 					min_percent_reads_trimmed = min_percent_reads_trimmed,
@@ -373,7 +371,7 @@ task fastq_to_dcc {
 	}
 
 	parameter_meta {
-		slide_id: {help: "GeoMx slide ID; used to name output files."}
+		slide_id: {help: "Generated slide ID; used to name output files."}
 		fastq_R1s: {help: "Sample's read 1 FASTQ file."}
 		fastq_R2s: {help: "Sample's read 2 FASTQ file."}
 		geomx_config_ini: {help: "The configuration (.ini) file, containing pipeline processing parameters that is used by the GeoMx NGS pipeline to assist in converting the FASTQ files to DCC files. It is from the GeoMx DSP readout package."}
@@ -390,11 +388,10 @@ task dcc_to_rds {
 		String team_id
 		String dataset_id
 		String slide_id
-		Array[String] sample_id
-		Array[String] batch
+
+		File project_sample_metadata_csv
 
 		File geomxngs_dcc_zip
-
 		File geomx_lab_annotation_xlsx
 		File geomxngs_config_pkc
 
@@ -407,7 +404,7 @@ task dcc_to_rds {
 
 	Int threads = 4
 	Int mem_gb = ceil(threads * 2)
-	Int disk_size = ceil(size([geomxngs_dcc_zip, geomx_lab_annotation_xlsx, geomxngs_config_pkc], "GB") * 4 + 30)
+	Int disk_size = ceil(size([project_sample_metadata_csv, geomxngs_dcc_zip, geomx_lab_annotation_xlsx, geomxngs_config_pkc], "GB") * 4 + 30)
 
 	command <<<
 		set -euo pipefail
@@ -418,8 +415,7 @@ task dcc_to_rds {
 			--team-id ~{team_id} \
 			--dataset-id ~{dataset_id} \
 			--slide-id ~{slide_id} \
-			--sample-id ~{sep ' ' sample_id} \
-			--batch ~{sep ' ' batch} \
+			--sample-metadata ~{project_sample_metadata_csv} \
 			--dcc-dir ./dcc_files_dir \
 			--pkc-file ~{geomxngs_config_pkc} \
 			--annotation-file ~{geomx_lab_annotation_xlsx} \
@@ -454,7 +450,7 @@ task dcc_to_rds {
 	parameter_meta {
 		team_id: {help: "Name of the CRN Team; stored in the NanoStringGeoMxSet objects."}
 		dataset_id: {help: "Generated ASAP dataset ID; stored in the NanoStringGeoMxSet objects."}
-		slide_id: {help: "GeoMx slide ID; used to name output files."}
+		slide_id: {help: "Generated slide ID; used to name output files."}
 		sample_id: {help: "Generated ASAP sample ID; stored in the NanoStringGeoMxSet objects."}
 		batch: {help: "The sample's batch; stored in the NanoStringGeoMxSet objects."}
 		geomxngs_dcc_zip: {help: "DCC files for each sample compressed in a ZIP file."}
@@ -545,7 +541,7 @@ task qc {
 	}
 
 	parameter_meta {
-		slide_id: {help: "GeoMx slide ID; used to name output files."}
+		slide_id: {help: "Generated slide ID; used to name output files."}
 		initial_rds_object: {help: "The initial RDS object converted from counts."}
 		min_segment_reads: {help: "Minimum number of segment reads. [1000]"}
 		min_percent_reads_trimmed: {help: "Minimum % of reads trimmed. [80]"}
