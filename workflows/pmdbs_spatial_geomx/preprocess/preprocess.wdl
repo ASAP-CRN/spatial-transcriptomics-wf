@@ -300,8 +300,7 @@ task fastq_to_dcc {
 				fastq_sample_id=$(cut -d'_' -f1-4 <<< "${fastq_basename}")
 				validated_fastq_name=$(fix_fastq_names --fastq "${fastq}" --sample-id "${fastq_sample_id}")
 				if [[ -e "fastqs/${validated_fastq_name}" ]]; then
-					echo "[ERROR] Something's gone wrong with fastq renaming; trying to create fastq [${validated_fastq_name}] but it already exists. Exiting."
-					exit 1
+					echo "[WARNING] Skipping fastq renaming; already in proper format [${validated_fastq_name}]."
 				else
 					ln -s "${fastq}" "fastqs/${validated_fastq_name}"
 				fi
