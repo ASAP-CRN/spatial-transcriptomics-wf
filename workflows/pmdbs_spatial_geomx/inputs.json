@@ -1,6 +1,6 @@
 {
   "pmdbs_spatial_geomx_analysis.cohort_id": "String",
-  "pmdbs_spatial_geomx_analysis.projects": "Array[WomCompositeType {\n team_id -> String\ndataset_id -> String\ngeomx_config_ini -> File\nsamples -> Array[WomCompositeType {\n fastq_I1s -> Array[File]\nsample_id -> String\nfastq_R1s -> Array[File]+\nbatch -> String?\ngeomx_lab_annotation_xlsx -> File\nfastq_I2s -> Array[File]\nfastq_R2s -> Array[File]+\ngeomx_slide_id -> String \n}]\nstaging_data_buckets -> Array[String]\nrun_project_cohort_analysis -> Boolean\ndataset_doi_url -> String\nraw_data_bucket -> String \n}]",
+  "pmdbs_spatial_geomx_analysis.projects": "Array[WomCompositeType {\n slides -> Array[WomCompositeType {\n slide_id -> String\ngeomx_lab_annotation_xlsx -> File\nsamples -> Array[WomCompositeType {\n fastq_I1s -> Array[File]\nsample_id -> String\nfastq_R1s -> Array[File]+\nbatch -> String?\nfastq_I2s -> Array[File]\nfastq_R2s -> Array[File]+ \n}] \n}]\nproject_sample_metadata_csv -> File\nteam_id -> String\ndataset_id -> String\ngeomx_config_ini -> File\nstaging_data_buckets -> Array[String]\nrun_project_cohort_analysis -> Boolean\ndataset_doi_url -> String\nraw_data_bucket -> String \n}]",
   "pmdbs_spatial_geomx_analysis.geomxngs_config_pkc": "File",
   "pmdbs_spatial_geomx_analysis.min_segment_reads": "Int (optional, default = 1000)",
   "pmdbs_spatial_geomx_analysis.min_percent_reads_trimmed": "Int (optional, default = 80)",
@@ -13,6 +13,7 @@
   "pmdbs_spatial_geomx_analysis.min_segment_area": "Int (optional, default = 5000)",
   "pmdbs_spatial_geomx_analysis.cell_type_markers_list": "File",
   "pmdbs_spatial_geomx_analysis.min_genes_detected_in_percent_segment": "Float (optional, default = 0.01)",
+  "pmdbs_spatial_geomx_analysis.n_top_genes": "Int (optional, default = 3000)",
   "pmdbs_spatial_geomx_analysis.n_comps": "Int (optional, default = 30)",
   "pmdbs_spatial_geomx_analysis.batch_key": "String (optional, default = \"batch_id\")",
   "pmdbs_spatial_geomx_analysis.leiden_resolution": "Float (optional, default = 0.4)",

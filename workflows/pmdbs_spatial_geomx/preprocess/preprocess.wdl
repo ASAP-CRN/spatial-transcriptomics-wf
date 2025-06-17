@@ -451,8 +451,7 @@ task dcc_to_rds {
 		team_id: {help: "Name of the CRN Team; stored in the NanoStringGeoMxSet objects."}
 		dataset_id: {help: "Generated ASAP dataset ID; stored in the NanoStringGeoMxSet objects."}
 		slide_id: {help: "Generated slide ID; used to name output files."}
-		sample_id: {help: "Generated ASAP sample ID; stored in the NanoStringGeoMxSet objects."}
-		batch: {help: "The sample's batch; stored in the NanoStringGeoMxSet objects."}
+		project_sample_metadata_csv: {help: "QC'ed SAMPLE.csv metadata used to match and store sample_id, ASAP_sample_id, and batch in the NanoStringGeoMxSet object."}
 		geomxngs_dcc_zip: {help: "DCC files for each sample compressed in a ZIP file."}
 		geomx_lab_annotation_xlsx: {help: "The annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx DSP readout package."}
 		geomxngs_config_pkc: {help: "The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers."}
