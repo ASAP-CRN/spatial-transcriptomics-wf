@@ -96,6 +96,8 @@ merged_pdata <- merge(
 )
 merged_pdata$sample <- merged_pdata$Sample_ID
 merged_pdata$batch_id <- paste0(args$team_id, "_", args$dataset_id, "_", merged_pdata$batch)
+original_rownames <- rownames(pData(geomxdata))
+rownames(merged_pdata) <- original_rownames
 pData(geomxdata) <- merged_pdata
 
 saveRDS(geomxdata, file = args$output)
