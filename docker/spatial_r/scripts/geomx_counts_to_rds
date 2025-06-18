@@ -82,7 +82,8 @@ geomxdata <- readNanoStringGeoMxSet(dccFiles = dcc_files,
 
 # Add metadata
 metadata <- read.csv(args$sample_metadata, header = TRUE, stringsAsFactors = FALSE)
-metadata <- metadata[, c("sample_id", "batch", "ASAP_sample_id")]
+metadata$sample <- paste0(metadata$ASAP_sample_id, "_", metadata$replicate)
+metadata <- metadata[, c("sample_id", "batch", "sample")]
 pData(geomxdata)$team <- args$team_id
 pData(geomxdata)$dataset <- args$dataset_id
 pData(geomxdata)$slide <- args$slide_id
@@ -94,7 +95,6 @@ merged_pdata <- merge(
 	all.x = TRUE,
 	sort = FALSE
 )
-merged_pdata$sample <- merged_pdata$Sample_ID
 merged_pdata$batch_id <- paste0(args$team_id, "_", args$dataset_id, "_", merged_pdata$batch)
 original_rownames <- rownames(pData(geomxdata))
 rownames(merged_pdata) <- original_rownames
