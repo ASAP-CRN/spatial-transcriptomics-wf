@@ -82,22 +82,25 @@ geomxdata <- readNanoStringGeoMxSet(dccFiles = dcc_files,
 
 # Add metadata
 metadata <- read.csv(args$sample_metadata, header = TRUE, stringsAsFactors = FALSE)
-metadata$sample <- paste0(metadata$ASAP_sample_id, "_", metadata$replicate)
-metadata <- metadata[, c("sample_id", "batch", "sample")]
+slide_filename_parts <- strsplit(args$slide_id, "_")[[1]]
+slide_filename_rep <- tail(slide_filename_parts, 1)
+filtered_metadata <- metadata[metadata$replicate == slide_filename_rep, ]
+filtered_metadata$sample <- paste0(filtered_metadata$ASAP_sample_id, "_", filtered_metadata$replicate)
+filtered_metadata <- filtered_metadata[, c("sample_id", "batch", "sample")]
 pData(geomxdata)$team <- args$team_id
 pData(geomxdata)$dataset <- args$dataset_id
 pData(geomxdata)$slide <- args$slide_id
 merged_pdata <- merge(
 	pData(geomxdata),
-	metadata,
+	filtered_metadata,
 	by.x = "Sample_ID",
 	by.y = "sample_id",
 	all.x = TRUE,
 	sort = FALSE
 )
 merged_pdata$batch_id <- paste0(args$team_id, "_", args$dataset_id, "_", merged_pdata$batch)
-original_rownames <- rownames(pData(geomxdata))
-rownames(merged_pdata) <- original_rownames
+merged_pdata$dcc_filename <- rownames(pData(geomxdata))
+rownames(merged_pdata) <- merged_pdata$sample
 pData(geomxdata) <- merged_pdata
 
 saveRDS(geomxdata, file = args$output)
