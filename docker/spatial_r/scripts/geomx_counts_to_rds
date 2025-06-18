@@ -83,8 +83,8 @@ geomxdata <- readNanoStringGeoMxSet(dccFiles = dcc_files,
 # Add metadata
 metadata <- read.csv(args$sample_metadata, header = TRUE, stringsAsFactors = FALSE)
 slide_filename_parts <- strsplit(args$slide_id, "_")[[1]]
-slide_filename_rep <- tail(slide_filename_parts, 1)
-filtered_metadata <- metadata[metadata$replicate == slide_filename_rep, ]
+slide_filename_batch <- tail(slide_filename_parts, 1)
+filtered_metadata <- metadata[metadata$batch == slide_filename_batch, ]
 filtered_metadata$sample <- paste0(filtered_metadata$ASAP_sample_id, "_", filtered_metadata$replicate)
 filtered_metadata <- filtered_metadata[, c("sample_id", "batch", "sample")]
 pData(geomxdata)$team <- args$team_id
