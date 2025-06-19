@@ -109,7 +109,7 @@ merged_pdata <- merge(
 merged_pdata$batch_id <- paste0(args$team_id, "_", args$dataset_id, "_", merged_pdata$batch)
 num_pdata_rows = length(rownames(pData(geomxdata)))
 num_metadata_rows = length(rownames(merged_pdata))
-if (num_pdata_rows == num_metadata_rows) {
+if (num_pdata_rows != num_metadata_rows) {
 	message(glue(
 		"DCC files AKA RDS object row names:\n",
 		"{paste(rownames(pData(geomxdata)), collapse = ', ')}\n",
