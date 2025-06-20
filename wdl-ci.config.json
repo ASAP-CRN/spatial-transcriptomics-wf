@@ -66,6 +66,15 @@
                     "png_validator",
                     "image_validator"
                   ]
+                },
+                "merged_adata_metadata_csv": {
+                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.merged_adata_metadata.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_comma_separated",
+                    "count_columns"
+                  ]
                 }
               }
             }
@@ -479,7 +488,7 @@
                   "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L001_I2_001.fastq.gz",
                   "gs://asap-wdl-ci/subset_fastqs/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/subset_10000_CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_S2_L002_I2_001.fastq.gz"
                 ],
-                "visium_brightfield_image": "CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_image.tif",
+                "visium_brightfield_image": "gs://asap-workflow-dev/pmdbs_spatial_visium_karen/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium/CytAssist_FreshFrozen_Mouse_Brain_Post_Xenium_Rep1_image.tif",
                 "visium_slide_serial_number": "V52Y23-098",
                 "visium_capture_area": "B1",
                 "spaceranger_reference_data": "${input_resources_file_path}/refdata-gex-mm10-2020-A.tar.gz",
