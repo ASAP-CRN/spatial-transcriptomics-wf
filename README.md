@@ -1,7 +1,7 @@
 # pmdbs-spatial-transcriptomics-wf
 Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) workflow harmonized across ASAP with human and mouse spatial transcriptomics data for both Nanostring GeoMx and 10x Visium platforms. The main goal is to uncover spatially distinct gene expression profiles across tissue samples, enabling insights into tissue architecture, cell type composition, and disease-related molecular patterns.
 
-Common workflows, tasks, utility scripts, and docker images reused across harmonized ASAP workflows are defined in [the wf-common repository](wf-common).
+Common workflows, tasks, utility scripts, and docker images reused across harmonized ASAP workflows are defined in [the wf-common repository](https://github.com/ASAP-CRN/wf-common).
 
 
 # Table of contents
@@ -21,7 +21,7 @@ These workflows are set up to analyze spatial transcriptomics data: Nanostring G
 
 ## Nanostring GeoMx workflow overview
 
-For the Nanostring GeoMx workflow, we start with raw output files from the instrument and convert them into counts. Then, we clean the data by removing unreliable segments and genes, adjust for technical noise, and combine data from different samples. Finally, we cluster based on segment (which may contain many cells) and visualize their transcriptional profiles in a UMAP space.
+For the Nanostring GeoMx workflow, we start with raw output files from the instrument and convert them into counts. Then, we clean the data by removing unreliable segments and genes, adjust for technical noise, and combine data from different slides. Finally, we cluster based on segment (which may contain many cells) and visualize their transcriptional profiles in a UMAP space.
 
 **Nanostring GeoMx workflow diagram:**
 ![Nanostring GeoMx workflow diagram](workflows/pmdbs_spatial_geomx/workflow_diagram.svg "Workflow diagram")
@@ -48,7 +48,7 @@ Both workflows follow a similar structure, it is broken up into two main chunks:
 
 ## Preprocessing
 
-Run once per sample; only rerun when the preprocessing workflow version is updated. Preprocessing outputs are stored in the originating team's raw and staging data buckets.
+For the Nanostring GeoMx workflow, run once per slide and for the 10x Visium workflow, run once per sample; only rerun when the preprocessing workflow version is updated. Preprocessing outputs are stored in the originating team's raw and staging data buckets.
 
 ## Cohort analysis
 
@@ -64,7 +64,7 @@ An input template file can be found at [workflows/pmdbs_spatial_geomx/inputs.jso
 | Type | Name | Description |
 | :- | :- | :- |
 | String | cohort_id | Name of the cohort; used to name output files during cross-team cohort analysis. |
-| Array[[Project](#project)] | projects | The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis. |
+| Array[[Project](#project)] | projects | The project ID, set of slides and their associated samples, reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis. |
 | File | geomxngs_config_pkc | The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers; see https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-configuration-files/. |
 | Int? | min_segment_reads | Minimum number of segment reads. [1000] |
 | Int? | min_percent_reads_trimmed | Minimum % of reads trimmed. [80] |
@@ -122,11 +122,20 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | String | team_id | Unique identifier for team; used for naming output files. |
 | String | dataset_id | Unique identifier for dataset; used for naming output files. |
 | String | dataset_doi_url | Generated Zenodo DOI URL referencing the dataset. |
-| Array[[Sample](#sample)] | samples | The set of samples associated with this project. |
+| Array[[Slide](#nanostring-geomx-slide)] | slides | The set of slides associated with this project. |
+| File | project_sample_metadata_csv | CSV containing all sample information including batch, condition, etc. |
 | File | geomx_config_ini | The configuration (.ini) file, containing pipeline processing parameters that is used by the GeoMx NGS pipeline to assist in converting the FASTQ files to DCC files. It is from the GeoMx DSP readout package. Sections can include `[Sequencing]`, `[Processing_v2]`, `[AOI_List]`, and `[Targets]`; see [GeoMx configuration (.ini) files notes](#geomx-configuration-(.ini)-files). |
 | Boolean | run_project_cohort_analysis | Whether or not to run cohort analysis within the project. |
 | String | raw_data_bucket | Raw data bucket; intermediate output files that are not final workflow outputs are stored here. |
 | String | staging_data_bucket | Staging data bucket; final project-level outputs are stored here. |
+
+#### Nanostring GeoMx Slide
+
+| Type | Name | Description |
+| :- | :- | :- |
+| String | slide_id | Unique identifier for the slide within the project; used for naming output files. |
+| File | geomx_lab_annotation_xlsx | The annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx DSP readout package; see [GeoMx Lab Worksheet notes](#geomx-lab-worksheet). |
+| Array[[Sample](#nanostring-geomx-sample)] | samples | The set of samples associated with this project. |
 
 #### Nanostring GeoMx Sample
 
@@ -138,7 +147,6 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | File | fastq_R2 | Path to the sample's read 2 FASTQ file. |
 | File? | fastq_I1 | Optional FASTQ index 1. |
 | File? | fastq_I2 | Optional FASTQ index 2. |
-| File | geomx_lab_annotation_xlsx | The annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx DSP readout package; see [GeoMx Lab Worksheet notes](#geomx-lab-worksheet). |
 
 ### 10x Visium structs
 
@@ -149,7 +157,7 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | String | team_id | Unique identifier for team; used for naming output files. |
 | String | dataset_id | Unique identifier for dataset; used for naming output files. |
 | String | dataset_doi_url | Generated Zenodo DOI URL referencing the dataset. |
-| Array[[Sample](#sample)] | samples | The set of samples associated with this project. |
+| Array[[Sample](#10x-visium-sample)] | samples | The set of samples associated with this project. |
 | Boolean | run_project_cohort_analysis | Whether or not to run cohort analysis within the project. |
 | String | raw_data_bucket | Raw data bucket; intermediate output files that are not final workflow outputs are stored here. |
 | String | staging_data_bucket | Staging data bucket; final project-level outputs are stored here. |
@@ -170,7 +178,7 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 
 ## Generating the inputs JSON
 
-The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The `generate_inputs` utility script may be used to automatically generate the inputs JSON (`inputs.{staging_env}.{source}-{cohort_dataset}.{date}.json` and a sample list TSV (`{team_id}.{source}-{cohort_dataset}.sample_list.{date}.tsv`; same as the one generated in [the write_cohort_sample_list task](wf-common/wdl/tasks/write_cohort_sample_list.wdl)). The script requires the libraries outlined in [the requirements.txt file](wf-common/util/requirements.txt) and the following inputs:
+The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The `generate_inputs` utility script may be used to automatically generate the inputs JSON (`inputs.{staging_env}.{source}-{cohort_dataset}.{date}.json` and a sample list TSV (`{team_id}.{source}-{cohort_dataset}.sample_list.{date}.tsv`; same as the one generated in [the write_cohort_sample_list task](https://github.com/ASAP-CRN/wf-common/wdl/tasks/write_cohort_sample_list.wdl)). The script requires the libraries outlined in [the requirements.txt file](https://github.com/ASAP-CRN/wf-common/util/requirements.txt) and the following inputs:
 
 - `project-tsv`: One or more project TSVs with one row per sample and columns team_id, ASAP_dataset_id, ASAP_sample_id, batch, fastq_R1s, fastq_R2s, fastq_I1s, fastq_I2s, embargoed, source, dataset, dataset_DOI_url, and SPATIAL columns if applicable: geomx_config, geomx_dsp_config, geomx_annotation_file, visium_cytassist, visium_probe_set, visium_slide_ref, and visium_capture_area. All samples from all projects may be included in the same project TSV, or multiple project TSVs may be provided.
 	- `team_id`: A unique identifier for the team from which the sample(s) arose.
@@ -188,6 +196,8 @@ The inputs JSON may be generated manually, however when running a large number o
 	- `dataset`: The assigned dataset name without the source (e.g. 'sn-rnaseq')
 	- `dataset_DOI_url`: Generated Zenodo DOI URL referencing the dataset.
 	- `geomx_config`, `geomx_dsp_config`, `geomx_annotation_file`: go to [Nanostring GeoMx inputs](#nanostring-geomx-inputs)
+	- `geomx_slide`: The GeoMx DSP identifier for the slide from which the sample(s) arose.
+	- `ASAP_geomx_slide_id`: A unique identifier for the slide per batch/run from which the sample(s) arose.
 	- `visium_cytassist`, `visium_probe_set`, `visium_slide_ref`, `visium_capture_area`: go to [10x Visium inputs](#10x-visium-inputs)
 - `inputs-template`: The inputs template JSON file into which the `projects` information derived from the `project-tsv` will be inserted. Must have a key ending in `*.projects`. Other default values filled out in the inputs template will be written to the output inputs.json file.
 - `run-project-cohort-analysis`: Optionally run project-level cohort analysis for provided projects. This value will apply to all projects. [false]
@@ -282,6 +292,7 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
     │   ├── ${sampleN_id}.normalization_plot.png
     │   ├── ${cohort_id}.merged.h5ad
     │   ├── ${cohort_id}.hvg_dispersion.png
+    │   ├── ${cohort_id}.merged_adata_metadata.csv
     │   ├── ${cohort_id}.clustered.h5ad # Final
     │   ├── ${cohort_id}.umap_cluster.png
     │   └── MANIFEST.tsv
@@ -357,7 +368,7 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 
 ## Promoting staging data
 
-The [`promote_staging_data` script](wf-common/util/promote_staging_data) can be used to promote staging data that has been approved to the curated data bucket for a team or set of teams.
+The [`promote_staging_data` script](https://github.com/ASAP-CRN/wf-common/util/promote_staging_data) can be used to promote staging data that has been approved to the curated data bucket for a team or set of teams.
 
 This script compiles bucket and file information for both the initial (staging) and target (prod) environment. It also runs data integrity tests to ensure staging data can be promoted and generates a Markdown report. It (1) checks that files are not empty and are not less than or equal to 10 bytes (factoring in white space) and (2) checks that files have associated metadata and is present in MANIFEST.tsv.
 
