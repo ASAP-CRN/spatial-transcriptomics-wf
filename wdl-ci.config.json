@@ -16,13 +16,13 @@
           "tests": [
             {
               "inputs": {
-                "processed_rds_object": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_sample_id}.processed.rds",
+                "processed_rds_object": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_slide_id}.processed.rds",
                 "container_registry": "${container_registry}",
                 "zones": "${zones}"
               },
               "output_tests": {
                 "processed_adata_object": {
-                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_sample_id}.processed.h5ad",
+                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_slide_id}.processed.h5ad",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_hdf5"
@@ -40,8 +40,8 @@
               "inputs": {
                 "cohort_id": "${geomx_team_id}",
                 "processed_adata_objects": [
-                  "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_sample_id}.processed.h5ad",
-                  "${geomx_input_file_path}/${cohort_analysis_workflow_name}/ASAP_SPATIAL_2.processed.h5ad"
+                  "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_slide_id}.processed.h5ad",
+                  "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_slide_id_2}.processed.h5ad"
                 ],
                 "n_top_genes": 3000,
                 "n_comps": 30,
@@ -84,7 +84,7 @@
           "tests": [
             {
               "inputs": {
-                "sample_id": "${geomx_sample_id}",
+                "slide_id": "${geomx_slide_id}",
                 "fastq_R1s": [
                   "gs://asap-raw-team-edwards-pmdbs-spatial-geomx-th/fastqs/DSP_1001660018649_A_A02_S2_L001_R1_001.fastq.gz",
                   "gs://asap-raw-team-edwards-pmdbs-spatial-geomx-th/fastqs/DSP_1001660018649_A_A02_S2_L002_R1_001.fastq.gz"
@@ -102,14 +102,14 @@
               },
               "output_tests": {
                 "geomxngs_dcc_zip": {
-                  "value": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_sample_id}.DCC.zip",
+                  "value": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_slide_id}.DCC.zip",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_zip"
                   ]
                 },
                 "geomxngs_output_tar_gz": {
-                  "value": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_sample_id}.geomxngs_out_dir.tar.gz",
+                  "value": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_slide_id}.geomxngs_out_dir.tar.gz",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_gzip"
@@ -127,9 +127,9 @@
               "inputs": {
                 "team_id": "${geomx_team_id}",
                 "dataset_id": "${geomx_dataset_id}",
-                "sample_id": "${geomx_sample_id}",
-                "batch": "1",
-                "geomxngs_dcc_zip": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_sample_id}.DCC.zip",
+                "slide_id": "${geomx_slide_id}",
+                "project_sample_metadata_csv": "gs://asap-raw-team-edwards-pmdbs-spatial-geomx-th/metadata/release/SAMPLE.csv",
+                "geomxngs_dcc_zip": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_slide_id}.DCC.zip",
                 "geomx_lab_annotation_xlsx": "gs://asap-raw-team-edwards-pmdbs-spatial-geomx-th/spatial/annotation_files/cleaned_DNAstack_GeoMx_round_1_YH_20230719T2320_LabWorksheet.xlsx",
                 "geomxngs_config_pkc": "${input_resources_file_path}/Hs_R_NGS_WTA_v1.0.pkc",
                 "raw_data_path": "${dcc_to_rds_raw_data_path}",
@@ -140,7 +140,7 @@
               },
               "output_tests": {
                 "initial_rds_object": {
-                  "value": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_sample_id}.NanoStringGeoMxSet.rds",
+                  "value": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_slide_id}.NanoStringGeoMxSet.rds",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_rds"
@@ -156,8 +156,8 @@
           "tests": [
             {
               "inputs": {
-                "sample_id": "${geomx_sample_id}",
-                "initial_rds_object": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_sample_id}.NanoStringGeoMxSet.rds",
+                "slide_id": "${geomx_slide_id}",
+                "initial_rds_object": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_slide_id}.NanoStringGeoMxSet.rds",
                 "min_segment_reads": 1000,
                 "min_percent_reads_trimmed": 80,
                 "min_percent_reads_stitched": 80,
@@ -175,14 +175,14 @@
               },
               "output_tests": {
                 "qc_rds_object": {
-                  "value": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_sample_id}.qc.rds",
+                  "value": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_slide_id}.qc.rds",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_rds"
                   ]
                 },
                 "segment_qc_summary_csv": {
-                  "value": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_sample_id}.segment_qc_summary.csv",
+                  "value": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_slide_id}.segment_qc_summary.csv",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_empty_lines",
@@ -191,7 +191,7 @@
                   ]
                 },
                 "probe_qc_summary_csv": {
-                  "value": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_sample_id}.probe_qc_summary.csv",
+                  "value": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_slide_id}.probe_qc_summary.csv",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_empty_lines",
@@ -200,7 +200,7 @@
                   ]
                 },
                 "gene_count_csv": {
-                  "value": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_sample_id}.gene_count.csv",
+                  "value": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_slide_id}.gene_count.csv",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_empty_lines",
@@ -758,8 +758,9 @@
   "test_params": {
     "global_params": {
       "geomx_team_id": "team-edwards",
-      "geomx_dataset_id": "DDS_SPATIAL_001",
-      "geomx_sample_id": "ASAP_SPATIAL_1",
+      "geomx_dataset_id": "DS_PMDBS_0013",
+      "geomx_slide_id": "ASAP_DS_PMDBS_0013_SLIDE_0001_1",
+      "geomx_slide_id_2": "ASAP_DS_PMDBS_0013_SLIDE_0001_2",
       "cohort_id": "asap-cohort",
       "geomx_workflow_name": "pmdbs_spatial_geomx",
       "geomx_workflow_version": "v1.0.0",

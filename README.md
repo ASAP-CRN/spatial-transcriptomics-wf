@@ -64,7 +64,7 @@ An input template file can be found at [workflows/pmdbs_spatial_geomx/inputs.jso
 | Type | Name | Description |
 | :- | :- | :- |
 | String | cohort_id | Name of the cohort; used to name output files during cross-team cohort analysis. |
-| Array[[Project](#project)] | projects | The project ID, set of slides and their associated samples, reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis. |
+| Array[[Project](#nanostring-geomx-project)] | projects | The project ID, set of slides and their associated samples, reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis. |
 | File | geomxngs_config_pkc | The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers; see https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-configuration-files/. |
 | Int? | min_segment_reads | Minimum number of segment reads. [1000] |
 | Int? | min_percent_reads_trimmed | Minimum % of reads trimmed. [80] |
@@ -93,7 +93,7 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | Type | Name | Description |
 | :- | :- | :- |
 | String | cohort_id | Name of the cohort; used to name output files during cross-team cohort analysis. |
-| Array[[Project](#project)] | projects | The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis. |
+| Array[[Project](#10x-visium-project)] | projects | The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis. |
 | File | spaceranger_reference_data | Space Ranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads and [10x Visium notes](#10x-visium-notes). |
 | File | visium_probe_set_csv | Visium probe-based assays target genes in Space Ranger transcriptome; see https://www.10xgenomics.com/support/software/space-ranger/downloads and [10x Visium notes](#10x-visium-notes). |
 | Int? | filter_cells_min_counts | Minimum number of counts required for a cell to pass filtering. [5000] |
@@ -323,7 +323,7 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
     │   ├── ${cohort_id}.qc_violin.png
     │   ├── ${cohort_id}.qc_dist.png
     │   ├── ${cohort_id}.hvg_dispersion.png
-    │   ├── ${cohort_id}.clustered.h5ad 
+    │   ├── ${cohort_id}.clustered.h5ad
     │   ├── ${cohort_id}.umap_cluster.png
     │   ├── ${cohort_id}.spatial_scatter.png
     │   ├── ${cohort_id}.final_adata_object.h5ad
