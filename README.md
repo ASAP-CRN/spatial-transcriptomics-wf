@@ -286,10 +286,10 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 └── pmdbs_spatial_geomx
     ├── cohort_analysis
     │   ├── ${cohort_id}.sample_list.tsv
-    │   ├── ${sampleN_id}.segment_gene_detection_plot.png
-    │   ├── ${sampleN_id}.gene_detection_rate.csv
-    │   ├── ${sampleN_id}.q3_negprobe_plot.png
-    │   ├── ${sampleN_id}.normalization_plot.png
+    │   ├── ${slideN_id}.segment_gene_detection_plot.png
+    │   ├── ${slideN_id}.gene_detection_rate.csv
+    │   ├── ${slideN_id}.q3_negprobe_plot.png
+    │   ├── ${slideN_id}.normalization_plot.png
     │   ├── ${cohort_id}.merged.h5ad
     │   ├── ${cohort_id}.hvg_dispersion.png
     │   ├── ${cohort_id}.merged_adata_metadata.csv
@@ -297,29 +297,29 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
     │   ├── ${cohort_id}.umap_cluster.png
     │   └── MANIFEST.tsv
     └── preprocess
-        ├── ${sampleA_id}.DCC.zip
-        ├── ${sampleA_id}.geomxngs_out_dir.tar.gz
-        ├── ${sampleA_id}.NanoStringGeoMxSet.rds
-        ├── ${sampleA_id}.qc.rds
-        ├── ${sampleA_id}.segment_qc_summary.csv
-        ├── ${sampleA_id}.probe_qc_summary.csv
-        ├── ${sampleA_id}.gene_count.csv
+        ├── ${slideA_id}.DCC.zip
+        ├── ${slideA_id}.geomxngs_out_dir.tar.gz
+        ├── ${slideA_id}.NanoStringGeoMxSet.rds
+        ├── ${slideA_id}.qc.rds
+        ├── ${slideA_id}.segment_qc_summary.csv
+        ├── ${slideA_id}.probe_qc_summary.csv
+        ├── ${slideA_id}.gene_count.csv
         ├── MANIFEST.tsv
         ├── ...
-        ├── ${sampleN_id}.DCC.zip
-        ├── ${sampleN_id}.geomxngs_out_dir.tar.gz
-        ├── ${sampleN_id}.NanoStringGeoMxSet.rds
-        ├── ${sampleN_id}.qc.rds
-        ├── ${sampleN_id}.segment_qc_summary.csv
-        ├── ${sampleN_id}.probe_qc_summary.csv
-        ├── ${sampleN_id}.gene_count.csv
+        ├── ${slideN_id}.DCC.zip
+        ├── ${slideN_id}.geomxngs_out_dir.tar.gz
+        ├── ${slideN_id}.NanoStringGeoMxSet.rds
+        ├── ${slideN_id}.qc.rds
+        ├── ${slideN_id}.segment_qc_summary.csv
+        ├── ${slideN_id}.probe_qc_summary.csv
+        ├── ${slideN_id}.gene_count.csv
         └── MANIFEST.tsv
 
 asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 └── pmdbs_spatial_visium
     ├── cohort_analysis
     │   ├── ${cohort_id}.sample_list.tsv
-    │   ├──	${cohort_id}.merged_adata_object.h5ad
+    │   ├── ${cohort_id}.merged_adata_object.h5ad
     │   ├── ${cohort_id}.qc_violin.png
     │   ├── ${cohort_id}.qc_dist.png
     │   ├── ${cohort_id}.hvg_dispersion.png
