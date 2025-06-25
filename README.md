@@ -30,6 +30,23 @@ For the Nanostring GeoMx workflow, we start with raw output files from the instr
 
 **Nanostring GeoMx input template**: [workflows/pmdbs_spatial_geomx/inputs.json](workflows/pmdbs_spatial_geomx/inputs.json)
 
+The Nanostring GeoMx workflow is broken up into three main chunks:
+
+1. [Preprocessing](#preprocessing)
+1. [Process to adata](#process-to-adata)
+1. [Cohort analysis](#cohort-analysis)
+
+### Preprocessing
+
+Run once per slide; only rerun when the preprocessing workflow version is updated. Preprocessing outputs are stored in the originating team's raw and staging data buckets.
+
+### Process to adata
+Run once per slide. Intermediate files from previous runs are not reused and are stored in timestamped directories.
+
+### Cohort analysis
+
+Run once per team (all slide from a single team) if `project.run_project_cohort_analysis` is set to `true`, and once for the whole cohort (all slides from all teams) if `run_cross_team_cohort_analysis` is set to `true`. Additional slides requires this entire analysis to be rerun. Intermediate files from previous runs are not reused and are stored in timestamped directories.
+
 ## 10x Visium workflow overview
 
 For the 10x Visium workflow, we start with raw output files from the instrument and convert them into counts. Then, we clean the data by removing unreliable spots and genes, adjust for technical noise, and combine data from different samples. We cluster based on spots (which may contain many cells) and visualize their transcriptional profiles in a UMAP space. We also identify spatially variable genes to uncover expression patterns that are location-specific within the tissue.
@@ -41,16 +58,16 @@ For the 10x Visium workflow, we start with raw output files from the instrument 
 
 **10x Visium input template**: [workflows/pmdbs_spatial_visium/inputs.json](workflows/pmdbs_spatial_visium/inputs.json)
 
-Both workflows follow a similar structure, it is broken up into two main chunks:
+The 10x Visium workflow is broken up into two main chunks:
 
 1. [Preprocessing](#preprocessing)
 2. [Cohort analysis](#cohort-analysis)
 
-## Preprocessing
+### Preprocessing
 
-For the Nanostring GeoMx workflow, run once per slide and for the 10x Visium workflow, run once per sample; only rerun when the preprocessing workflow version is updated. Preprocessing outputs are stored in the originating team's raw and staging data buckets.
+Run once per sample; only rerun when the preprocessing workflow version is updated. Preprocessing outputs are stored in the originating team's raw and staging data buckets.
 
-## Cohort analysis
+### Cohort analysis
 
 Run once per team (all samples from a single team) if `project.run_project_cohort_analysis` is set to `true`, and once for the whole cohort (all samples from all teams) if `run_cross_team_cohort_analysis` is set to `true`. This can be rerun using different sample subsets; including additional samples requires this entire analysis to be rerun. Intermediate files from previous runs are not reused and are stored in timestamped directories.
 
@@ -245,6 +262,10 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset}
         │   └──${cohort_analysis_workflow_version}
         │      └── ${workflow_run_timestamp}
         │          └── <cohort_analysis outputs>
+        ├── process_to_adata
+        │   └──${process_to_adata_workflow_version}
+        │      └── ${workflow_run_timestamp}
+        │          └── <process_to_adata outputs>
         └── preprocess
             ├── fastq_to_dcc
             │   └── ${fastq_to_dcc_task_version}
@@ -286,15 +307,17 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 └── pmdbs_spatial_geomx
     ├── cohort_analysis
     │   ├── ${cohort_id}.sample_list.tsv
-    │   ├── ${slideN_id}.segment_gene_detection_plot.png
-    │   ├── ${slideN_id}.gene_detection_rate.csv
-    │   ├── ${slideN_id}.q3_negprobe_plot.png
-    │   ├── ${slideN_id}.normalization_plot.png
     │   ├── ${cohort_id}.merged.h5ad
     │   ├── ${cohort_id}.hvg_dispersion.png
     │   ├── ${cohort_id}.merged_adata_metadata.csv
     │   ├── ${cohort_id}.clustered.h5ad # Final
     │   ├── ${cohort_id}.umap_cluster.png
+    │   └── MANIFEST.tsv
+    ├── process_to_adata
+    │   ├── ${slideN_id}.segment_gene_detection_plot.png
+    │   ├── ${slideN_id}.gene_detection_rate.csv
+    │   ├── ${slideN_id}.q3_negprobe_plot.png
+    │   ├── ${slideN_id}.normalization_plot.png
     │   └── MANIFEST.tsv
     └── preprocess
         ├── ${slideA_id}.DCC.zip
