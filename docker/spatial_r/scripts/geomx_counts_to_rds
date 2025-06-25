@@ -7,6 +7,7 @@ library(GeoMxWorkflows)
 library(readxl)
 library(openxlsx)
 library(dplyr)
+library(glue)
 
 parser <- ArgumentParser(description = "Convert DCC files to a NanoStringGeoMxSet object (.rds)")
 
@@ -21,14 +22,14 @@ parser$add_argument(
 	help="Dataset ID"
 )
 parser$add_argument(
-	"--sample-id",
+	"--slide-id",
 	required=TRUE,
-	help="Sample ID"
+	help="Slide ID"
 )
 parser$add_argument(
-	"--batch",
+	"--sample-metadata",
 	required=TRUE,
-	help="Batch"
+	help="Path to the QC'ed SAMPLE.csv metadata"
 )
 parser$add_argument(
 	"--dcc-dir",
@@ -80,11 +81,47 @@ geomxdata <- readNanoStringGeoMxSet(dccFiles = dcc_files,
 									protocolDataColNames = c("aoi", "roi"),
 									experimentDataColNames = c("panel"))
 
-# Add metadata
+##################
+## ADD METADATA ##
+##################
+metadata <- read.csv(args$sample_metadata, header = TRUE, stringsAsFactors = FALSE)
+slide_filename_parts <- strsplit(args$slide_id, "_")[[1]]
+slide_filename_batch <- tail(slide_filename_parts, 1)
+# Per slide by batch/run
+filtered_metadata <- metadata[metadata$batch == slide_filename_batch, ]
+filtered_metadata$sample <- paste0(filtered_metadata$ASAP_sample_id, "_", filtered_metadata$replicate)
+filtered_metadata <- filtered_metadata[, c("sample_id", "batch", "sample")]
+# Some batches contain multiple replicates for the same ROI which will be in one DCC file, need to group
+grouped_metadata <- filtered_metadata %>%
+	group_by(sample_id, batch) %>%
+	summarise(sample = paste(sample, collapse = ","), .groups = "drop")
 pData(geomxdata)$team <- args$team_id
 pData(geomxdata)$dataset <- args$dataset_id
-pData(geomxdata)$sample <- args$sample_id
-pData(geomxdata)$batch <- args$batch
-pData(geomxdata)$batch_id <- paste0(args$team_id, "_", args$dataset_id, "_", args$batch)
+pData(geomxdata)$slide <- args$slide_id
+merged_pdata <- merge(
+	pData(geomxdata),
+	grouped_metadata,
+	by.x = "Sample_ID",
+	by.y = "sample_id",
+	all.x = TRUE,
+	sort = FALSE
+)
+merged_pdata$batch_id <- paste0(args$team_id, "_", args$dataset_id, "_", merged_pdata$batch)
+num_pdata_rows = length(rownames(pData(geomxdata)))
+num_metadata_rows = length(rownames(merged_pdata))
+if (num_pdata_rows != num_metadata_rows) {
+	message(glue(
+		"DCC files AKA RDS object row names:\n",
+		"{paste(rownames(pData(geomxdata)), collapse = ', ')}\n",
+		"Relevant metadata rows:\n"
+	))
+	print(merged_pdata[, c("slide", "sample")])
+	stop(glue(
+		"Number of DCC files [{num_pdata_rows}] does not match number of metadata rows [{num_metadata_rows}].",
+	))
+}
+merged_pdata$dcc_filename <- rownames(pData(geomxdata))
+rownames(merged_pdata) <- rownames(pData(geomxdata))
+pData(geomxdata) <- merged_pdata
 
 saveRDS(geomxdata, file = args$output)

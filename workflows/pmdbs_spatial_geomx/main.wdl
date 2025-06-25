@@ -62,7 +62,8 @@ workflow pmdbs_spatial_geomx_analysis {
 				team_id = project.team_id,
 				dataset_id = project.dataset_id,
 				dataset_doi_url = project.dataset_doi_url,
-				samples = project.samples,
+				slides = project.slides,
+				project_sample_metadata_csv = project.project_sample_metadata_csv,
 				geomx_config_ini = project.geomx_config_ini,
 				geomxngs_config_pkc = geomxngs_config_pkc,
 				min_segment_reads = min_segment_reads,
@@ -152,6 +153,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		## Sample list
 		Array[Array[Array[String]]] project_sample_ids = preprocess.project_sample_ids
 
+		# Slide-level outputs
 		## Preprocess
 		Array[Array[File]] geomxngs_dcc_zip = preprocess.geomxngs_dcc_zip
 		Array[Array[File]] geomxngs_output_tar_gz = preprocess.geomxngs_output_tar_gz
@@ -165,7 +167,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		## List of samples included in the cohort
 		Array[File?] project_cohort_sample_list = project_cohort_analysis.cohort_sample_list
 
-		## Sample-level outputs - Processed (filtered and normalized) RDS objects, converted adata objects, and plots
+		## Slide-level outputs - Processed (filtered and normalized) RDS objects, converted adata objects, and plots
 		Array[Array[File]?] project_processed_rds_object = project_cohort_analysis.processed_rds_object
 		Array[Array[File]?] project_segment_gene_detection_plot_png = project_cohort_analysis.segment_gene_detection_plot_png
 		Array[Array[File]?] project_gene_detection_rate_csv = project_cohort_analysis.gene_detection_rate_csv
@@ -175,6 +177,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		## Cohort-level outputs - Merged, integrated and clustered adata objects, and plots
 		Array[File?] project_merged_adata_object = project_cohort_analysis.merged_adata_object
 		Array[File?] project_hvg_plot_png = project_cohort_analysis.hvg_plot_png
+		Array[File?] project_merged_adata_metadata_csv = project_cohort_analysis.merged_adata_metadata_csv
 		Array[File?] project_integrated_adata_object = project_cohort_analysis.integrated_adata_object
 		Array[File?] project_clustered_adata_object = project_cohort_analysis.clustered_adata_object
 		Array[File?] project_umap_cluster_plots_png = project_cohort_analysis.umap_cluster_plots_png
@@ -186,7 +189,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		## List of samples included in the cohort
 		File? cohort_cohort_sample_list = cross_team_cohort_analysis.cohort_sample_list
 
-		## Sample-level outputs - Processed (filtered and normalized) RDS objects, converted adata objects, and plots
+		## Slide-level outputs - Processed (filtered and normalized) RDS objects, converted adata objects, and plots
 		Array[File]? cohort_processed_rds_object = cross_team_cohort_analysis.processed_rds_object
 		Array[File]? cohort_segment_gene_detection_plot_png = cross_team_cohort_analysis.segment_gene_detection_plot_png
 		Array[File]? cohort_gene_detection_rate_csv = cross_team_cohort_analysis.gene_detection_rate_csv
@@ -196,6 +199,7 @@ workflow pmdbs_spatial_geomx_analysis {
 		## Cohort-level outputs - Merged, integrated and clustered adata objects, and plots
 		File? cohort_merged_adata_object = cross_team_cohort_analysis.merged_adata_object
 		File? cohort_hvg_plot_png = cross_team_cohort_analysis.hvg_plot_png
+		File? cohort_merged_adata_metadata_csv = cross_team_cohort_analysis.merged_adata_metadata_csv
 		File? cohort_integrated_adata_object = cross_team_cohort_analysis.integrated_adata_object
 		File? cohort_clustered_adata_object = cross_team_cohort_analysis.clustered_adata_object
 		File? cohort_umap_cluster_plots_png = cross_team_cohort_analysis.umap_cluster_plots_png
@@ -209,7 +213,7 @@ workflow pmdbs_spatial_geomx_analysis {
 
 	parameter_meta {
 		cohort_id: {help: "Name of the cohort; used to name output files during cross-team downstream analysis."}
-		projects: {help: "The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis."}
+		projects: {help: "The project ID, set of slides and their associated samples, reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis."}
 		geomxngs_config_pkc: {help: "The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers."}
 		min_segment_reads: {help: "Minimum number of segment reads. [1000]"}
 		min_percent_reads_trimmed: {help: "Minimum % of reads trimmed. [80]"}

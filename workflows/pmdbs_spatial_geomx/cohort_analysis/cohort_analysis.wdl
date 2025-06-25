@@ -121,7 +121,8 @@ workflow cohort_analysis {
 		filter_and_normalize.normalization_plot_png,
 		[
 			merge_and_prep.merged_adata_object,
-			merge_and_prep.hvg_plot_png
+			merge_and_prep.hvg_plot_png,
+			merge_and_prep.merged_adata_metadata_csv
 		],
 		[
 			integrate_data.clustered_adata_object,
@@ -154,6 +155,7 @@ workflow cohort_analysis {
 		# Merged and prepped AnnData object
 		File merged_adata_object = merge_and_prep.merged_adata_object #!FileCoercion
 		File hvg_plot_png = merge_and_prep.hvg_plot_png #!FileCoercion
+		File merged_adata_metadata_csv = merge_and_prep.merged_adata_metadata_csv #!FileCoercion
 
 		# Integrate data outputs
 		File integrated_adata_object = integrate_data.integrated_adata_object
@@ -206,7 +208,7 @@ task filter_and_normalize {
 		String zones
 	}
 
-	String sample_id = basename(preprocessed_rds_object, ".qc.rds")
+	String slide_id = basename(preprocessed_rds_object, ".qc.rds")
 
 	Int mem_gb = ceil(size([preprocessed_rds_object, cell_type_markers_list], "GB") * 2 + 20)
 	Int disk_size = ceil(size([preprocessed_rds_object, cell_type_markers_list], "GB") * 2 + 50)
@@ -216,28 +218,28 @@ task filter_and_normalize {
 
 		# Select ROI/AOI segments and genes based on LOQ and normalization
 		geomx_process \
-			--sample-id ~{sample_id} \
+			--slide-id ~{slide_id} \
 			--input ~{preprocessed_rds_object} \
 			--celltype-markers ~{cell_type_markers_list} \
 			--min-segment ~{min_genes_detected_in_percent_segment} \
-			--output ~{sample_id}.processed.rds
+			--output ~{slide_id}.processed.rds
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{sample_id}.segment_gene_detection_plot.png" \
-			-o "~{sample_id}.gene_detection_rate.csv" \
-			-o "~{sample_id}.q3_negprobe_plot.png" \
-			-o "~{sample_id}.normalization_plot.png"
+			-o "~{slide_id}.segment_gene_detection_plot.png" \
+			-o "~{slide_id}.gene_detection_rate.csv" \
+			-o "~{slide_id}.q3_negprobe_plot.png" \
+			-o "~{slide_id}.normalization_plot.png"
 	>>>
 
 	output {
-		File processed_rds_object = "~{sample_id}.processed.rds"
-		String segment_gene_detection_plot_png = "~{raw_data_path}/~{sample_id}.segment_gene_detection_plot.png"
-		String gene_detection_rate_csv = "~{raw_data_path}/~{sample_id}.gene_detection_rate.csv"
-		String q3_negprobe_plot_png = "~{raw_data_path}/~{sample_id}.q3_negprobe_plot.png"
-		String normalization_plot_png = "~{raw_data_path}/~{sample_id}.normalization_plot.png"
+		File processed_rds_object = "~{slide_id}.processed.rds"
+		String segment_gene_detection_plot_png = "~{raw_data_path}/~{slide_id}.segment_gene_detection_plot.png"
+		String gene_detection_rate_csv = "~{raw_data_path}/~{slide_id}.gene_detection_rate.csv"
+		String q3_negprobe_plot_png = "~{raw_data_path}/~{slide_id}.q3_negprobe_plot.png"
+		String normalization_plot_png = "~{raw_data_path}/~{slide_id}.normalization_plot.png"
 	}
 
 	runtime {
@@ -246,8 +248,8 @@ task filter_and_normalize {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		maxRetries: 3
-		bootDiskSizeGb: 10
+		maxRetries: 2
+		bootDiskSizeGb: 15
 		zones: zones
 	}
 
@@ -275,7 +277,7 @@ task rds_to_adata {
 		String zones
 	}
 
-	String sample_id = basename(processed_rds_object, ".processed.rds")
+	String slide_id = basename(processed_rds_object, ".processed.rds")
 
 	Int mem_gb = ceil(size(processed_rds_object, "GB") * 2 + 20)
 	Int disk_size = ceil(size(processed_rds_object, "GB") * 2 + 50)
@@ -285,11 +287,11 @@ task rds_to_adata {
 
 		geomx_rds_to_adata \
 			--input ~{processed_rds_object} \
-			--output-prefix ~{sample_id}.processed
+			--output-prefix ~{slide_id}.processed
 	>>>
 
 	output {
-		File processed_adata_object = "~{sample_id}.processed.h5ad"
+		File processed_adata_object = "~{slide_id}.processed.h5ad"
 	}
 
 	runtime {
@@ -298,8 +300,8 @@ task rds_to_adata {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		maxRetries: 3
-		bootDiskSizeGb: 10
+		maxRetries: 2
+		bootDiskSizeGb: 15
 		zones: zones
 	}
 
@@ -339,7 +341,7 @@ task merge_and_prep {
 			--adata-paths-input ~{sep=' ' processed_adata_objects} \
 			--n-top-genes ~{n_top_genes} \
 			--n-comps ~{n_comps} \
-			--plots-prefix ~{cohort_id} \
+			--output-prefix ~{cohort_id} \
 			--adata-output ~{cohort_id}.merged.h5ad
 
 		upload_outputs \
@@ -347,13 +349,15 @@ task merge_and_prep {
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
 			-o "~{cohort_id}.merged.h5ad" \
-			-o "~{cohort_id}.hvg_dispersion.png"
+			-o "~{cohort_id}.hvg_dispersion.png" \
+			-o "~{cohort_id}.merged_adata_metadata.csv"
 
 	>>>
 
 	output {
 		String merged_adata_object = "~{raw_data_path}/~{cohort_id}.merged.h5ad"
 		String hvg_plot_png = "~{raw_data_path}/~{cohort_id}.hvg_dispersion.png"
+		String merged_adata_metadata_csv = "~{raw_data_path}/~{cohort_id}.merged_adata_metadata.csv"
 	}
 
 	runtime {
@@ -362,8 +366,8 @@ task merge_and_prep {
 		memory: "~{mem_gb} GB"
 		disks: "local-disk ~{disk_size} HDD"
 		preemptible: 3
-		maxRetries: 3
-		bootDiskSizeGb: 10
+		maxRetries: 2
+		bootDiskSizeGb: 15
 		zones: zones
 	}
 
