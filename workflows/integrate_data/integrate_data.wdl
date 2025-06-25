@@ -108,7 +108,7 @@ task integrate_sample_data {
 
 	parameter_meta {
 		cohort_id: {help: "Name of the cohort; used to name output files."}
-		processed_adata_object: {help: "Processed AnnData object to run integrate data workflow on."}
+		merged_and_processed_adata_object: {help: "Merged and processed AnnData object to run integrate data workflow on."}
 		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}
 		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
