@@ -5,7 +5,7 @@ version 1.0
 workflow integrate_data {
 	input {
 		String cohort_id
-		File processed_adata_object
+		File merged_and_processed_adata_object
 
 		Int n_comps
 		String batch_key
@@ -21,7 +21,7 @@ workflow integrate_data {
 	call integrate_sample_data {
 		input:
 			cohort_id = cohort_id,
-			processed_adata_object = processed_adata_object,
+			merged_and_processed_adata_object = merged_and_processed_adata_object,
 			batch_key = batch_key,
 			container_registry = container_registry,
 			zones = zones
@@ -52,7 +52,7 @@ workflow integrate_data {
 
 	parameter_meta {
 		cohort_id: {help: "Name of the cohort; used to name output files."}
-		processed_adata_object: {help: "Processed AnnData object to run integrate data workflow on."}
+		merged_and_processed_adata_object: {help: "Merged and processed AnnData object to run integrate data workflow on."}
 		n_comps: {help: "Number of principal components to compute. [30]"}
 		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}
 		leiden_resolution: {help: "Value controlling the coarseness of the Leiden clustering. [0.4]"}
@@ -67,7 +67,7 @@ workflow integrate_data {
 task integrate_sample_data {
 	input {
 		String cohort_id
-		File processed_adata_object
+		File merged_and_processed_adata_object
 
 		String batch_key
 
@@ -75,14 +75,14 @@ task integrate_sample_data {
 		String zones
 	}
 
-	Int mem_gb = ceil(size(processed_adata_object, "GB") * 5 + 20)
-	Int disk_size = ceil(size(processed_adata_object, "GB") * 3 + 50)
+	Int mem_gb = ceil(size(merged_and_processed_adata_object, "GB") * 5 + 20)
+	Int disk_size = ceil(size(merged_and_processed_adata_object, "GB") * 3 + 50)
 
 	command <<<
 		set -euo pipefail
 
 		integrate_harmony \
-			--adata-input ~{processed_adata_object} \
+			--adata-input ~{merged_and_processed_adata_object} \
 			--batch-key ~{batch_key} \
 			--adata-output ~{cohort_id}.harmony_integrated.h5ad
 	>>>
@@ -108,7 +108,7 @@ task integrate_sample_data {
 
 	parameter_meta {
 		cohort_id: {help: "Name of the cohort; used to name output files."}
-		processed_adata_object: {help: "Processed AnnData object to run integrate data workflow on."}
+		merged_and_processed_adata_object: {help: "Merged and processed AnnData object to run integrate data workflow on."}
 		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}
 		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}

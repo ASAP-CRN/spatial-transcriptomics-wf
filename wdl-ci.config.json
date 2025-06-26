@@ -5,33 +5,6 @@
       "name": "",
       "description": "",
       "tasks": {
-        "filter_and_normalize": {
-          "key": "filter_and_normalize",
-          "digest": "tz4g5ss4agc5wh36acwqhb4s2byalsj2",
-          "tests": []
-        },
-        "rds_to_adata": {
-          "key": "rds_to_adata",
-          "digest": "2wxyiftqdrsemi7mtgomssz4iytrwo2x",
-          "tests": [
-            {
-              "inputs": {
-                "processed_rds_object": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_slide_id}.processed.rds",
-                "container_registry": "${container_registry}",
-                "zones": "${zones}"
-              },
-              "output_tests": {
-                "processed_adata_object": {
-                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_slide_id}.processed.h5ad",
-                  "test_tasks": [
-                    "compare_file_basename",
-                    "check_hdf5"
-                  ]
-                }
-              }
-            }
-          ]
-        },
         "merge_and_prep": {
           "key": "merge_and_prep",
           "digest": "z6qqmruro2r42bxwxxsbig34t5qfjhir",
@@ -40,8 +13,8 @@
               "inputs": {
                 "cohort_id": "${geomx_team_id}",
                 "processed_adata_objects": [
-                  "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_slide_id}.processed.h5ad",
-                  "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_slide_id_2}.processed.h5ad"
+                  "${geomx_input_file_path}/${process_to_adata_workflow_name}/${geomx_slide_id}.processed.h5ad",
+                  "${geomx_input_file_path}/${process_to_adata_workflow_name}/${geomx_slide_id_2}.processed.h5ad"
                 ],
                 "n_top_genes": 3000,
                 "n_comps": 30,
@@ -235,12 +208,12 @@
       "tasks": {
         "integrate_sample_data": {
           "key": "integrate_sample_data",
-          "digest": "etwlm62kv3zdhgtkwnqo47crt7tnk244",
+          "digest": "rcbwbwgpehbd4bez5gbwzmofudi22up6",
           "tests": [
             {
               "inputs": {
                 "cohort_id": "${geomx_team_id}",
-                "processed_adata_object": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.merged.h5ad",
+                "merged_and_processed_adata_object": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.merged.h5ad",
                 "batch_key": "batch_id",
                 "container_registry": "${container_registry}",
                 "zones": "${zones}"
@@ -747,6 +720,95 @@
           "tests": []
         }
       }
+    },
+    "workflows/pmdbs_spatial_geomx/process_to_adata/process_to_adata.wdl": {
+      "key": "workflows/pmdbs_spatial_geomx/process_to_adata/process_to_adata.wdl",
+      "name": "",
+      "description": "",
+      "tasks": {
+        "filter_and_normalize": {
+          "key": "filter_and_normalize",
+          "digest": "3aorzvkdrznalhtf4arsxwmurayzkuyp",
+          "tests": [
+            {
+              "inputs": {
+                "preprocessed_rds_object": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_slide_id}.qc.rds",
+                "cell_type_markers_list": "${input_resources_file_path}/celltype_marker_table.csv",
+                "min_genes_detected_in_percent_segment": 0.01,
+                "raw_data_path": "${geomx_process_to_adata_raw_data_path}",
+                "workflow_info": "${geomx_workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "processed_rds_object": {
+                  "value": "${geomx_input_file_path}/${process_to_adata_workflow_name}/${geomx_slide_id}.processed.rds",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_rds"
+                  ]
+                },
+                "segment_gene_detection_plot_png": {
+                  "value": "${geomx_input_file_path}/${process_to_adata_workflow_name}/${geomx_slide_id}.segment_gene_detection_plot.png",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "png_validator",
+                    "image_validator"
+                  ]
+                },
+                "gene_detection_rate_csv": {
+                  "value": "${geomx_input_file_path}/${process_to_adata_workflow_name}/${geomx_slide_id}.gene_detection_rate.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_comma_separated",
+                    "count_columns"
+                  ]
+                },
+                "q3_negprobe_plot_png": {
+                  "value": "${geomx_input_file_path}/${process_to_adata_workflow_name}/${geomx_slide_id}.q3_negprobe_plot.png",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "png_validator",
+                    "image_validator"
+                  ]
+                },
+                "normalization_plot_png": {
+                  "value": "${geomx_input_file_path}/${process_to_adata_workflow_name}/${geomx_slide_id}.normalization_plot.png",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "png_validator",
+                    "image_validator"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "rds_to_adata": {
+          "key": "rds_to_adata",
+          "digest": "2wxyiftqdrsemi7mtgomssz4iytrwo2x",
+          "tests": [
+            {
+              "inputs": {
+                "processed_rds_object": "${geomx_input_file_path}/${process_to_adata_workflow_name}/${geomx_slide_id}.processed.rds",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "processed_adata_object": {
+                  "value": "${geomx_input_file_path}/${process_to_adata_workflow_name}/${geomx_slide_id}.processed.h5ad",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_rds"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
     }
   },
   "engines": {
@@ -781,6 +843,9 @@
       "fastq_to_dcc_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${geomx_workflow_name}/${preprocess_workflow_name}/fastq_to_dcc/${fastq_to_dcc_task_version}",
       "dcc_to_rds_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${geomx_workflow_name}/${preprocess_workflow_name}/dcc_to_rds/${dcc_to_rds_task_version}",
       "geomx_qc_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${geomx_workflow_name}/${preprocess_workflow_name}/qc/${geomx_qc_task_version}",
+      "process_to_adata_workflow_name": "process_to_adata",
+      "geomx_process_to_adata_workflow_version": "1.0.0",
+      "geomx_process_to_adata_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${geomx_workflow_name}/${process_to_adata_workflow_name}/${geomx_process_to_adata_workflow_version}/${run_timestamp}",
       "cohort_analysis_workflow_name": "cohort_analysis",
       "geomx_cohort_analysis_workflow_version": "1.0.0",
       "geomx_cohort_analysis_raw_data_path": "gs://asap-wdl-ci/workflow_execution/${geomx_workflow_name}/${cohort_analysis_workflow_name}/${geomx_cohort_analysis_workflow_version}/${run_timestamp}",

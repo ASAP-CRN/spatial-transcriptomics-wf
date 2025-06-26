@@ -88,7 +88,7 @@ workflow cohort_analysis {
 	call IntegrateData.integrate_data {
 		input:
 			cohort_id = cohort_id,
-			processed_adata_object = filter_and_normalize.processed_adata_object, #!FileCoercion
+			merged_and_processed_adata_object = filter_and_normalize.processed_adata_object, #!FileCoercion
 			n_comps = n_comps,
 			batch_key = batch_key,
 			leiden_resolution = leiden_resolution,
