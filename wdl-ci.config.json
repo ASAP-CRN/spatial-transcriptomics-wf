@@ -208,7 +208,7 @@
       "tasks": {
         "integrate_sample_data": {
           "key": "integrate_sample_data",
-          "digest": "etwlm62kv3zdhgtkwnqo47crt7tnk244",
+          "digest": "rcbwbwgpehbd4bez5gbwzmofudi22up6",
           "tests": [
             {
               "inputs": {
@@ -728,7 +728,7 @@
       "tasks": {
         "filter_and_normalize": {
           "key": "filter_and_normalize",
-          "digest": "tz4g5ss4agc5wh36acwqhb4s2byalsj2",
+          "digest": "3aorzvkdrznalhtf4arsxwmurayzkuyp",
           "tests": [
             {
               "inputs": {
