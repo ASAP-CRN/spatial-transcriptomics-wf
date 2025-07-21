@@ -78,6 +78,7 @@ workflow cohort_analysis {
 			normalize_target_sum = normalize_target_sum,
 			n_top_genes = n_top_genes,
 			n_comps = n_comps,
+			batch_key = batch_key,
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -140,6 +141,8 @@ workflow cohort_analysis {
 		],
 		merge_and_plot_qc_metrics.qc_plots_png,
 		[
+			filter_and_normalize.all_genes_csv,
+			filter_and_normalize.hvg_genes_csv,
 			filter_and_normalize.hvg_plot_png
 		],
 		[
@@ -175,6 +178,8 @@ workflow cohort_analysis {
 
 		# Processed outputs
 		File processed_adata_object = filter_and_normalize.processed_adata_object
+		File all_genes_csv = filter_and_normalize.all_genes_csv #!FileCoercion
+		File hvg_genes_csv = filter_and_normalize.hvg_genes_csv #!FileCoercion
 		File hvg_plot_png = filter_and_normalize.hvg_plot_png #!FileCoercion
 
 		# Integrate data outputs
@@ -304,6 +309,7 @@ task filter_and_normalize {
 		Float normalize_target_sum
 		Int n_top_genes
 		Int n_comps
+		String batch_key
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -327,18 +333,23 @@ task filter_and_normalize {
 			--target-sum ~{normalize_target_sum} \
 			--n-top-genes ~{n_top_genes} \
 			--n-comps ~{n_comps} \
-			--plots-prefix ~{cohort_id} \
+			--batch-key ~{batch_key} \
+			--output-prefix ~{cohort_id} \
 			--adata-output ~{cohort_id}.processed.h5ad
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
+			-o "~{cohort_id}.all_genes.csv" \
+			-o "~{cohort_id}.hvg_genes.csv" \
 			-o "~{cohort_id}.hvg_dispersion.png"
 	>>>
 
 	output {
 		File processed_adata_object = "~{cohort_id}.processed.h5ad"
+		String all_genes_csv = "~{raw_data_path}/~{cohort_id}.all_genes.csv"
+		String hvg_genes_csv = "~{raw_data_path}/~{cohort_id}.hvg_genes.csv"
 		String hvg_plot_png = "~{raw_data_path}/~{cohort_id}.hvg_dispersion.png"
 	}
 
@@ -367,6 +378,7 @@ task filter_and_normalize {
 		normalize_target_sum: {help: "The total count to which each cell's gene expression values will be normalized. [10000]"}
 		n_top_genes: {help: "Number of highly-variable genes to keep. [3000]"}
 		n_comps: {help: "Number of principal components to compute. [30]"}
+		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}
 		raw_data_path: {help: "Raw data bucket path for processed adata and HVG plot outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/cohort_analysis/<cohort_analysis_version>/<run_timestamp>`)."}
 		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
 		billing_project: {help: "Billing project to charge GCP costs."}

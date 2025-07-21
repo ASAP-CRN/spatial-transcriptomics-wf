@@ -308,8 +308,10 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
     ├── cohort_analysis
     │   ├── ${cohort_id}.sample_list.tsv
     │   ├── ${cohort_id}.merged.h5ad
-    │   ├── ${cohort_id}.hvg_dispersion.png
     │   ├── ${cohort_id}.merged_adata_metadata.csv
+    │   ├── ${cohort_id}.all_genes.csv
+    │   ├── ${cohort_id}.hvg_genes.csv
+    │   ├── ${cohort_id}.hvg_dispersion.png
     │   ├── ${cohort_id}.clustered.h5ad # Final
     │   ├── ${cohort_id}.umap_cluster.png
     │   └── MANIFEST.tsv
@@ -344,6 +346,8 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
     │   ├── ${cohort_id}.sample_list.tsv
     │   ├── ${cohort_id}.merged.h5ad
     │   ├── ${cohort_id}.merged_adata_metadata.csv
+    │   ├── ${cohort_id}.all_genes.csv
+    │   ├── ${cohort_id}.hvg_genes.csv
     │   ├── ${cohort_id}.qc_violin.png
     │   ├── ${cohort_id}.qc_dist.png
     │   ├── ${cohort_id}.hvg_dispersion.png

@@ -28,10 +28,17 @@ def main(args):
     
     sc.pp.highly_variable_genes(
         merged_adata,
-        flavor="seurat",
+        layer="counts",
         n_top_genes=args.n_top_genes,
+        flavor="pearson_residuals",
         inplace=True,
+        batch_key=args.batch_key,
     )
+    full_features = merged_adata.var.copy()
+    hvg_full = merged_adata.iloc[: args.n_top_genes].index.to_list()
+    hvg_merged_adata = merged_adata[:, merged_adata.var.index.isin(hvg_full)]
+    hvg_features = hvg_merged_adata.var.copy()
+
     sc.pl.highly_variable_genes(
         merged_adata,
     )
@@ -52,12 +59,14 @@ def main(args):
     # Save outputs
     metadata = merged_adata.obs
     metadata.to_csv(f"{args.output_prefix}.merged_adata_metadata.csv")
+    full_features.to_csv(f"{args.output_prefix}.all_genes.csv", index=True)
+    hvg_features.to_csv(f"{args.output_prefix}.hvg_genes.csv", index=True)
     merged_adata.write_h5ad(filename=args.adata_output, compression="gzip")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Merge adata objects and process to prepare for downstream analysis"
+        description="Merge adata objects and process to prepare for downstream analysis by identifying highly variable genes (HVGs) and PCA"
     )
     parser.add_argument(
         "-i",
@@ -79,6 +88,13 @@ if __name__ == "__main__":
         type=int,
         required=True,
         help="Number of principal components to compute using `scanpy.pp.pca` [30]"
+    )
+    parser.add_argument(
+        "-b",
+        "--batch-key",
+        type=str,
+        required=True,
+        help="Key in AnnData object for batch information ['batch_id']"
     )
     parser.add_argument(
         "-p",

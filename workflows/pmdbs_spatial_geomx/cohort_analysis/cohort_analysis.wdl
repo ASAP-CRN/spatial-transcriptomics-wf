@@ -57,6 +57,7 @@ workflow cohort_analysis {
 			processed_adata_objects = processed_adata_objects,
 			n_top_genes = n_top_genes,
 			n_comps = n_comps,
+			batch_key = batch_key,
 			raw_data_path = raw_data_path,
 			workflow_info = workflow_info,
 			billing_project = billing_project,
@@ -102,8 +103,10 @@ workflow cohort_analysis {
 		],
 		[
 			merge_and_prep.merged_adata_object,
-			merge_and_prep.hvg_plot_png,
-			merge_and_prep.merged_adata_metadata_csv
+			merge_and_prep.merged_adata_metadata_csv,
+			merge_and_prep.all_genes_csv,
+			merge_and_prep.hvg_genes_csv,
+			merge_and_prep.hvg_plot_png
 		],
 		[
 			integrate_data.clustered_adata_object,
@@ -125,8 +128,10 @@ workflow cohort_analysis {
 
 		# Merged and prepped AnnData object
 		File merged_adata_object = merge_and_prep.merged_adata_object #!FileCoercion
-		File hvg_plot_png = merge_and_prep.hvg_plot_png #!FileCoercion
 		File merged_adata_metadata_csv = merge_and_prep.merged_adata_metadata_csv #!FileCoercion
+		File all_genes_csv = merge_and_prep.all_genes_csv #!FileCoercion
+		File hvg_genes_csv = merge_and_prep.hvg_genes_csv #!FileCoercion
+		File hvg_plot_png = merge_and_prep.hvg_plot_png #!FileCoercion
 
 		# Integrate data outputs
 		File integrated_adata_object = integrate_data.integrated_adata_object
@@ -171,6 +176,7 @@ task merge_and_prep {
 
 		Int n_top_genes
 		Int n_comps
+		String batch_key
 
 		String raw_data_path
 		Array[Array[String]] workflow_info
@@ -189,6 +195,7 @@ task merge_and_prep {
 			--adata-paths-input ~{sep=' ' processed_adata_objects} \
 			--n-top-genes ~{n_top_genes} \
 			--n-comps ~{n_comps} \
+			--batch-key ~{batch_key} \
 			--output-prefix ~{cohort_id} \
 			--adata-output ~{cohort_id}.merged.h5ad
 
@@ -197,15 +204,19 @@ task merge_and_prep {
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
 			-o "~{cohort_id}.merged.h5ad" \
-			-o "~{cohort_id}.hvg_dispersion.png" \
-			-o "~{cohort_id}.merged_adata_metadata.csv"
+			-o "~{cohort_id}.merged_adata_metadata.csv" \
+			-o "~{cohort_id}.all_genes.csv" \
+			-o "~{cohort_id}.hvg_genes.csv" \
+			-o "~{cohort_id}.hvg_dispersion.png"
 
 	>>>
 
 	output {
 		String merged_adata_object = "~{raw_data_path}/~{cohort_id}.merged.h5ad"
-		String hvg_plot_png = "~{raw_data_path}/~{cohort_id}.hvg_dispersion.png"
 		String merged_adata_metadata_csv = "~{raw_data_path}/~{cohort_id}.merged_adata_metadata.csv"
+		String all_genes_csv = "~{raw_data_path}/~{cohort_id}.all_genes.csv"
+		String hvg_genes_csv = "~{raw_data_path}/~{cohort_id}.hvg_genes.csv"
+		String hvg_plot_png = "~{raw_data_path}/~{cohort_id}.hvg_dispersion.png"
 	}
 
 	runtime {
@@ -228,6 +239,7 @@ task merge_and_prep {
 		processed_adata_objects: {help: "An array of processed AnnData object to merge."}
 		n_top_genes: {help: "Number of highly-variable genes to keep. [3000]"}
 		n_comps: {help: "Number of principal components to compute. [30]"}
+		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}
 		raw_data_path: {help: "Raw data bucket path for merged adata and HVG plot outputs; location of raw bucket to upload task outputs to (`<raw_data_bucket>/workflow_execution/cohort_analysis/<cohort_analysis_version>/<run_timestamp>`)."}
 		workflow_info: {help: "UTC timestamp, workflow name, workflow version, and GitHub release; stored in the file-level manifest and final manifest with all saved files."}
 		billing_project: {help: "Billing project to charge GCP costs."}

@@ -43,16 +43,23 @@ def main(args):
     ##################
     sc.pp.highly_variable_genes(
         adata,
-        flavor="seurat",
+        layer="counts",
         n_top_genes=args.n_top_genes,
+        flavor="pearson_residuals",
         inplace=True,
+        batch_key=args.batch_key,
     )
+    full_features = adata.var.copy()
+    hvg_full = adata.iloc[: args.n_top_genes].index.to_list()
+    hvg_merged_adata = adata[:, adata.var.index.isin(hvg_full)]
+    hvg_features = hvg_merged_adata.var.copy()
+
     sc.pl.highly_variable_genes(
         adata,
     )
     fig = plt.gcf()
-    fig.suptitle(f"Highly variable genes dispersion plot - {args.plots_prefix}", va="center", ha="center", fontsize=16)
-    plt.savefig(f"{args.plots_prefix}.hvg_dispersion.png", dpi=300, bbox_inches="tight")
+    fig.suptitle(f"Highly variable genes dispersion plot - {args.output_prefix}", va="center", ha="center", fontsize=16)
+    plt.savefig(f"{args.output_prefix}.hvg_dispersion.png", dpi=300, bbox_inches="tight")
 
 
     ##############################
@@ -65,6 +72,8 @@ def main(args):
     )
 
     # Save outputs
+    full_features.to_csv(f"{args.output_prefix}.all_genes.csv", index=True)
+    hvg_features.to_csv(f"{args.output_prefix}.hvg_genes.csv", index=True)
     adata.write_h5ad(filename=args.adata_output, compression="gzip")
 
 
@@ -129,11 +138,18 @@ if __name__ == "__main__":
         help="Number of principal components to compute using `scanpy.pp.pca` [30]"
     )
     parser.add_argument(
-        "-p",
-        "--plots-prefix",
+        "-b",
+        "--batch-key",
         type=str,
         required=True,
-        help="Output file name prefix for the HVGs plot"
+        help="Key in AnnData object for batch information ['batch_id']"
+    )
+    parser.add_argument(
+        "-p",
+        "--output-prefix",
+        type=str,
+        required=True,
+        help="Output file name prefix for the HVGs plot and CSVs"
     )
     parser.add_argument(
         "-o",
