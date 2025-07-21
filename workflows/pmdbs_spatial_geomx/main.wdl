@@ -10,7 +10,6 @@ import "cohort_analysis/cohort_analysis.wdl" as CohortAnalysis
 
 workflow pmdbs_spatial_geomx_analysis {
 	input {
-		String cohort_id
 		Array[Project] projects
 
 		File geomxngs_config_pkc
@@ -35,11 +34,6 @@ workflow pmdbs_spatial_geomx_analysis {
 		Int n_comps = 30
 		String batch_key = "batch_id"
 		Float leiden_resolution = 0.4
-
-		# Cohort analysis
-		Boolean run_cross_team_cohort_analysis = false
-		String cohort_raw_data_bucket
-		Array[String] cohort_staging_data_buckets
 
 		String container_registry
 		String zones = "us-central1-c us-central1-f"
@@ -143,32 +137,6 @@ workflow pmdbs_spatial_geomx_analysis {
 		}
 	}
 
-	if (run_cross_team_cohort_analysis) {
-		String cohort_raw_data_path_prefix = "~{cohort_raw_data_bucket}/~{workflow_execution_path}/~{workflow_name}"
-
-		call CohortAnalysis.cohort_analysis as cross_team_cohort_analysis {
-			input:
-				cohort_id = cohort_id,
-				project_sample_ids = flatten(preprocess.project_sample_ids),
-				processed_adata_objects = flatten(process_to_adata.processed_adata_objects),
-				preprocessing_output_file_paths = flatten(preprocessing_output_file_paths),
-				processing_output_file_paths = flatten(processing_output_file_paths),
-				n_top_genes = n_top_genes,
-				n_comps = n_comps,
-				batch_key = batch_key,
-				leiden_resolution = leiden_resolution,
-				workflow_name = workflow_name,
-				workflow_version = workflow_version,
-				workflow_release = workflow_release,
-				run_timestamp = get_workflow_metadata.timestamp,
-				raw_data_path_prefix = cohort_raw_data_path_prefix,
-				staging_data_buckets = cohort_staging_data_buckets,
-				billing_project = get_workflow_metadata.billing_project,
-				container_registry = container_registry,
-				zones = zones
-		}
-	}
-
 	output {
 		# Sample-level outputs
 		## Sample list
@@ -209,22 +177,6 @@ workflow pmdbs_spatial_geomx_analysis {
 		Array[Array[File]?] preprocess_manifests = project_cohort_analysis.preprocess_manifest_tsvs
 		Array[Array[File]?] process_to_adata_manifests = project_cohort_analysis.process_to_adata_manifest_tsvs
 		Array[Array[File]?] project_manifests = project_cohort_analysis.cohort_analysis_manifest_tsvs
-
-		# Cross-team cohort analysis outputs
-		## List of samples included in the cohort
-		File? cohort_cohort_sample_list = cross_team_cohort_analysis.cohort_sample_list
-
-		## Merged, integrated and clustered adata objects, and plots
-		File? cohort_merged_adata_object = cross_team_cohort_analysis.merged_adata_object
-		File? cohort_merged_adata_metadata_csv = cross_team_cohort_analysis.merged_adata_metadata_csv
-		File? cohort_all_genes_csv = cross_team_cohort_analysis.all_genes_csv
-		File? cohort_hvg_genes_csv = cross_team_cohort_analysis.hvg_genes_csv
-		File? cohort_hvg_plot_png = cross_team_cohort_analysis.hvg_plot_png
-		File? cohort_integrated_adata_object = cross_team_cohort_analysis.integrated_adata_object
-		File? cohort_clustered_adata_object = cross_team_cohort_analysis.clustered_adata_object
-		File? cohort_umap_cluster_plots_png = cross_team_cohort_analysis.umap_cluster_plots_png
-
-		Array[File]? cohort_manifests = cross_team_cohort_analysis.cohort_analysis_manifest_tsvs
 	}
 
 	meta {
@@ -232,7 +184,6 @@ workflow pmdbs_spatial_geomx_analysis {
 	}
 
 	parameter_meta {
-		cohort_id: {help: "Name of the cohort; used to name output files during cross-team downstream analysis."}
 		projects: {help: "The project ID, set of slides and their associated samples, reads and metadata, output bucket locations, and whether or not to run project-level downstream analysis."}
 		geomxngs_config_pkc: {help: "The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers."}
 		min_segment_reads: {help: "Minimum number of segment reads. [1000]"}
@@ -250,9 +201,6 @@ workflow pmdbs_spatial_geomx_analysis {
 		n_comps: {help: "Number of principal components to compute. [30]"}
 		batch_key: {help: "Key in AnnData object for batch information. ['batch_id']"}
 		leiden_resolution: {help: "Value controlling the coarseness of the Leiden clustering. [0.4]"}
-		run_cross_team_cohort_analysis: {help: "Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (GeoMxNGSPipeline and generating the initial adata object(s)) will run for samples. [false]"}
-		cohort_raw_data_bucket: {help: "Bucket to upload cross-team downstream intermediate files to."}
-		cohort_staging_data_buckets: {help: "Set of buckets to stage cross-team downstream analysis outputs in."}
 		container_registry: {help: "Container registry where workflow Docker images are hosted."}
 		zones: {help: "Space-delimited set of GCP zones where compute will take place."}
 	}
