@@ -33,14 +33,6 @@
                     "check_hdf5"
                   ]
                 },
-                "hvg_plot_png": {
-                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.hvg_dispersion.png",
-                  "test_tasks": [
-                    "compare_file_basename",
-                    "png_validator",
-                    "image_validator"
-                  ]
-                },
                 "merged_adata_metadata_csv": {
                   "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.merged_adata_metadata.csv",
                   "test_tasks": [
@@ -48,6 +40,32 @@
                     "check_empty_lines",
                     "check_comma_separated",
                     "count_columns"
+                  ]
+                },
+                "all_genes_csv": {
+                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.all_genes.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_comma_separated",
+                    "count_columns"
+                  ]
+                },
+                "hvg_genes_csv": {
+                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.hvg_genes.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_comma_separated",
+                    "count_columns"
+                  ]
+                },
+                "hvg_plot_png": {
+                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.hvg_dispersion.png",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "png_validator",
+                    "image_validator"
                   ]
                 }
               }
@@ -293,7 +311,7 @@
               },
               "output_tests": {
                 "merged_adata_object": {
-                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.merged_adata_object.h5ad",
+                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.merged.h5ad",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_hdf5"
@@ -321,7 +339,7 @@
             {
               "inputs": {
                 "cohort_id": "${visium_team_id}",
-                "merged_adata_object": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.merged_adata_object.h5ad",
+                "merged_adata_object": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.merged.h5ad",
                 "filter_cells_min_counts": 5000,
                 "filter_cells_min_genes": 3000,
                 "filter_genes_min_cells": 10,
@@ -342,6 +360,24 @@
                   "test_tasks": [
                     "compare_file_basename",
                     "check_hdf5"
+                  ]
+                },
+                "all_genes_csv": {
+                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.all_genes.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_comma_separated",
+                    "count_columns"
+                  ]
+                },
+                "hvg_genes_csv": {
+                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.hvg_genes.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_comma_separated",
+                    "count_columns"
                   ]
                 },
                 "hvg_plot_png": {
@@ -406,7 +442,7 @@
               },
               "output_tests": {
                 "final_adata_object": {
-                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.final_adata_object.h5ad",
+                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.final.h5ad",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_hdf5"
@@ -566,7 +602,7 @@
               },
               "output_tests": {
                 "initial_adata_object": {
-                  "value": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.initial_adata_object.h5ad",
+                  "value": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.initial.h5ad",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_hdf5"
@@ -583,7 +619,7 @@
             {
               "inputs": {
                 "sample_id": "${visium_sample_id}",
-                "initial_adata_object": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.initial_adata_object.h5ad",
+                "initial_adata_object": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.initial.h5ad",
                 "raw_data_path": "${visium_qc_raw_data_path}",
                 "workflow_info": "${visium_workflow_info}",
                 "billing_project": "${billing_project}",
