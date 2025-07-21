@@ -163,6 +163,7 @@ workflow pmdbs_spatial_visium_analysis {
 
 		# Merged, processed (filtered, normalized, dimensionality reduced), integrated, and clustered adata objects, and plots
 		Array[File?] project_merged_adata_object = project_cohort_analysis.merged_adata_object
+		Array[File?] project_merged_adata_metadata_csv = project_cohort_analysis.merged_adata_metadata_csv
 		Array[Array[File]?] project_qc_plots_png = project_cohort_analysis.qc_plots_png
 		Array[File?] project_processed_adata_object = project_cohort_analysis.processed_adata_object
 		Array[File?] project_hvg_plot_png = project_cohort_analysis.hvg_plot_png
@@ -187,6 +188,7 @@ workflow pmdbs_spatial_visium_analysis {
 
 		# Merged, processed (filtered, normalized, dimensionality reduced), integrated, and clustered adata objects, and plots
 		File? cohort_merged_adata_object = cross_team_cohort_analysis.merged_adata_object
+		File? cohort_merged_adata_metadata_csv = cross_team_cohort_analysis.merged_adata_metadata_csv
 		Array[File]? cohort_qc_plots_png = cross_team_cohort_analysis.qc_plots_png
 		File? cohort_processed_adata_object = cross_team_cohort_analysis.processed_adata_object
 		File? cohort_hvg_plot_png = cross_team_cohort_analysis.hvg_plot_png

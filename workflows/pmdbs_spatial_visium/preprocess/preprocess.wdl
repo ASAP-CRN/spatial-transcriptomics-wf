@@ -39,7 +39,7 @@ workflow preprocess {
 
 	scatter (sample_object in samples) {
 		String spaceranger_count_output = "~{spaceranger_raw_data_path}/~{sample_object.sample_id}.raw_feature_bc_matrix.h5"
-		String counts_to_adata_output = "~{adata_raw_data_path}/~{sample_object.sample_id}.initial_adata_object.h5ad"
+		String counts_to_adata_output = "~{adata_raw_data_path}/~{sample_object.sample_id}.initial.h5ad"
 		String qc_output = "~{qc_raw_data_path}/~{sample_object.sample_id}.qc.h5ad"
 	}
 
@@ -108,7 +108,7 @@ workflow preprocess {
 		File tissue_positions_csv_output = select_first([spaceranger_count.tissue_positions_csv, spaceranger_tissue_positions_csv]) #!FileCoercion
 		File spatial_enrichment_csv_output = select_first([spaceranger_count.spatial_enrichment_csv, spaceranger_spatial_enrichment_csv]) #!FileCoercion
 
-		String counts_to_adata_object = "~{adata_raw_data_path}/~{sample.sample_id}.initial_adata_object.h5ad"
+		String counts_to_adata_object = "~{adata_raw_data_path}/~{sample.sample_id}.initial.h5ad"
 
 		if (counts_to_adata_complete == "false") {
 			call counts_to_adata {
@@ -250,7 +250,7 @@ task check_output_files_exist {
 
 	parameter_meta {
 		spaceranger_count_output_files: {help: "Spaceranger count output file to detect (`<sample>.raw_feature_bc_matrix.h5`)."}
-		counts_to_adata_output_files: {help: "Converted AnnData object output file to detect (`<sample>.initial_adata_object.h5ad`)."}
+		counts_to_adata_output_files: {help: "Converted AnnData object output file to detect (`<sample>.initial.h5ad`)."}
 		qc_output_files: {help: "QC'ed output file to detect (`<sample>.qc.h5ad`)."}
 		billing_project: {help: "Billing project to charge GCP costs."}
 		zones: {help: "Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f']"}
@@ -449,17 +449,17 @@ task counts_to_adata {
 			--slide ~{visium_slide_serial_number} \
 			--area ~{visium_capture_area} \
 			--spaceranger-spatial-dir spatial_outputs \
-			--adata-output ~{sample_id}.initial_adata_object.h5ad
+			--adata-output ~{sample_id}.initial.h5ad
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{sample_id}.initial_adata_object.h5ad"
+			-o "~{sample_id}.initial.h5ad"
 	>>>
 
 	output {
-		String initial_adata_object = "~{raw_data_path}/~{sample_id}.initial_adata_object.h5ad"
+		String initial_adata_object = "~{raw_data_path}/~{sample_id}.initial.h5ad"
 	}
 
 	runtime {

@@ -135,7 +135,8 @@ workflow cohort_analysis {
 			write_cohort_sample_list.cohort_sample_list
 		],
 		[
-			merge_and_plot_qc_metrics.merged_adata_object
+			merge_and_plot_qc_metrics.merged_adata_object,
+			merge_and_plot_qc_metrics.merged_adata_metadata_csv
 		],
 		merge_and_plot_qc_metrics.qc_plots_png,
 		[
@@ -169,6 +170,7 @@ workflow cohort_analysis {
 
 		# Merged adata objects and QC plots
 		File merged_adata_object = merge_and_plot_qc_metrics.merged_adata_object #!FileCoercion
+		File merged_adata_metadata_csv = merge_and_plot_qc_metrics.merged_adata_metadata_csv #!FileCoercion
 		Array[File] qc_plots_png = merge_and_plot_qc_metrics.qc_plots_png #!FileCoercion
 
 		# Processed outputs
@@ -242,20 +244,22 @@ task merge_and_plot_qc_metrics {
 
 		visium_merge_and_plot_qc \
 			--adata-paths-input ~{sep=' ' preprocessed_adata_objects} \
-			--qc-plots-prefix ~{cohort_id} \
-			--merged-adata-output ~{cohort_id}.merged_adata_object.h5ad
+			--output-prefix ~{cohort_id} \
+			--merged-adata-output ~{cohort_id}.merged.h5ad
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.merged_adata_object.h5ad" \
+			-o "~{cohort_id}.merged.h5ad" \
+			-o "~{cohort_id}.merged_adata_metadata.csv" \
 			-o "~{cohort_id}.qc_violin.png" \
 			-o "~{cohort_id}.qc_dist.png"
 	>>>
 
 	output {
-		String merged_adata_object = "~{raw_data_path}/~{cohort_id}.merged_adata_object.h5ad"
+		String merged_adata_object = "~{raw_data_path}/~{cohort_id}.merged.h5ad"
+		String merged_adata_metadata_csv = "~{raw_data_path}/~{cohort_id}.merged_adata_metadata.csv"
 		Array[String] qc_plots_png = [
 			"~{raw_data_path}/~{cohort_id}.qc_violin.png",
 			"~{raw_data_path}/~{cohort_id}.qc_dist.png"

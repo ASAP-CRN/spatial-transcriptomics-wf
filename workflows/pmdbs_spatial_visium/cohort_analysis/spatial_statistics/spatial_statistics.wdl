@@ -68,19 +68,19 @@ task spatially_variable_gene_analysis {
 		visium_spatially_variable_genes \
 			--cohort-id ~{cohort_id} \
 			--adata-input ~{clustered_adata_object} \
-			--adata-output ~{cohort_id}.final_adata_object.h5ad
+			--adata-output ~{cohort_id}.final.h5ad
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.final_adata_object.h5ad" \
+			-o "~{cohort_id}.final.h5ad" \
 			-o "~{cohort_id}.moran_top_10_variable_genes.csv" \
 			-o "~{cohort_id}.moran_top_4_variable_genes_spatial_scatter.png"
 	>>>
 
 	output {
-		String final_adata_object = "~{raw_data_path}/~{cohort_id}.final_adata_object.h5ad"
+		String final_adata_object = "~{raw_data_path}/~{cohort_id}.final.h5ad"
 		String moran_top_10_variable_genes_csv = "~{raw_data_path}/~{cohort_id}.moran_top_10_variable_genes.csv"
 		String moran_top_4_variable_genes_spatial_scatter_plot_png = "~{raw_data_path}/~{cohort_id}.moran_top_4_variable_genes_spatial_scatter.png"
 	}

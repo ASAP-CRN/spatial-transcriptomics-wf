@@ -41,12 +41,12 @@ def main(args):
         multi_panel=True,
     )
     fig = plt.gcf()
-    fig.suptitle(f"QC violin plot - {args.qc_plots_prefix}", va="center", ha="center", fontsize=16)
-    plt.savefig(f"{args.qc_plots_prefix}.qc_violin.png", dpi=300, bbox_inches="tight")
+    fig.suptitle(f"QC violin plot - {args.output_prefix}", va="center", ha="center", fontsize=16)
+    plt.savefig(f"{args.output_prefix}.qc_violin.png", dpi=300, bbox_inches="tight")
 
     # Total counts and n genes by counts distribution plots
     fig, axs = plt.subplots(1, 4, figsize=(15,4))
-    fig.suptitle(f"Covariates for filtering - {args.qc_plots_prefix}")
+    fig.suptitle(f"Covariates for filtering - {args.output_prefix}")
     sns.distplot(
         merged_adata.obs["total_counts"],
         kde=False,
@@ -71,9 +71,11 @@ def main(args):
         ax=axs[3],
     )
 
-    plt.savefig(f"{args.qc_plots_prefix}.qc_dist.png", dpi=300, bbox_inches="tight")
+    plt.savefig(f"{args.output_prefix}.qc_dist.png", dpi=300, bbox_inches="tight")
 
     # Save outputs
+    metadata = merged_adata.obs
+    metadata.to_csv(f"{args.output_prefix}.merged_adata_metadata.csv")
     merged_adata.write_h5ad(filename=args.merged_adata_output, compression="gzip")
 
 
@@ -90,10 +92,10 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-p",
-        "--qc-plots-prefix",
+        "--output-prefix",
         type=str,
         required=True,
-        help="Output file name prefix for the QC violin and distribution plots"
+        help="Output file name prefix for the QC violin, distribution plots, and metadata"
     )
     parser.add_argument(
         "-o",

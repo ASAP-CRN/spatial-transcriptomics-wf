@@ -342,21 +342,21 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
 └── pmdbs_spatial_visium
     ├── cohort_analysis
     │   ├── ${cohort_id}.sample_list.tsv
-    │   ├── ${cohort_id}.merged_adata_object.h5ad
+    │   ├── ${cohort_id}.merged.h5ad
+    │   ├── ${cohort_id}.merged_adata_metadata.csv
     │   ├── ${cohort_id}.qc_violin.png
     │   ├── ${cohort_id}.qc_dist.png
     │   ├── ${cohort_id}.hvg_dispersion.png
     │   ├── ${cohort_id}.clustered.h5ad
     │   ├── ${cohort_id}.umap_cluster.png
     │   ├── ${cohort_id}.spatial_scatter.png
-    │   ├── ${cohort_id}.final_adata_object.h5ad
+    │   ├── ${cohort_id}.final.h5ad
     │   ├── ${cohort_id}.moran_top_10_variable_genes.csv
     │   ├── ${cohort_id}.moran_top_4_variable_genes_spatial_scatter.png
     │   └── MANIFEST.tsv
     └── preprocess
         ├── ${sampleA_id}.raw_feature_bc_matrix.h5
         ├── ${sampleA_id}.filtered_feature_bc_matrix.h5
-        ├── ${sampleA_id}.initial_adata_object.h5ad
         ├── ${sampleA_id}.molecule_info.h5
         ├── ${sampleA_id}.metrics_summary.csv
         ├── ${sampleA_id}.spaceranger_spatial_outputs.tar.gz
@@ -367,13 +367,12 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
         ├── ${sampleA_id}.scalefactors_json.json
         ├── ${sampleA_id}.tissue_positions.csv
         ├── ${sampleA_id}.spatial_enrichment.csv
-        ├── ${sampleA_id}.initial_adata_object.h5ad
+        ├── ${sampleA_id}.initial.h5ad
         ├── ${sampleA_id}.qc.h5ad
         ├── MANIFEST.tsv
         ├── ...
         ├── ${sampleN_id}.raw_feature_bc_matrix.h5
         ├── ${sampleN_id}.filtered_feature_bc_matrix.h5
-        ├── ${sampleN_id}.initial_adata_object.h5ad
         ├── ${sampleN_id}.molecule_info.h5
         ├── ${sampleN_id}.metrics_summary.csv
         ├── ${sampleN_id}.spaceranger_spatial_outputs.tar.gz
@@ -384,7 +383,7 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
         ├── ${sampleN_id}.scalefactors_json.json
         ├── ${sampleN_id}.tissue_positions.csv
         ├── ${sampleN_id}.spatial_enrichment.csv
-        ├── ${sampleN_id}.initial_adata_object.h5ad
+        ├── ${sampleN_id}.initial.h5ad
         ├── ${sampleN_id}.qc.h5ad
         └── MANIFEST.tsv
 ```
