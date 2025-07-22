@@ -47,24 +47,24 @@ def main(args):
     # Total counts and n genes by counts distribution plots
     fig, axs = plt.subplots(1, 4, figsize=(15,4))
     fig.suptitle(f"Covariates for filtering - {args.output_prefix}")
-    sns.distplot(
+    sns.histplot(
         merged_adata.obs["total_counts"],
         kde=False,
         ax=axs[0],
     )
-    sns.distplot(
+    sns.histplot(
         merged_adata.obs["total_counts"][merged_adata.obs["total_counts"]<10000],
         kde=False,
         bins=40,
         ax=axs[1],
     )
-    sns.distplot(
+    sns.histplot(
         merged_adata.obs["n_genes_by_counts"],
         kde=False,
         bins=60,
         ax=axs[2],
     )
-    sns.distplot(
+    sns.histplot(
         merged_adata.obs["n_genes_by_counts"][merged_adata.obs["n_genes_by_counts"]<4000],
         kde=False,
         bins=60,
@@ -75,7 +75,7 @@ def main(args):
 
     # Save outputs
     metadata = merged_adata.obs
-    metadata.to_csv(f"{args.output_prefix}.merged_adata_metadata.csv")
+    metadata.to_csv(f"{args.output_prefix}.merged_metadata.csv")
     merged_adata.write_h5ad(filename=args.merged_adata_output, compression="gzip")
 
 
