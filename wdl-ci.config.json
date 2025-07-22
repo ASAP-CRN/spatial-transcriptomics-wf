@@ -74,7 +74,7 @@
         },
         "export_final_artifacts": {
           "key": "export_final_artifacts",
-          "digest": "",
+          "digest": "i6i56p6qrv5iew6tthkzl7p6mlmkyvsl",
           "tests": [
             {
               "inputs": {
@@ -329,7 +329,7 @@
       "tasks": {
         "merge_and_plot_qc_metrics": {
           "key": "merge_and_plot_qc_metrics",
-          "digest": "w5637hnyv47nzalkr72puv7cixhgx5pu",
+          "digest": "kppsqzekmaf2vvut6ijgchkdof56io7u",
           "tests": [
             {
               "inputs": {
@@ -627,7 +627,7 @@
         },
         "counts_to_adata": {
           "key": "counts_to_adata",
-          "digest": "itpk7kn2vwno4o5bthjsetdmk6bvq2cb",
+          "digest": "uty3rh5gqsqcymnegbiacpejn2mhklcm",
           "tests": [
             {
               "inputs": {
