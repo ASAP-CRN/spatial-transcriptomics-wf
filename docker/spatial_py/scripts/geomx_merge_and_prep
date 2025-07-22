@@ -24,12 +24,11 @@ def main(args):
     ##################
     ## ANNOTATE HVG ##
     ##################
+    merged_adata.layers["counts"] = merged_adata.X.copy()
     sc.pp.log1p(merged_adata)
     
-    merged_adata.layers["counts"] = merged_adata.X.copy()
     sc.pp.highly_variable_genes(
         merged_adata,
-        layer="counts",
         n_top_genes=args.n_top_genes,
         flavor="seurat",
         inplace=True,
@@ -38,8 +37,11 @@ def main(args):
     full_features = merged_adata.var.copy()
     hvg_full = (
         merged_adata.var[merged_adata.var["highly_variable"]]
-        .sort_values("highly_variable_rank")
-        .head(3000)
+        .sort_values(
+            by=["highly_variable_nbatches", "dispersions_norm"],
+            ascending=[False, False]
+        )
+        .head(args.n_top_genes)
         .index.tolist()
     )
     hvg_adata = merged_adata[:, merged_adata.var.index.isin(hvg_full)]

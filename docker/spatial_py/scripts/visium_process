@@ -43,7 +43,6 @@ def main(args):
     ##################
     sc.pp.highly_variable_genes(
         adata,
-        layer="counts",
         n_top_genes=args.n_top_genes,
         flavor="seurat",
         inplace=True,
@@ -52,8 +51,11 @@ def main(args):
     full_features = adata.var.copy()
     hvg_full = (
         adata.var[adata.var["highly_variable"]]
-        .sort_values("highly_variable_rank")
-        .head(3000)
+        .sort_values(
+            by=["highly_variable_nbatches", "dispersions_norm"],
+            ascending=[False, False]
+        )
+        .head(args.n_top_genes)
         .index.tolist()
     )
     hvg_adata = adata[:, adata.var.index.isin(hvg_full)]
