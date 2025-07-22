@@ -27,7 +27,7 @@
               },
               "output_tests": {
                 "merged_and_processed_adata_object": {
-                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.merged_and_processed.h5ad",
+                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.merged_processed.h5ad",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_hdf5"
@@ -267,7 +267,7 @@
             {
               "inputs": {
                 "cohort_id": "${geomx_team_id}",
-                "merged_and_processed_adata_object": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.merged_and_processed.h5ad",
+                "merged_and_processed_adata_object": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.merged_processed.h5ad",
                 "batch_key": "batch_id",
                 "container_registry": "${container_registry}",
                 "zones": "${zones}"
