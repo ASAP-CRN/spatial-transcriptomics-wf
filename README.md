@@ -301,13 +301,14 @@ asap-dev-{team-xxyy}-{source}-{dataset}
 └── pmdbs_spatial_geomx
     ├── cohort_analysis
     │   ├── ${team_id}.sample_list.tsv
-    │   ├── ${team_id}.merged.h5ad
-    │   ├── ${team_id}.merged_adata_metadata.csv
+    │   ├── ${team_id}.merged_metadata.csv
+    │   ├── ${team_id}.merged_processed.h5ad
     │   ├── ${team_id}.all_genes.csv
     │   ├── ${team_id}.hvg_genes.csv
     │   ├── ${team_id}.hvg_dispersion.png
-    │   ├── ${team_id}.clustered.h5ad # Final
     │   ├── ${team_id}.umap_cluster.png
+    │   ├── ${team_id}.final.h5ad
+    │   ├── ${team_id}.final_metadata.csv
     │   └── MANIFEST.tsv
     ├── process_to_adata
     │   ├── ${slideN_id}.segment_gene_detection_plot.png
@@ -338,17 +339,17 @@ asap-dev-{team-xxyy}-{source}-{dataset}
 └── pmdbs_spatial_visium
     ├── cohort_analysis
     │   ├── ${team_id}.sample_list.tsv
-    │   ├── ${team_id}.merged.h5ad
-    │   ├── ${team_id}.merged_adata_metadata.csv
+    │   ├── ${team_id}.merged_cleaned_unfiltered.h5ad
+    │   ├── ${team_id}.merged_metadata.csv
     │   ├── ${team_id}.all_genes.csv
     │   ├── ${team_id}.hvg_genes.csv
     │   ├── ${team_id}.qc_violin.png
     │   ├── ${team_id}.qc_dist.png
     │   ├── ${team_id}.hvg_dispersion.png
-    │   ├── ${team_id}.clustered.h5ad
     │   ├── ${team_id}.umap_cluster.png
     │   ├── ${team_id}.spatial_scatter.png
     │   ├── ${team_id}.final.h5ad
+    │   ├── ${team_id}.final_metadata.csv
     │   ├── ${team_id}.moran_top_10_variable_genes.csv
     │   ├── ${team_id}.moran_top_4_variable_genes_spatial_scatter.png
     │   └── MANIFEST.tsv
@@ -365,7 +366,7 @@ asap-dev-{team-xxyy}-{source}-{dataset}
         ├── ${sampleA_id}.scalefactors_json.json
         ├── ${sampleA_id}.tissue_positions.csv
         ├── ${sampleA_id}.spatial_enrichment.csv
-        ├── ${sampleA_id}.initial.h5ad
+        ├── ${sampleA_id}.cleaned_unfiltered.h5ad
         ├── ${sampleA_id}.qc.h5ad
         ├── MANIFEST.tsv
         ├── ...
@@ -381,7 +382,7 @@ asap-dev-{team-xxyy}-{source}-{dataset}
         ├── ${sampleN_id}.scalefactors_json.json
         ├── ${sampleN_id}.tissue_positions.csv
         ├── ${sampleN_id}.spatial_enrichment.csv
-        ├── ${sampleN_id}.initial.h5ad
+        ├── ${sampleN_id}.cleaned_unfiltered.h5ad
         ├── ${sampleN_id}.qc.h5ad
         └── MANIFEST.tsv
 ```

@@ -137,7 +137,7 @@ workflow cohort_analysis {
 		],
 		[
 			merge_and_plot_qc_metrics.merged_adata_object,
-			merge_and_plot_qc_metrics.merged_adata_metadata_csv
+			merge_and_plot_qc_metrics.merged_metadata_csv
 		],
 		merge_and_plot_qc_metrics.qc_plots_png,
 		[
@@ -146,7 +146,6 @@ workflow cohort_analysis {
 			filter_and_normalize.hvg_plot_png
 		],
 		[
-			integrate_data.clustered_adata_object,
 			integrate_data.umap_cluster_plots_png
 		],
 		[
@@ -154,6 +153,7 @@ workflow cohort_analysis {
 		],
 		[	
 			spatial_statistics.final_adata_object,
+			spatial_statistics.final_metadata_csv,
 			spatial_statistics.moran_top_10_variable_genes_csv,
 			spatial_statistics.moran_top_4_variable_genes_spatial_scatter_plot_png
 		]
@@ -173,7 +173,7 @@ workflow cohort_analysis {
 
 		# Merged adata objects and QC plots
 		File merged_adata_object = merge_and_plot_qc_metrics.merged_adata_object #!FileCoercion
-		File merged_adata_metadata_csv = merge_and_plot_qc_metrics.merged_adata_metadata_csv #!FileCoercion
+		File merged_metadata_csv = merge_and_plot_qc_metrics.merged_metadata_csv #!FileCoercion
 		Array[File] qc_plots_png = merge_and_plot_qc_metrics.qc_plots_png #!FileCoercion
 
 		# Processed outputs
@@ -192,6 +192,7 @@ workflow cohort_analysis {
 
 		# Spatial statistics outputs
 		File final_adata_object = spatial_statistics.final_adata_object
+		File final_metadata_csv = spatial_statistics.final_metadata_csv
 		File moran_top_10_variable_genes_csv = spatial_statistics.moran_top_10_variable_genes_csv
 		File moran_top_4_variable_genes_spatial_scatter_plot_png = spatial_statistics.moran_top_4_variable_genes_spatial_scatter_plot_png
 
@@ -250,21 +251,21 @@ task merge_and_plot_qc_metrics {
 		visium_merge_and_plot_qc \
 			--adata-paths-input ~{sep=' ' preprocessed_adata_objects} \
 			--output-prefix ~{cohort_id} \
-			--merged-adata-output ~{cohort_id}.merged.h5ad
+			--merged-adata-output ~{cohort_id}.merged_cleaned_unfiltered.h5ad
 
 		upload_outputs \
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.merged.h5ad" \
-			-o "~{cohort_id}.merged_adata_metadata.csv" \
+			-o "~{cohort_id}.merged_cleaned_unfiltered.h5ad" \
+			-o "~{cohort_id}.merged_metadata.csv" \
 			-o "~{cohort_id}.qc_violin.png" \
 			-o "~{cohort_id}.qc_dist.png"
 	>>>
 
 	output {
-		String merged_adata_object = "~{raw_data_path}/~{cohort_id}.merged.h5ad"
-		String merged_adata_metadata_csv = "~{raw_data_path}/~{cohort_id}.merged_adata_metadata.csv"
+		String merged_adata_object = "~{raw_data_path}/~{cohort_id}.merged_cleaned_unfiltered.h5ad"
+		String merged_metadata_csv = "~{raw_data_path}/~{cohort_id}.merged_metadata.csv"
 		Array[String] qc_plots_png = [
 			"~{raw_data_path}/~{cohort_id}.qc_violin.png",
 			"~{raw_data_path}/~{cohort_id}.qc_dist.png"

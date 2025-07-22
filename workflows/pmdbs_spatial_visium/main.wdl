@@ -127,7 +127,7 @@ workflow pmdbs_spatial_visium_analysis {
 
 		# Merged, processed (filtered, normalized, dimensionality reduced), integrated, and clustered adata objects, and plots
 		Array[File?] project_merged_adata_object = project_cohort_analysis.merged_adata_object
-		Array[File?] project_merged_adata_metadata_csv = project_cohort_analysis.merged_adata_metadata_csv
+		Array[File?] project_merged_metadata_csv = project_cohort_analysis.merged_metadata_csv
 		Array[File?] project_all_genes_csv = project_cohort_analysis.all_genes_csv
 		Array[File?] project_hvg_genes_csv = project_cohort_analysis.hvg_genes_csv
 		Array[Array[File]?] project_qc_plots_png = project_cohort_analysis.qc_plots_png
@@ -142,6 +142,7 @@ workflow pmdbs_spatial_visium_analysis {
 
 		# Spatial statistics outputs
 		Array[File?] project_final_adata_object = project_cohort_analysis.final_adata_object
+		Array[File?] project_final_metadata_csv = project_cohort_analysis.final_metadata_csv
 		Array[File?] project_moran_top_10_variable_genes_csv = project_cohort_analysis.moran_top_10_variable_genes_csv
 		Array[File?] project_moran_top_4_variable_genes_spatial_scatter_plot_png = project_cohort_analysis.moran_top_4_variable_genes_spatial_scatter_plot_png
 

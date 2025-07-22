@@ -165,14 +165,16 @@ workflow pmdbs_spatial_geomx_analysis {
 		Array[File?] project_cohort_sample_list = project_cohort_analysis.cohort_sample_list
 
 		## Merged, integrated and clustered adata objects, and plots
-		Array[File?] project_merged_adata_object = project_cohort_analysis.merged_adata_object
-		Array[File?] project_merged_adata_metadata_csv = project_cohort_analysis.merged_adata_metadata_csv
+		Array[File?] project_merged_metadata_csv = project_cohort_analysis.merged_metadata_csv
+		Array[File?] project_merged_and_processed_adata_object = project_cohort_analysis.merged_and_processed_adata_object
 		Array[File?] project_all_genes_csv = project_cohort_analysis.all_genes_csv
 		Array[File?] project_hvg_genes_csv = project_cohort_analysis.hvg_genes_csv
 		Array[File?] project_hvg_plot_png = project_cohort_analysis.hvg_plot_png
 		Array[File?] project_integrated_adata_object = project_cohort_analysis.integrated_adata_object
 		Array[File?] project_clustered_adata_object = project_cohort_analysis.clustered_adata_object
 		Array[File?] project_umap_cluster_plots_png = project_cohort_analysis.umap_cluster_plots_png
+		Array[File?] project_final_adata_object = project_cohort_analysis.final_adata_object
+		Array[File?] project_final_metadata_csv = project_cohort_analysis.final_metadata_csv
 
 		Array[Array[File]?] preprocess_manifests = project_cohort_analysis.preprocess_manifest_tsvs
 		Array[Array[File]?] process_to_adata_manifests = project_cohort_analysis.process_to_adata_manifest_tsvs

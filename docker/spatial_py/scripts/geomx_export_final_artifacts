@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+
+import argparse
+import scanpy as sc
+
+
+def main(args):
+    ############################
+    ## EXPORT FINAL ARTIFACTS ##
+    ############################
+    adata = sc.read_h5ad(args.adata_input)
+
+    # Save outputs
+    metadata = adata.obs
+    metadata.to_csv(f"{args.cohort_id}.final_metadata.csv")
+    adata.write_h5ad(filename=args.adata_output, compression="gzip")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Export final AnnData object and its metadata"
+    )
+    parser.add_argument(
+        "-c",
+        "--cohort-id",
+        type=str,
+        required=True,
+        help="Cohort ID"
+    )
+    parser.add_argument(
+        "-i",
+        "--adata-input",
+        type=str,
+        required=True,
+        help="Adata object to finalize"
+    )
+    parser.add_argument(
+        "-o",
+        "--adata-output",
+        type=str,
+        required=True,
+        help="Output file name for the final AnnData object"
+    )
+
+    args = parser.parse_args()
+
+    main(args)
