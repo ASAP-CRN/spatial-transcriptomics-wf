@@ -41,11 +41,11 @@ def main(args):
     ##################
     ## ANNOTATE HVG ##
     ##################
-    sc.experimental.pp.highly_variable_genes(
+    sc.pp.highly_variable_genes(
         adata,
         layer="counts",
         n_top_genes=args.n_top_genes,
-        flavor="pearson_residuals",
+        flavor="seurat",
         inplace=True,
         batch_key=args.batch_key,
     )
