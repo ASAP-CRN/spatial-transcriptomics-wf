@@ -463,7 +463,7 @@
       "tasks": {
         "spatially_variable_gene_analysis": {
           "key": "spatially_variable_gene_analysis",
-          "digest": "pbh5hevnohvtahgqfegk32kwzqefn7xo",
+          "digest": "swz5i2qx4fxynsb77wgp53zvqraibph3",
           "tests": [
             {
               "inputs": {
