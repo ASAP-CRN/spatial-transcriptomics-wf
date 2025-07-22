@@ -24,16 +24,31 @@ def main(args):
     ##################
     ## ANNOTATE HVG ##
     ##################
+    merged_adata.layers["counts"] = merged_adata.X.copy()
     sc.pp.log1p(merged_adata)
     
     sc.pp.highly_variable_genes(
         merged_adata,
-        flavor="seurat",
         n_top_genes=args.n_top_genes,
+        flavor="seurat",
         inplace=True,
+        batch_key=args.batch_key,
     )
+    full_features = merged_adata.var.copy()
+    hvg_full = (
+        merged_adata.var[merged_adata.var["highly_variable"]]
+        .sort_values(
+            by=["highly_variable_nbatches", "dispersions_norm"],
+            ascending=[False, False]
+        )
+        .head(args.n_top_genes)
+        .index.tolist()
+    )
+    hvg_adata = merged_adata[:, merged_adata.var.index.isin(hvg_full)]
+    hvg_features = hvg_adata.var.copy()
+
     sc.pl.highly_variable_genes(
-        merged_adata,
+        hvg_adata,
     )
     fig = plt.gcf()
     fig.suptitle(f"Highly variable genes dispersion plot - {args.output_prefix}", va="center", ha="center", fontsize=16)
@@ -44,20 +59,22 @@ def main(args):
     ## DIMENSIONALITY REDUCTION ##
     ##############################
     sc.pp.pca(
-        merged_adata,
+        hvg_adata,
         n_comps=args.n_comps,
         svd_solver="arpack",
     )
 
     # Save outputs
     metadata = merged_adata.obs
-    metadata.to_csv(f"{args.output_prefix}.merged_adata_metadata.csv")
-    merged_adata.write_h5ad(filename=args.adata_output, compression="gzip")
+    metadata.to_csv(f"{args.output_prefix}.merged_metadata.csv")
+    full_features.to_csv(f"{args.output_prefix}.all_genes.csv", index=True)
+    hvg_features.to_csv(f"{args.output_prefix}.hvg_genes.csv", index=True)
+    hvg_adata.write_h5ad(filename=args.adata_output, compression="gzip")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Merge adata objects and process to prepare for downstream analysis"
+        description="Merge adata objects and process to prepare for downstream analysis by identifying highly variable genes (HVGs) and PCA"
     )
     parser.add_argument(
         "-i",
@@ -79,6 +96,13 @@ if __name__ == "__main__":
         type=int,
         required=True,
         help="Number of principal components to compute using `scanpy.pp.pca` [30]"
+    )
+    parser.add_argument(
+        "-b",
+        "--batch-key",
+        type=str,
+        required=True,
+        help="Key in AnnData object for batch information ['batch_id']"
     )
     parser.add_argument(
         "-p",

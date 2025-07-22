@@ -42,7 +42,7 @@ workflow integrate_data {
 
 	output {
 		File integrated_adata_object = integrate_sample_data.integrated_adata_object
-		File clustered_adata_object = cluster.clustered_adata_object #!FileCoercion
+		File clustered_adata_object = cluster.clustered_adata_object
 		File umap_cluster_plots_png = cluster.umap_cluster_plots_png #!FileCoercion
 	}
 
@@ -147,12 +147,11 @@ task cluster {
 			-b ~{billing_project} \
 			-d ~{raw_data_path} \
 			-i ~{write_tsv(workflow_info)} \
-			-o "~{cohort_id}.clustered.h5ad" \
 			-o "~{cohort_id}.umap_cluster.png"
 	>>>
 
 	output {
-		String clustered_adata_object = "~{raw_data_path}/~{cohort_id}.clustered.h5ad"
+		File clustered_adata_object = "~{cohort_id}.clustered.h5ad"
 		String umap_cluster_plots_png = "~{raw_data_path}/~{cohort_id}.umap_cluster.png"
 	}
 

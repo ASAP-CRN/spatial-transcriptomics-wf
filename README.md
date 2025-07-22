@@ -19,6 +19,8 @@ Worfklows are defined in [the `workflows` directory](workflows). There is [the `
 
 These workflows are set up to analyze spatial transcriptomics data: Nanostring GeoMx in WDL using command line, R, and Python scripts and 10x Visium in WDL using command line and Python scripts.
 
+_Note: Unlike our other workflows (e.g., [pmdbs-sc-rnaseq-wf](https://github.com/ASAP-CRN/pmdbs-sc-rnaseq-wf/tree/main)), the spatial workflows do not perform cross-team cohort analysis, as integrating spatial coordinates and mapping dimensions across datasets adds significant complexity._
+
 ## Nanostring GeoMx workflow overview
 
 For the Nanostring GeoMx workflow, we start with raw output files from the instrument and convert them into counts. Then, we clean the data by removing unreliable segments and genes, adjust for technical noise, and combine data from different slides. Finally, we cluster based on segment (which may contain many cells) and visualize their transcriptional profiles in a UMAP space.
@@ -45,7 +47,7 @@ Run once per slide. Intermediate files from previous runs are not reused and are
 
 ### Cohort analysis
 
-Run once per team (all slide from a single team) if `project.run_project_cohort_analysis` is set to `true`, and once for the whole cohort (all slides from all teams) if `run_cross_team_cohort_analysis` is set to `true`. Additional slides requires this entire analysis to be rerun. Intermediate files from previous runs are not reused and are stored in timestamped directories.
+Run once per team (all slide from a single team) if `project.run_project_cohort_analysis` is set to `true`. Additional slides requires this entire analysis to be rerun. Intermediate files from previous runs are not reused and are stored in timestamped directories.
 
 ## 10x Visium workflow overview
 
@@ -69,7 +71,7 @@ Run once per sample; only rerun when the preprocessing workflow version is updat
 
 ### Cohort analysis
 
-Run once per team (all samples from a single team) if `project.run_project_cohort_analysis` is set to `true`, and once for the whole cohort (all samples from all teams) if `run_cross_team_cohort_analysis` is set to `true`. This can be rerun using different sample subsets; including additional samples requires this entire analysis to be rerun. Intermediate files from previous runs are not reused and are stored in timestamped directories.
+Run once per team (all samples from a single team) if `project.run_project_cohort_analysis` is set to `true`. This can be rerun using different sample subsets; including additional samples requires this entire analysis to be rerun. Intermediate files from previous runs are not reused and are stored in timestamped directories.
 
 
 # Inputs
@@ -80,7 +82,6 @@ An input template file can be found at [workflows/pmdbs_spatial_geomx/inputs.jso
 
 | Type | Name | Description |
 | :- | :- | :- |
-| String | cohort_id | Name of the cohort; used to name output files during cross-team cohort analysis. |
 | Array[[Project](#nanostring-geomx-project)] | projects | The project ID, set of slides and their associated samples, reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis. |
 | File | geomxngs_config_pkc | The GeoMx DSP configuration file to associate assay targets with GeoMx HybCode barcodes and Seq Code primers; see https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-configuration-files/. |
 | Int? | min_segment_reads | Minimum number of segment reads. [1000] |
@@ -97,9 +98,6 @@ An input template file can be found at [workflows/pmdbs_spatial_geomx/inputs.jso
 | Int? | n_comps | Number of principal components to compute. [30] |
 | String? | batch_key | Key in AnnData object for batch information. ['batch_id'] |
 | Float? | leiden_resolution | Value controlling the coarseness of the Leiden clustering. [0.4] |
-| Boolean? | run_cross_team_cohort_analysis | Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps (GeoMxNGSPipeline and generating the initial adata object(s)) will run for samples. [false] |
-| String | cohort_raw_data_bucket | Bucket to upload cross-team cohort analysis intermediate files to. |
-| Array[String] | cohort_staging_data_buckets | Buckets to upload cross-team cohort analysis outputs to. |
 | String | container_registry | Container registry where workflow Docker images are hosted. |
 | String? | zones | Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f'] |
 
@@ -109,7 +107,6 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 
 | Type | Name | Description |
 | :- | :- | :- |
-| String | cohort_id | Name of the cohort; used to name output files during cross-team cohort analysis. |
 | Array[[Project](#10x-visium-project)] | projects | The project ID, set of samples and their associated reads and metadata, output bucket locations, and whether or not to run project-level cohort analysis. |
 | File | spaceranger_reference_data | Space Ranger transcriptome reference data; see https://www.10xgenomics.com/support/software/space-ranger/downloads and [10x Visium notes](#10x-visium-notes). |
 | File | visium_probe_set_csv | Visium probe-based assays target genes in Space Ranger transcriptome; see https://www.10xgenomics.com/support/software/space-ranger/downloads and [10x Visium notes](#10x-visium-notes). |
@@ -122,9 +119,6 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 | Int? | n_comps | Number of principal components to compute. [30] |
 | String? | batch_key | Key in AnnData object for batch information. ['batch_id'] |
 | Float? | leiden_resolution | Value controlling the coarseness of the Leiden clustering. [0.4] |
-| Boolean? | run_cross_team_cohort_analysis | Whether to run downstream harmonization steps on all samples across projects. If set to false, only preprocessing steps ( and generating the initial adata object(s)) will run for samples. [false] |
-| String | cohort_raw_data_bucket | Bucket to upload cross-team cohort analysis intermediate files to. |
-| Array[String] | cohort_staging_data_buckets | Buckets to upload cross-team cohort analysis outputs to. |
 | String | container_registry | Container registry where workflow Docker images are hosted. |
 | String? | zones | Space-delimited set of GCP zones where compute will take place. ['us-central1-c us-central1-f'] |
 
@@ -195,7 +189,7 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 
 ## Generating the inputs JSON
 
-The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The `generate_inputs` utility script may be used to automatically generate the inputs JSON (`inputs.{staging_env}.{source}-{cohort_dataset}.{date}.json` and a sample list TSV (`{team_id}.{source}-{cohort_dataset}.sample_list.{date}.tsv`; same as the one generated in [the write_cohort_sample_list task](https://github.com/ASAP-CRN/wf-common/wdl/tasks/write_cohort_sample_list.wdl)). The script requires the libraries outlined in [the requirements.txt file](https://github.com/ASAP-CRN/wf-common/util/requirements.txt) and the following inputs:
+The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The [`generate_inputs` utility script](https://github.com/ASAP-CRN/wf-common/blob/main/util/generate_inputs) may be used to automatically generate the inputs JSON (`inputs.{staging_env}.{source}-{cohort_dataset}.{date}.json` and a sample list TSV (`{team_id}.{source}-{cohort_dataset}.sample_list.{date}.tsv`; same as the one generated in [the write_cohort_sample_list task](https://github.com/ASAP-CRN/wf-common/wdl/tasks/write_cohort_sample_list.wdl)). The script requires the libraries outlined in [the requirements.txt file](https://github.com/ASAP-CRN/wf-common/util/requirements.txt) and the following inputs:
 
 - `project-tsv`: One or more project TSVs with one row per sample and columns team_id, ASAP_dataset_id, ASAP_sample_id, batch, fastq_R1s, fastq_R2s, fastq_I1s, fastq_I2s, embargoed, source, dataset, dataset_DOI_url, and SPATIAL columns if applicable: geomx_config, geomx_dsp_config, geomx_annotation_file, visium_cytassist, visium_probe_set, visium_slide_ref, and visium_capture_area. All samples from all projects may be included in the same project TSV, or multiple project TSVs may be provided.
 	- `team_id`: A unique identifier for the team from which the sample(s) arose.
@@ -226,14 +220,14 @@ Example usage:
 ```bash
 ./wf-common/util/generate_inputs \
 	--project-tsv metadata.tsv \
-	--inputs-template workflows/inputs.json \
+	--inputs-template workflows/pmdbs_spatial_geomx/inputs.json \
 	--run-project-cohort-analysis \
 	--workflow-name pmdbs_spatial_geomx_analysis \
 	--cohort-dataset spatial-geomx
 
 ./wf-common/util/generate_inputs \
 	--project-tsv metadata.tsv \
-	--inputs-template workflows/inputs.json \
+	--inputs-template workflows/pmdbs_spatial_visium/inputs.json \
 	--run-project-cohort-analysis \
 	--workflow-name pmdbs_spatial_visium_analysis \
 	--cohort-dataset spatial-visium
@@ -246,7 +240,7 @@ Example usage:
 - `cohort_id`: either the `team_id` for project-level downstream analysis, or the `cohort_id` for the full cohort
 - `workflow_run_timestamp`: format: `%Y-%m-%dT%H-%M-%SZ`
 - The list of samples used to generate the cohort analysis will be output alongside other cohort analysis outputs in the staging data bucket (`${cohort_id}.sample_list.tsv`)
-- The MANIFEST.tsv file in the staging data bucket describes the file name, md5 hash, timestamp, workflow version, workflow name, and workflow release for the run used to generate each file in that directory
+- The `MANIFEST.tsv` file in the staging data bucket describes the file name, md5 hash, timestamp, workflow version, workflow name, and workflow release for the run used to generate each file in that directory
 
 ### Raw data (intermediate files and final outputs for all runs of the workflow)
 
@@ -298,20 +292,23 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 
 ### Staging data (intermediate workflow objects and final workflow outputs for the latest run of the workflow)
 
-Following QC by researchers, the objects in the dev or uat bucket are synced into the curated data buckets, maintaining the same file structure. Curated data buckets are named `asap-curated-{cohort,team-xxyy}-{source}-{dataset}`.
+Following QC by researchers, the objects in the dev or uat bucket are synced into the curated data buckets, maintaining the same file structure. Curated data buckets are named `asap-curated-{team-xxyy}-{source}-{dataset}`.
 
 Data may be synced using [the `promote_staging_data` script](#promoting-staging-data).
 
 ```bash
-asap-dev-{cohort,team-xxyy}-{source}-{dataset}
+asap-dev-{team-xxyy}-{source}-{dataset}
 └── pmdbs_spatial_geomx
     ├── cohort_analysis
-    │   ├── ${cohort_id}.sample_list.tsv
-    │   ├── ${cohort_id}.merged.h5ad
-    │   ├── ${cohort_id}.hvg_dispersion.png
-    │   ├── ${cohort_id}.merged_adata_metadata.csv
-    │   ├── ${cohort_id}.clustered.h5ad # Final
-    │   ├── ${cohort_id}.umap_cluster.png
+    │   ├── ${team_id}.sample_list.tsv
+    │   ├── ${team_id}.merged_metadata.csv
+    │   ├── ${team_id}.merged_processed.h5ad
+    │   ├── ${team_id}.all_genes.csv
+    │   ├── ${team_id}.hvg_genes.csv
+    │   ├── ${team_id}.hvg_dispersion.png
+    │   ├── ${team_id}.umap_cluster.png
+    │   ├── ${team_id}.final.h5ad
+    │   ├── ${team_id}.final_metadata.csv
     │   └── MANIFEST.tsv
     ├── process_to_adata
     │   ├── ${slideN_id}.segment_gene_detection_plot.png
@@ -338,25 +335,27 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
         ├── ${slideN_id}.gene_count.csv
         └── MANIFEST.tsv
 
-asap-dev-{cohort,team-xxyy}-{source}-{dataset}
+asap-dev-{team-xxyy}-{source}-{dataset}
 └── pmdbs_spatial_visium
     ├── cohort_analysis
-    │   ├── ${cohort_id}.sample_list.tsv
-    │   ├── ${cohort_id}.merged_adata_object.h5ad
-    │   ├── ${cohort_id}.qc_violin.png
-    │   ├── ${cohort_id}.qc_dist.png
-    │   ├── ${cohort_id}.hvg_dispersion.png
-    │   ├── ${cohort_id}.clustered.h5ad
-    │   ├── ${cohort_id}.umap_cluster.png
-    │   ├── ${cohort_id}.spatial_scatter.png
-    │   ├── ${cohort_id}.final_adata_object.h5ad
-    │   ├── ${cohort_id}.moran_top_10_variable_genes.csv
-    │   ├── ${cohort_id}.moran_top_4_variable_genes_spatial_scatter.png
+    │   ├── ${team_id}.sample_list.tsv
+    │   ├── ${team_id}.merged_cleaned_unfiltered.h5ad
+    │   ├── ${team_id}.merged_metadata.csv
+    │   ├── ${team_id}.all_genes.csv
+    │   ├── ${team_id}.hvg_genes.csv
+    │   ├── ${team_id}.qc_violin.png
+    │   ├── ${team_id}.qc_dist.png
+    │   ├── ${team_id}.hvg_dispersion.png
+    │   ├── ${team_id}.umap_cluster.png
+    │   ├── ${team_id}.spatial_scatter.png
+    │   ├── ${team_id}.final.h5ad
+    │   ├── ${team_id}.final_metadata.csv
+    │   ├── ${team_id}.moran_top_10_variable_genes.csv
+    │   ├── ${team_id}.moran_top_4_variable_genes_spatial_scatter.png
     │   └── MANIFEST.tsv
     └── preprocess
         ├── ${sampleA_id}.raw_feature_bc_matrix.h5
         ├── ${sampleA_id}.filtered_feature_bc_matrix.h5
-        ├── ${sampleA_id}.initial_adata_object.h5ad
         ├── ${sampleA_id}.molecule_info.h5
         ├── ${sampleA_id}.metrics_summary.csv
         ├── ${sampleA_id}.spaceranger_spatial_outputs.tar.gz
@@ -367,13 +366,12 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
         ├── ${sampleA_id}.scalefactors_json.json
         ├── ${sampleA_id}.tissue_positions.csv
         ├── ${sampleA_id}.spatial_enrichment.csv
-        ├── ${sampleA_id}.initial_adata_object.h5ad
+        ├── ${sampleA_id}.cleaned_unfiltered.h5ad
         ├── ${sampleA_id}.qc.h5ad
         ├── MANIFEST.tsv
         ├── ...
         ├── ${sampleN_id}.raw_feature_bc_matrix.h5
         ├── ${sampleN_id}.filtered_feature_bc_matrix.h5
-        ├── ${sampleN_id}.initial_adata_object.h5ad
         ├── ${sampleN_id}.molecule_info.h5
         ├── ${sampleN_id}.metrics_summary.csv
         ├── ${sampleN_id}.spaceranger_spatial_outputs.tar.gz
@@ -384,7 +382,7 @@ asap-dev-{cohort,team-xxyy}-{source}-{dataset}
         ├── ${sampleN_id}.scalefactors_json.json
         ├── ${sampleN_id}.tissue_positions.csv
         ├── ${sampleN_id}.spatial_enrichment.csv
-        ├── ${sampleN_id}.initial_adata_object.h5ad
+        ├── ${sampleN_id}.cleaned_unfiltered.h5ad
         ├── ${sampleN_id}.qc.h5ad
         └── MANIFEST.tsv
 ```
@@ -397,7 +395,7 @@ This script compiles bucket and file information for both the initial (staging) 
 
 If data integrity tests pass, this script will upload a combined MANIFEST.tsv and the data promotion Markdown report under a metadata/{timestamp} directory in the staging bucket. Previous manifest files and reports will be kept. Next, it will rsync all files in the staging bucket to the curated bucket's upstream, downstream, cohort_analysis, and metadata directories. **Exercise caution when using this script**; files that are not present in the source (staging) bucket will be deleted at the destination (curated) bucket.
 
-If data integrity tests fail, staging data cannot be promoted. The combined MANFIEST.tsv, Markdown report, and promote_staging_data_script.log will be locally available.
+If data integrity tests fail, staging data cannot be promoted. The combined `MANIFEST.tsv`, Markdown report, and `promote_staging_data_script.log` will be locally available.
 
 The script defaults to a dry run, printing out the files that would be copied or deleted for each selected team.
 
@@ -411,7 +409,6 @@ The script defaults to a dry run, printing out the files that would be copied or
 -d  Space-delimited dataset name(s) in team bucket name, must follow the same order as {team}
 -w  Workflow name used as a directory in bucket
 -p  Promote data. If this option is not selected, data that would be copied or deleted is printed out, but files are not actually changed (dry run)
--e  Staging bucket type; options are 'uat' or 'dev' ['uat']
 ```
 
 ### Usage
@@ -421,11 +418,11 @@ The script defaults to a dry run, printing out the files that would be copied or
 ./wf-common/util/promote_staging_data -t cohort -l -s pmdbs -d spatial-geomx -w pmdbs_spatial_geomx
 ./wf-common/util/promote_staging_data -t cohort -l -s pmdbs -d spatial-visium -w pmdbs_spatial_visium
 
-# Print out the files that would be copied or deleted from the staging bucket to the curated bucket for teams team-hardy and team-biederer
-./wf-common/util/promote_staging_data -t team-hardy team-biederer -s pmdbs -d spatial-geomx -w pmdbs_spatial_geomx
+# Print out the files that would be copied or deleted from the staging bucket to the curated bucket for teams team-edwards and team-vila
+./wf-common/util/promote_staging_data -t team-edwards team-vila -s pmdbs -d spatial-geomx-th spatial-geomx-thlc -w pmdbs_spatial_geomx
 
-# Promote data for team-hardy and cohort
-./wf-common/util/promote_staging_data -t team-hardy cohort -s pmdbs -d spatial-geomx -w pmdbs_spatial_geomx -p -e dev
+# Promote data for team-edwards and team-vila
+./wf-common/util/promote_staging_data -t team-edwards team-vila -s pmdbs -d spatial-geomx-th spatial-geomx-thlc -w pmdbs_spatial_geomx -p
 ```
 
 # Docker images

@@ -7,7 +7,7 @@
       "tasks": {
         "merge_and_prep": {
           "key": "merge_and_prep",
-          "digest": "z6qqmruro2r42bxwxxsbig34t5qfjhir",
+          "digest": "cgyktioycaor6b3vkycc5qmefyw65lmo",
           "tests": [
             {
               "inputs": {
@@ -18,6 +18,7 @@
                 ],
                 "n_top_genes": 3000,
                 "n_comps": 30,
+                "batch_key": "batch_id",
                 "raw_data_path": "${geomx_cohort_analysis_raw_data_path}",
                 "workflow_info": "${geomx_workflow_info}",
                 "billing_project": "${billing_project}",
@@ -25,11 +26,38 @@
                 "zones": "${zones}"
               },
               "output_tests": {
-                "merged_adata_object": {
-                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.merged.h5ad",
+                "merged_and_processed_adata_object": {
+                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.merged_processed.h5ad",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_hdf5"
+                  ]
+                },
+                "merged_metadata_csv": {
+                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.merged_metadata.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_comma_separated",
+                    "count_columns"
+                  ]
+                },
+                "all_genes_csv": {
+                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.all_genes.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_comma_separated",
+                    "count_columns"
+                  ]
+                },
+                "hvg_genes_csv": {
+                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.hvg_genes.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_comma_separated",
+                    "count_columns"
                   ]
                 },
                 "hvg_plot_png": {
@@ -39,9 +67,35 @@
                     "png_validator",
                     "image_validator"
                   ]
+                }
+              }
+            }
+          ]
+        },
+        "export_final_artifacts": {
+          "key": "export_final_artifacts",
+          "digest": "i6i56p6qrv5iew6tthkzl7p6mlmkyvsl",
+          "tests": [
+            {
+              "inputs": {
+                "cohort_id": "${geomx_team_id}",
+                "clustered_adata_object": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.clustered.h5ad",
+                "raw_data_path": "${geomx_cohort_analysis_raw_data_path}",
+                "workflow_info": "${geomx_workflow_info}",
+                "billing_project": "${billing_project}",
+                "container_registry": "${container_registry}",
+                "zones": "${zones}"
+              },
+              "output_tests": {
+                "final_adata_object": {
+                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.final.h5ad",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_hdf5"
+                  ]
                 },
-                "merged_adata_metadata_csv": {
-                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.merged_adata_metadata.csv",
+                "final_metadata_csv": {
+                  "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.final_metadata.csv",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_empty_lines",
@@ -213,7 +267,7 @@
             {
               "inputs": {
                 "cohort_id": "${geomx_team_id}",
-                "merged_and_processed_adata_object": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.merged.h5ad",
+                "merged_and_processed_adata_object": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.merged_processed.h5ad",
                 "batch_key": "batch_id",
                 "container_registry": "${container_registry}",
                 "zones": "${zones}"
@@ -232,7 +286,7 @@
         },
         "cluster": {
           "key": "cluster",
-          "digest": "chquhvgfycakclmctuyqjyeanrbtlilo",
+          "digest": "qouf6flpm3rprnfz4fztlh3ybrumqcfb",
           "tests": [
             {
               "inputs": {
@@ -275,7 +329,7 @@
       "tasks": {
         "merge_and_plot_qc_metrics": {
           "key": "merge_and_plot_qc_metrics",
-          "digest": "wmyxopfjayx7b473xjcvghxm4zyu32fw",
+          "digest": "kppsqzekmaf2vvut6ijgchkdof56io7u",
           "tests": [
             {
               "inputs": {
@@ -292,7 +346,7 @@
               },
               "output_tests": {
                 "merged_adata_object": {
-                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.merged_adata_object.h5ad",
+                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.merged_cleaned_unfiltered.h5ad",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_hdf5"
@@ -315,12 +369,12 @@
         },
         "filter_and_normalize": {
           "key": "filter_and_normalize",
-          "digest": "hrix2jd7skzunlvqtbddvosxosslqlac",
+          "digest": "lujek6d7l3dinbjtu23rvf2bplcbdkl5",
           "tests": [
             {
               "inputs": {
                 "cohort_id": "${visium_team_id}",
-                "merged_adata_object": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.merged_adata_object.h5ad",
+                "merged_adata_object": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.merged_cleaned_unfiltered.h5ad",
                 "filter_cells_min_counts": 5000,
                 "filter_cells_min_genes": 3000,
                 "filter_genes_min_cells": 10,
@@ -328,6 +382,7 @@
                 "normalize_target_sum": 10000,
                 "n_top_genes": 3000,
                 "n_comps": 30,
+                "batch_key": "batch_id",
                 "raw_data_path": "${visium_cohort_analysis_raw_data_path}",
                 "workflow_info": "${visium_workflow_info}",
                 "billing_project": "${billing_project}",
@@ -340,6 +395,24 @@
                   "test_tasks": [
                     "compare_file_basename",
                     "check_hdf5"
+                  ]
+                },
+                "all_genes_csv": {
+                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.all_genes.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_comma_separated",
+                    "count_columns"
+                  ]
+                },
+                "hvg_genes_csv": {
+                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.hvg_genes.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_comma_separated",
+                    "count_columns"
                   ]
                 },
                 "hvg_plot_png": {
@@ -390,7 +463,7 @@
       "tasks": {
         "spatially_variable_gene_analysis": {
           "key": "spatially_variable_gene_analysis",
-          "digest": "evtq6h2q4bix4eglhh5ptj6hvgarmoqu",
+          "digest": "swz5i2qx4fxynsb77wgp53zvqraibph3",
           "tests": [
             {
               "inputs": {
@@ -404,10 +477,19 @@
               },
               "output_tests": {
                 "final_adata_object": {
-                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.final_adata_object.h5ad",
+                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.final.h5ad",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_hdf5"
+                  ]
+                },
+                "final_metadata_csv": {
+                  "value": "${visium_input_file_path}/${cohort_analysis_workflow_name}/${visium_team_id}.final_metadata.csv",
+                  "test_tasks": [
+                    "compare_file_basename",
+                    "check_empty_lines",
+                    "check_comma_separated",
+                    "count_columns"
                   ]
                 },
                 "moran_top_10_variable_genes_csv": {
@@ -545,7 +627,7 @@
         },
         "counts_to_adata": {
           "key": "counts_to_adata",
-          "digest": "j53mpjhjsfrcldiwhxeqm5jyhmkganmh",
+          "digest": "uty3rh5gqsqcymnegbiacpejn2mhklcm",
           "tests": [
             {
               "inputs": {
@@ -564,7 +646,7 @@
               },
               "output_tests": {
                 "initial_adata_object": {
-                  "value": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.initial_adata_object.h5ad",
+                  "value": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.cleaned_unfiltered.h5ad",
                   "test_tasks": [
                     "compare_file_basename",
                     "check_hdf5"
@@ -581,7 +663,7 @@
             {
               "inputs": {
                 "sample_id": "${visium_sample_id}",
-                "initial_adata_object": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.initial_adata_object.h5ad",
+                "initial_adata_object": "${visium_input_file_path}/${preprocess_workflow_name}/${visium_sample_id}.cleaned_unfiltered.h5ad",
                 "raw_data_path": "${visium_qc_raw_data_path}",
                 "workflow_info": "${visium_workflow_info}",
                 "billing_project": "${billing_project}",
