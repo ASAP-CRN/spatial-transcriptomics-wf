@@ -41,7 +41,7 @@ def main(args):
     ##################
     ## ANNOTATE HVG ##
     ##################
-    sc.pp.highly_variable_genes(
+    sc.experimental.pp.highly_variable_genes(
         adata,
         layer="counts",
         n_top_genes=args.n_top_genes,

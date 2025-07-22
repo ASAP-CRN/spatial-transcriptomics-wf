@@ -26,7 +26,8 @@ def main(args):
     ##################
     sc.pp.log1p(merged_adata)
     
-    sc.pp.highly_variable_genes(
+    merged_adata.layers["counts"] = merged_adata.X.copy()
+    sc.experimental.pp.highly_variable_genes(
         merged_adata,
         layer="counts",
         n_top_genes=args.n_top_genes,
