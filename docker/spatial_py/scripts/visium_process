@@ -62,7 +62,7 @@ def main(args):
     hvg_features = hvg_adata.var.copy()
 
     sc.pl.highly_variable_genes(
-        hvg_adata,
+        adata,
     )
     fig = plt.gcf()
     fig.suptitle(f"Highly variable genes dispersion plot - {args.output_prefix}", va="center", ha="center", fontsize=16)
