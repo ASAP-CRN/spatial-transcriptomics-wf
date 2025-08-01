@@ -1,7 +1,7 @@
 {
   "workflows": {
-    "workflows/pmdbs_spatial_geomx/cohort_analysis/cohort_analysis.wdl": {
-      "key": "workflows/pmdbs_spatial_geomx/cohort_analysis/cohort_analysis.wdl",
+    "workflows/spatial_geomx/cohort_analysis/cohort_analysis.wdl": {
+      "key": "workflows/spatial_geomx/cohort_analysis/cohort_analysis.wdl",
       "name": "",
       "description": "",
       "tasks": {
@@ -109,8 +109,8 @@
         }
       }
     },
-    "workflows/pmdbs_spatial_geomx/preprocess/preprocess.wdl": {
-      "key": "workflows/pmdbs_spatial_geomx/preprocess/preprocess.wdl",
+    "workflows/spatial_geomx/preprocess/preprocess.wdl": {
+      "key": "workflows/spatial_geomx/preprocess/preprocess.wdl",
       "name": "",
       "description": "",
       "tasks": {
@@ -322,8 +322,8 @@
         }
       }
     },
-    "workflows/pmdbs_spatial_visium/cohort_analysis/cohort_analysis.wdl": {
-      "key": "workflows/pmdbs_spatial_visium/cohort_analysis/cohort_analysis.wdl",
+    "workflows/spatial_visium/cohort_analysis/cohort_analysis.wdl": {
+      "key": "workflows/spatial_visium/cohort_analysis/cohort_analysis.wdl",
       "name": "",
       "description": "",
       "tasks": {
@@ -456,8 +456,8 @@
         }
       }
     },
-    "workflows/pmdbs_spatial_visium/cohort_analysis/spatial_statistics/spatial_statistics.wdl": {
-      "key": "workflows/pmdbs_spatial_visium/cohort_analysis/spatial_statistics/spatial_statistics.wdl",
+    "workflows/spatial_visium/cohort_analysis/spatial_statistics/spatial_statistics.wdl": {
+      "key": "workflows/spatial_visium/cohort_analysis/spatial_statistics/spatial_statistics.wdl",
       "name": "",
       "description": "",
       "tasks": {
@@ -515,8 +515,8 @@
         }
       }
     },
-    "workflows/pmdbs_spatial_visium/preprocess/preprocess.wdl": {
-      "key": "workflows/pmdbs_spatial_visium/preprocess/preprocess.wdl",
+    "workflows/spatial_visium/preprocess/preprocess.wdl": {
+      "key": "workflows/spatial_visium/preprocess/preprocess.wdl",
       "name": "",
       "description": "",
       "tasks": {
@@ -755,32 +755,32 @@
         }
       }
     },
-    "workflows/pmdbs_spatial_geomx/structs.wdl": {
-      "key": "workflows/pmdbs_spatial_geomx/structs.wdl",
+    "workflows/spatial_geomx/structs.wdl": {
+      "key": "workflows/spatial_geomx/structs.wdl",
       "name": "",
       "description": "",
       "tasks": {}
     },
-    "workflows/pmdbs_spatial_geomx/main.wdl": {
-      "key": "workflows/pmdbs_spatial_geomx/main.wdl",
+    "workflows/spatial_geomx/main.wdl": {
+      "key": "workflows/spatial_geomx/main.wdl",
       "name": "",
       "description": "",
       "tasks": {}
     },
-    "workflows/pmdbs_spatial_visium/structs.wdl": {
-      "key": "workflows/pmdbs_spatial_visium/structs.wdl",
+    "workflows/spatial_visium/structs.wdl": {
+      "key": "workflows/spatial_visium/structs.wdl",
       "name": "",
       "description": "",
       "tasks": {}
     },
-    "workflows/pmdbs_spatial_visium/main.wdl": {
-      "key": "workflows/pmdbs_spatial_visium/main.wdl",
+    "workflows/spatial_visium/main.wdl": {
+      "key": "workflows/spatial_visium/main.wdl",
       "name": "",
       "description": "",
       "tasks": {}
     },
-    "pmdbs-spatial-transcriptomics-wdl-ci-custom-test-dir/check_zip.wdl": {
-      "key": "pmdbs-spatial-transcriptomics-wdl-ci-custom-test-dir/check_zip.wdl",
+    "spatial-transcriptomics-wdl-ci-custom-test-dir/check_zip.wdl": {
+      "key": "spatial-transcriptomics-wdl-ci-custom-test-dir/check_zip.wdl",
       "name": "",
       "description": "",
       "tasks": {
@@ -791,8 +791,8 @@
         }
       }
     },
-    "pmdbs-spatial-transcriptomics-wdl-ci-custom-test-dir/image_validator.wdl": {
-      "key": "pmdbs-spatial-transcriptomics-wdl-ci-custom-test-dir/image_validator.wdl",
+    "spatial-transcriptomics-wdl-ci-custom-test-dir/image_validator.wdl": {
+      "key": "spatial-transcriptomics-wdl-ci-custom-test-dir/image_validator.wdl",
       "name": "",
       "description": "",
       "tasks": {
@@ -803,8 +803,8 @@
         }
       }
     },
-    "workflows/pmdbs_spatial_geomx/process_to_adata/process_to_adata.wdl": {
-      "key": "workflows/pmdbs_spatial_geomx/process_to_adata/process_to_adata.wdl",
+    "workflows/spatial_geomx/process_to_adata/process_to_adata.wdl": {
+      "key": "workflows/spatial_geomx/process_to_adata/process_to_adata.wdl",
       "name": "",
       "description": "",
       "tasks": {
@@ -907,9 +907,9 @@
       "geomx_slide_id": "ASAP_DS_PMDBS_0013_SLIDE_0001_BATCH_1",
       "geomx_slide_id_2": "ASAP_DS_PMDBS_0013_SLIDE_0001_BATCH_2",
       "cohort_id": "asap-cohort",
-      "geomx_workflow_name": "pmdbs_spatial_geomx",
+      "geomx_workflow_name": "spatial_geomx",
       "geomx_workflow_version": "v1.0.0",
-      "geomx_workflow_release": "https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/releases/tag/pmdbs_spatial_geomx_analysis-${visium_workflow_version}",
+      "geomx_workflow_release": "https://github.com/ASAP-CRN/spatial-transcriptomics-wf/releases/tag/spatial_geomx_analysis-${visium_workflow_version}",
       "geomx_workflow_info": [
         [
           "${run_timestamp}",
@@ -935,9 +935,9 @@
       "visium_dataset_id": "DS_MOUSE_0014",
       "visium_sample_id": "ASAP_MOUSE_000001_s001_Rep2",
       "visium_sample_id_2": "ASAP_MOUSE_000002_s001_Rep1",
-      "visium_workflow_name": "pmdbs_spatial_visium",
+      "visium_workflow_name": "spatial_visium",
       "visium_workflow_version": "v1.0.0",
-      "visium_workflow_release": "https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/releases/tag/pmdbs_spatial_visium_analysis-${visium_workflow_version}",
+      "visium_workflow_release": "https://github.com/ASAP-CRN/spatial-transcriptomics-wf/releases/tag/spatial_visium_analysis-${visium_workflow_version}",
       "visium_workflow_info": [
         [
           "${run_timestamp}",
@@ -962,8 +962,8 @@
     "engine_params": {
       "asap-cromwell": {
         "input_resources_file_path": "gs://asap-workflow-dev/workflow-resources",
-        "geomx_input_file_path": "gs://asap-wdl-ci/pmdbs_spatial_geomx",
-        "visium_input_file_path": "gs://asap-wdl-ci/pmdbs_spatial_visium"
+        "geomx_input_file_path": "gs://asap-wdl-ci/spatial_geomx",
+        "visium_input_file_path": "gs://asap-wdl-ci/spatial_visium"
       }
     }
   }

@@ -1,6 +1,6 @@
 version 1.0
 
-# Harmonized human and non-human PMDBS spatial transcriptomics workflow entrypoint for Nanostring GeoMx data
+# Harmonized human PMDBS and non-human spatial transcriptomics workflow entrypoint for Nanostring GeoMx data
 
 import "structs.wdl"
 import "../../wf-common/wdl/tasks/get_workflow_metadata.wdl" as GetWorkflowMetadata
@@ -8,7 +8,7 @@ import "preprocess/preprocess.wdl" as Preprocess
 import "process_to_adata/process_to_adata.wdl" as ProcessToAdata
 import "cohort_analysis/cohort_analysis.wdl" as CohortAnalysis
 
-workflow pmdbs_spatial_geomx_analysis {
+workflow spatial_geomx_analysis {
 	input {
 		Array[Project] projects
 
@@ -40,9 +40,9 @@ workflow pmdbs_spatial_geomx_analysis {
 	}
 
 	String workflow_execution_path = "workflow_execution"
-	String workflow_name = "pmdbs_spatial_geomx"
+	String workflow_name = "spatial_geomx"
 	String workflow_version = "v1.0.0"
-	String workflow_release = "https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/releases/tag/pmdbs_spatial_geomx_analysis-~{workflow_version}"
+	String workflow_release = "https://github.com/ASAP-CRN/spatial-transcriptomics-wf/releases/tag/spatial_geomx_analysis-~{workflow_version}"
 
 	call GetWorkflowMetadata.get_workflow_metadata {
 		input:
@@ -182,7 +182,7 @@ workflow pmdbs_spatial_geomx_analysis {
 	}
 
 	meta {
-		description: "Harmonized human and non-human postmortem-derived brain sequencing (PMDBS) spatial transcriptomics workflow for Nanostring GeoMx data"
+		description: "Harmonized human postmortem-derived brain sequencing (PMDBS) and non-human spatial transcriptomics workflow for Nanostring GeoMx data"
 	}
 
 	parameter_meta {
