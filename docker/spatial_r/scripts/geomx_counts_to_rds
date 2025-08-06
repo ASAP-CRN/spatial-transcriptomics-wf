@@ -85,10 +85,12 @@ geomxdata <- readNanoStringGeoMxSet(dccFiles = dcc_files,
 ## ADD METADATA ##
 ##################
 metadata <- read.csv(args$sample_metadata, header = TRUE, stringsAsFactors = FALSE)
-slide_filename_parts <- strsplit(args$slide_id, "_")[[1]]
-slide_filename_batch <- tail(slide_filename_parts, 1)
+slide_filename_batch <- sub(".*BATCH_", "", args$slide_id)
 # Per slide by batch/run
 filtered_metadata <- metadata[metadata$batch == slide_filename_batch, ]
+if (nrow(filtered_metadata) == 0) {
+	stop("No metadata found for batch: ", slide_filename_batch)
+}
 filtered_metadata$sample <- paste0(filtered_metadata$ASAP_sample_id, "_", filtered_metadata$replicate)
 filtered_metadata <- filtered_metadata[, c("sample_id", "batch", "sample")]
 # Some batches contain multiple replicates for the same ROI which will be in one DCC file, need to group
@@ -107,8 +109,8 @@ merged_pdata <- merge(
 	sort = FALSE
 )
 merged_pdata$batch_id <- paste0(args$team_id, "_", args$dataset_id, "_", merged_pdata$batch)
-num_pdata_rows = length(rownames(pData(geomxdata)))
-num_metadata_rows = length(rownames(merged_pdata))
+num_pdata_rows = nrow(pData(geomxdata))
+num_metadata_rows = nrow(merged_pdata)
 if (num_pdata_rows != num_metadata_rows) {
 	message(glue(
 		"DCC files AKA RDS object row names:\n",
