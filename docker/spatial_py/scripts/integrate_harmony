@@ -15,10 +15,21 @@ def main(args):
     ##################################
     adata = sc.read_h5ad(args.adata_input)
 
-    sc.external.pp.harmony_integrate(
-        adata,
-        key=args.batch_key,
-    )
+    n_cells = adata.n_obs
+    if n_cells < 100:
+        nclust = min(10, max(3, n_cells // 5))
+        print(f"[INFO] Detected small dataset (n={n_cells}). Setting nclust={nclust}.")
+        sc.external.pp.harmony_integrate(
+            adata,
+            key=args.batch_key,
+            nclust=nclust,
+        )
+    else:
+        print(f"[INFO] Running Harmony with default settings (n={n_cells}).")
+        sc.external.pp.harmony_integrate(
+            adata,
+            key=args.batch_key,
+        )
 
     # Save outputs
     adata.write_h5ad(filename=args.adata_output, compression="gzip")
