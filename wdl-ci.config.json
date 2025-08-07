@@ -74,7 +74,7 @@
         },
         "export_final_artifacts": {
           "key": "export_final_artifacts",
-          "digest": "i6i56p6qrv5iew6tthkzl7p6mlmkyvsl",
+          "digest": "ozzdvj7t2bw2gxlizkge2wfg4uthjmn3",
           "tests": [
             {
               "inputs": {
@@ -188,7 +188,7 @@
         },
         "qc": {
           "key": "qc",
-          "digest": "vc72sxvdhbvf5yttwe7iiwk6jvend2uq",
+          "digest": "4elbse4c5saojyrv4mplwwvzykixdinz",
           "tests": [
             {
               "inputs": {
@@ -627,7 +627,7 @@
         },
         "counts_to_adata": {
           "key": "counts_to_adata",
-          "digest": "uty3rh5gqsqcymnegbiacpejn2mhklcm",
+          "digest": "zh45hobarbnoa2z2b6d3i66fdyneqj3w",
           "tests": [
             {
               "inputs": {
@@ -658,7 +658,7 @@
         },
         "qc": {
           "key": "qc",
-          "digest": "5fkcmlo3542jluxz73qg376vhtbfsv3b",
+          "digest": "2jfnfowy32wp57i7ctsx7ni5pzzeadbi",
           "tests": [
             {
               "inputs": {
