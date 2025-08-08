@@ -157,7 +157,7 @@
         },
         "dcc_to_rds": {
           "key": "dcc_to_rds",
-          "digest": "qcfvjcqoup3damuk2elqrt7dhrefknds",
+          "digest": "oosp5zheppmriogec7fyrznw5xrlbe65",
           "tests": [
             {
               "inputs": {
@@ -286,7 +286,7 @@
         },
         "cluster": {
           "key": "cluster",
-          "digest": "qouf6flpm3rprnfz4fztlh3ybrumqcfb",
+          "digest": "ibhtiot7sakpfyfuuvpxnqiqmsgzh4hj",
           "tests": [
             {
               "inputs": {
