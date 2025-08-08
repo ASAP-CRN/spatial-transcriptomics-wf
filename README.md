@@ -1,5 +1,5 @@
-# pmdbs-spatial-transcriptomics-wf
-Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) workflow harmonized across ASAP with human and mouse spatial transcriptomics data for both Nanostring GeoMx and 10x Visium platforms. The main goal is to uncover spatially distinct gene expression profiles across tissue samples, enabling insights into tissue architecture, cell type composition, and disease-related molecular patterns.
+# spatial-transcriptomics-wf
+Repo for testing and developing a common postmortem-derived brain sequencing (PMDBS) and non-human workflow harmonized across ASAP with human and mouse spatial transcriptomics data for both Nanostring GeoMx and 10x Visium platforms. The main goal is to uncover spatially distinct gene expression profiles across tissue samples, enabling insights into tissue architecture, cell type composition, and disease-related molecular patterns.
 
 Common workflows, tasks, utility scripts, and docker images reused across harmonized ASAP workflows are defined in [the wf-common repository](https://github.com/ASAP-CRN/wf-common).
 
@@ -15,7 +15,7 @@ Common workflows, tasks, utility scripts, and docker images reused across harmon
 
 # Workflows
 
-Worfklows are defined in [the `workflows` directory](workflows). There is [the `pmdbs_spatial_geomx` workflow directory](workflows/pmdbs_spatial_geomx) and [the `pmdbs_spatial_visium` workflow directory](workflows/pmdbs_spatial_visium).
+Worfklows are defined in [the `workflows` directory](workflows). There is [the `spatial_geomx` workflow directory](workflows/spatial_geomx) and [the `spatial_visium` workflow directory](workflows/spatial_visium).
 
 These workflows are set up to analyze spatial transcriptomics data: Nanostring GeoMx in WDL using command line, R, and Python scripts and 10x Visium in WDL using command line and Python scripts.
 
@@ -26,11 +26,11 @@ _Note: Unlike our other workflows (e.g., [pmdbs-sc-rnaseq-wf](https://github.com
 For the Nanostring GeoMx workflow, we start with raw output files from the instrument and convert them into counts. Then, we clean the data by removing unreliable segments and genes, adjust for technical noise, and combine data from different slides. Finally, we cluster based on segment (which may contain many cells) and visualize their transcriptional profiles in a UMAP space.
 
 **Nanostring GeoMx workflow diagram:**
-![Nanostring GeoMx workflow diagram](workflows/pmdbs_spatial_geomx/workflow_diagram.svg "Workflow diagram")
+![Nanostring GeoMx workflow diagram](workflows/spatial_geomx/workflow_diagram.svg "Workflow diagram")
 
-**Nanostring GeoMx entrypoint**: [workflows/pmdbs_spatial_geomx/main.wdl](workflows/pmdbs_spatial_geomx/main.wdl)
+**Nanostring GeoMx entrypoint**: [workflows/spatial_geomx/main.wdl](workflows/spatial_geomx/main.wdl)
 
-**Nanostring GeoMx input template**: [workflows/pmdbs_spatial_geomx/inputs.json](workflows/pmdbs_spatial_geomx/inputs.json)
+**Nanostring GeoMx input template**: [workflows/spatial_geomx/inputs.json](workflows/spatial_geomx/inputs.json)
 
 The Nanostring GeoMx workflow is broken up into three main chunks:
 
@@ -54,11 +54,11 @@ Run once per team (all slide from a single team) if `project.run_project_cohort_
 For the 10x Visium workflow, we start with raw output files from the instrument and convert them into counts. Then, we clean the data by removing unreliable spots and genes, adjust for technical noise, and combine data from different samples. We cluster based on spots (which may contain many cells) and visualize their transcriptional profiles in a UMAP space. We also identify spatially variable genes to uncover expression patterns that are location-specific within the tissue.
 
 **10x Visium workflow diagram:**
-![10x Visium workflow diagram](workflows/pmdbs_spatial_visium/workflow_diagram.svg "Workflow diagram")
+![10x Visium workflow diagram](workflows/spatial_visium/workflow_diagram.svg "Workflow diagram")
 
-**10x Visium entrypoint**: [workflows/pmdbs_spatial_visium/main.wdl](workflows/pmdbs_spatial_visium/main.wdl)
+**10x Visium entrypoint**: [workflows/spatial_visium/main.wdl](workflows/spatial_visium/main.wdl)
 
-**10x Visium input template**: [workflows/pmdbs_spatial_visium/inputs.json](workflows/pmdbs_spatial_visium/inputs.json)
+**10x Visium input template**: [workflows/spatial_visium/inputs.json](workflows/spatial_visium/inputs.json)
 
 The 10x Visium workflow is broken up into two main chunks:
 
@@ -78,7 +78,7 @@ Run once per team (all samples from a single team) if `project.run_project_cohor
 
 ## Nanostring GeoMx inputs
 
-An input template file can be found at [workflows/pmdbs_spatial_geomx/inputs.json](workflows/pmdbs_spatial_geomx/inputs.json).
+An input template file can be found at [workflows/spatial_geomx/inputs.json](workflows/spatial_geomx/inputs.json).
 
 | Type | Name | Description |
 | :- | :- | :- |
@@ -103,7 +103,7 @@ An input template file can be found at [workflows/pmdbs_spatial_geomx/inputs.jso
 
 ## 10x Visium inputs
 
-An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.json](workflows/pmdbs_spatial_visium/inputs.json).
+An input template file can be found at [workflows/spatial_visium/inputs.json](workflows/spatial_visium/inputs.json).
 
 | Type | Name | Description |
 | :- | :- | :- |
@@ -189,7 +189,7 @@ An input template file can be found at [workflows/pmdbs_spatial_visium/inputs.js
 
 ## Generating the inputs JSON
 
-The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The [`generate_inputs` utility script](https://github.com/ASAP-CRN/wf-common/blob/main/util/generate_inputs) may be used to automatically generate the inputs JSON (`inputs.{staging_env}.{source}-{cohort_dataset}.{date}.json` and a sample list TSV (`{team_id}.{source}-{cohort_dataset}.sample_list.{date}.tsv`; same as the one generated in [the write_cohort_sample_list task](https://github.com/ASAP-CRN/wf-common/wdl/tasks/write_cohort_sample_list.wdl)). The script requires the libraries outlined in [the requirements.txt file](https://github.com/ASAP-CRN/wf-common/util/requirements.txt) and the following inputs:
+The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The [`generate_inputs` utility script](https://github.com/ASAP-CRN/wf-common/blob/main/util/generate_inputs) may be used to automatically generate the inputs JSON (`inputs.{staging_env}.{source}-{cohort_dataset}.{date}.json`) and a sample list TSV (`{team_id}.{source}-{cohort_dataset}.sample_list.{date}.tsv`); same as the one generated in [the write_cohort_sample_list task](https://github.com/ASAP-CRN/wf-common/wdl/tasks/write_cohort_sample_list.wdl)). The script requires the libraries outlined in [the requirements.txt file](https://github.com/ASAP-CRN/wf-common/util/requirements.txt) and the following inputs:
 
 - `project-tsv`: One or more project TSVs with one row per sample and columns team_id, ASAP_dataset_id, ASAP_sample_id, batch, fastq_R1s, fastq_R2s, fastq_I1s, fastq_I2s, embargoed, source, dataset, dataset_DOI_url, and SPATIAL columns if applicable: geomx_config, geomx_dsp_config, geomx_annotation_file, visium_cytassist, visium_probe_set, visium_slide_ref, and visium_capture_area. All samples from all projects may be included in the same project TSV, or multiple project TSVs may be provided.
 	- `team_id`: A unique identifier for the team from which the sample(s) arose.
@@ -220,16 +220,16 @@ Example usage:
 ```bash
 ./wf-common/util/generate_inputs \
 	--project-tsv metadata.tsv \
-	--inputs-template workflows/pmdbs_spatial_geomx/inputs.json \
+	--inputs-template workflows/spatial_geomx/inputs.json \
 	--run-project-cohort-analysis \
-	--workflow-name pmdbs_spatial_geomx_analysis \
+	--workflow-name spatial_geomx_analysis \
 	--cohort-dataset spatial-geomx
 
 ./wf-common/util/generate_inputs \
 	--project-tsv metadata.tsv \
-	--inputs-template workflows/pmdbs_spatial_visium/inputs.json \
+	--inputs-template workflows/spatial_visium/inputs.json \
 	--run-project-cohort-analysis \
-	--workflow-name pmdbs_spatial_visium_analysis \
+	--workflow-name spatial_visium_analysis \
 	--cohort-dataset spatial-visium
 ```
 
@@ -251,7 +251,7 @@ In the workflow, task outputs are either specified as `String` (final outputs, w
 ```bash
 asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 └── workflow_execution
-    └── pmdbs_spatial_geomx
+    └── spatial_geomx
         ├── cohort_analysis
         │   └──${cohort_analysis_workflow_version}
         │      └── ${workflow_run_timestamp}
@@ -273,7 +273,7 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 
 asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 └── workflow_execution
-    └── pmdbs_spatial_visium
+    └── spatial_visium
         ├── cohort_analysis
         │   └──${cohort_analysis_workflow_version}
         │      └── ${workflow_run_timestamp}
@@ -298,7 +298,7 @@ Data may be synced using [the `promote_staging_data` script](#promoting-staging-
 
 ```bash
 asap-dev-{team-xxyy}-{source}-{dataset}
-└── pmdbs_spatial_geomx
+└── spatial_geomx
     ├── cohort_analysis
     │   ├── ${team_id}.sample_list.tsv
     │   ├── ${team_id}.merged_metadata.csv
@@ -336,7 +336,7 @@ asap-dev-{team-xxyy}-{source}-{dataset}
         └── MANIFEST.tsv
 
 asap-dev-{team-xxyy}-{source}-{dataset}
-└── pmdbs_spatial_visium
+└── spatial_visium
     ├── cohort_analysis
     │   ├── ${team_id}.sample_list.tsv
     │   ├── ${team_id}.merged_cleaned_unfiltered.h5ad
@@ -415,14 +415,14 @@ The script defaults to a dry run, printing out the files that would be copied or
 
 ```bash
 # List available teams
-./wf-common/util/promote_staging_data -t cohort -l -s pmdbs -d spatial-geomx -w pmdbs_spatial_geomx
-./wf-common/util/promote_staging_data -t cohort -l -s pmdbs -d spatial-visium -w pmdbs_spatial_visium
+./wf-common/util/promote_staging_data -t cohort -l -s pmdbs -d spatial-geomx -w spatial_geomx
+./wf-common/util/promote_staging_data -t cohort -l -s mouse -d spatial-visium -w spatial_visium
 
 # Print out the files that would be copied or deleted from the staging bucket to the curated bucket for teams team-edwards and team-vila
-./wf-common/util/promote_staging_data -t team-edwards team-vila -s pmdbs -d spatial-geomx-th spatial-geomx-thlc -w pmdbs_spatial_geomx
+./wf-common/util/promote_staging_data -t team-edwards team-vila -s pmdbs -d spatial-geomx-th spatial-geomx-thlc -w spatial_geomx
 
 # Promote data for team-edwards and team-vila
-./wf-common/util/promote_staging_data -t team-edwards team-vila -s pmdbs -d spatial-geomx-th spatial-geomx-thlc -w pmdbs_spatial_geomx -p
+./wf-common/util/promote_staging_data -t team-edwards team-vila -s pmdbs -d spatial-geomx-th spatial-geomx-thlc -w spatial_geomx -p
 ```
 
 # Docker images
@@ -481,16 +481,16 @@ Docker images can be build using the [`build_docker_images`](https://github.com/
 
 | Image | Major tool versions | Links | Workflow |
 | :- | :- | :- | :- |
-| geomxngs | <ul><li>[geomxngs v3.1.1.6](https://nanostring.app.box.com/v/GeoMxSW3-1-0/folder/233772026049)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/geomxngs) | pmdbs_spatial_geomx |
-| spaceranger | <ul><li>[spaceranger v3.1.2](https://www.10xgenomics.com/support/software/space-ranger/latest/release-notes/release-notes-for-SR#v-3-1-2)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/spaceranger) | pmdbs_spatial_visium |
+| geomxngs | <ul><li>[geomxngs v3.1.1.6](https://nanostring.app.box.com/v/GeoMxSW3-1-0/folder/233772026049)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/spatial-transcriptomics-wf/tree/main/docker/geomxngs) | spatial_geomx |
+| spaceranger | <ul><li>[spaceranger v3.1.2](https://www.10xgenomics.com/support/software/space-ranger/latest/release-notes/release-notes-for-SR#v-3-1-2)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/spatial-transcriptomics-wf/tree/main/docker/spaceranger) | spatial_visium |
 | util | <ul><li>[google-cloud-cli 524.0.0-slim](https://cloud.google.com/sdk/docs/release-notes#52400_2025-05-28)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/wf-common/tree/main/docker/util) | both |
-| spatial_r | R (v4.4.2) packages: <ul><li>[NanoStringNCTools v1.14.0](https://github.com/Nanostring-Biostats/NanoStringNCTools)</li><li>[Seurat v5.2.1](https://github.com/satijalab/seurat/releases/tag/v5.2.1)</li><li>[SeuratData v0.2.2.9001](https://github.com/satijalab/seurat-data/tags)</li><li>[SeuratDisk v0.0.0.9021](https://github.com/mojaveazure/seurat-disk)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/spatial_r) | pmdbs_spatial_geomx |
-| spatial_py | Python (v3.12.5) libraries: <ul><li>[squidpy v1.6.2](https://github.com/scverse/squidpy/releases/tag/v1.6.2)</li><li>[matplotlib v3.10.0](https://github.com/matplotlib/matplotlib/releases/tag/v3.10.0)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li><li>[harmonypy v0.0.10](https://github.com/slowkow/harmonypy/releases/tag/v0.0.10)</li><li>[scanpy v1.10.4](https://github.com/scverse/scanpy/releases/tag/1.10.4)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/pmdbs-spatial-transcriptomics-wf/tree/main/docker/spatial_py) | both |
+| spatial_r | R (v4.4.2) packages: <ul><li>[NanoStringNCTools v1.14.0](https://github.com/Nanostring-Biostats/NanoStringNCTools)</li><li>[Seurat v5.2.1](https://github.com/satijalab/seurat/releases/tag/v5.2.1)</li><li>[SeuratData v0.2.2.9001](https://github.com/satijalab/seurat-data/tags)</li><li>[SeuratDisk v0.0.0.9021](https://github.com/mojaveazure/seurat-disk)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/spatial-transcriptomics-wf/tree/main/docker/spatial_r) | spatial_geomx |
+| spatial_py | Python (v3.12.5) libraries: <ul><li>[squidpy v1.6.2](https://github.com/scverse/squidpy/releases/tag/v1.6.2)</li><li>[matplotlib v3.10.0](https://github.com/matplotlib/matplotlib/releases/tag/v3.10.0)</li><li>[seaborn v0.13.2](https://github.com/mwaskom/seaborn/releases/tag/v0.13.2)</li><li>[harmonypy v0.0.10](https://github.com/slowkow/harmonypy/releases/tag/v0.0.10)</li><li>[scanpy v1.10.4](https://github.com/scverse/scanpy/releases/tag/1.10.4)</li></ul> | [Dockerfile](https://github.com/ASAP-CRN/spatial-transcriptomics-wf/tree/main/docker/spatial_py) | both |
 
 
 # wdl-ci
 
-[`wdl-ci`](https://github.com/DNAstack/wdl-ci) provides tools to validate and test workflows and tasks written in [Workflow Description Language (WDL)](https://github.com/openwdl/wdl). In addition to the tests packaged in `wdl-ci`, the [pmdbs-spatial-transcriptomics-wdl-ci-custom-test-dir](./pmdbs-spatial-transcriptomics-wdl-ci-custom-test-dir) is a directory containing custom WDL-based tests that are used to test workflow tasks. `wdl-ci` in this repository is set up to run on pull request.
+[`wdl-ci`](https://github.com/DNAstack/wdl-ci) provides tools to validate and test workflows and tasks written in [Workflow Description Language (WDL)](https://github.com/openwdl/wdl). In addition to the tests packaged in `wdl-ci`, the [spatial-transcriptomics-wdl-ci-custom-test-dir](./spatial-transcriptomics-wdl-ci-custom-test-dir) is a directory containing custom WDL-based tests that are used to test workflow tasks. `wdl-ci` in this repository is set up to run on pull request.
 
 In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-ci.config.json) and compare current outputs and validated outputs based on changed tasks/workflows to ensure outputs are still valid by meeting the critera in the specified tests. For example, if the rds to adata task in our workflow was changed, then this task would be submitted and that output would be considered the "current output". When inspecting the converted adata object, there is a test specified in the [wdl-ci.config.json](./wdl-ci.config.json) called, "check_hdf5". The test will compare the "current output" and "validated output" (provided in the [wdl-ci.config.json](./wdl-ci.config.json)) to make sure that the .h5ad file is still a valid HDF5 file.
 
@@ -499,7 +499,7 @@ In general, `wdl-ci` will use inputs provided in the [wdl-ci.config.json](./wdl-
 
 ## Nanostring GeoMx notes
 
-The [GeoMx DSP Instrument User Manual](https://nanostring.com/wp-content/uploads/2022/06/MAN-10152-01-GeoMx-DSP-Instrument-User-Manual.pdf) and [GeoMx DSP Data Analysis User Manual](https://nanostring.com/wp-content/uploads/2022/06/MAN-10154-01-GeoMx-DSP-Data-Analysis-User-Manual.pdf) provide a comprehensive overview of the GeoMx DSP workflow- from sample preparation and slide scanning to sequencing and data analysis. The required input files listed below for our `pmdbs_spatial_geomx` pipeline are described in detail in these manuals. These files are included as part of the GeoMx Readout Package, which are used during the experimental runs.
+The [GeoMx DSP Instrument User Manual](https://nanostring.com/wp-content/uploads/2022/06/MAN-10152-01-GeoMx-DSP-Instrument-User-Manual.pdf) and [GeoMx DSP Data Analysis User Manual](https://nanostring.com/wp-content/uploads/2022/06/MAN-10154-01-GeoMx-DSP-Data-Analysis-User-Manual.pdf) provide a comprehensive overview of the GeoMx DSP workflow- from sample preparation and slide scanning to sequencing and data analysis. The required input files listed below for our `spatial_geomx` pipeline are described in detail in these manuals. These files are included as part of the GeoMx Readout Package, which are used during the experimental runs.
 
 ### GeoMx Lab Worksheet
 
