@@ -163,7 +163,7 @@
               "inputs": {
                 "team_id": "${geomx_team_id}",
                 "dataset_id": "${geomx_dataset_id}",
-                "slide_id": "${geomx_slide_id}",
+                "slide_id": "ASAP_DS_PMDBS_0013_SLIDE_0001_BATCH_r1",
                 "project_sample_metadata_csv": "gs://asap-raw-team-edwards-pmdbs-spatial-geomx-th/metadata/release/SAMPLE.csv",
                 "geomxngs_dcc_zip": "${geomx_input_file_path}/${preprocess_workflow_name}/${geomx_slide_id}.DCC.zip",
                 "geomx_lab_annotation_xlsx": "gs://asap-raw-team-edwards-pmdbs-spatial-geomx-th/spatial/annotation_files/cleaned_DNAstack_GeoMx_round_1_YH_20230719T2320_LabWorksheet.xlsx",
