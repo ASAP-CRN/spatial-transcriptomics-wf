@@ -7,7 +7,7 @@
       "tasks": {
         "merge_and_prep": {
           "key": "merge_and_prep",
-          "digest": "cgyktioycaor6b3vkycc5qmefyw65lmo",
+          "digest": "hk4w6imkncqpkyjrw2pn3srhzv6n7bme",
           "tests": [
             {
               "inputs": {
@@ -116,7 +116,7 @@
       "tasks": {
         "fastq_to_dcc": {
           "key": "fastq_to_dcc",
-          "digest": "zj5w4vfxuwy4nz4s5inmeq6jup3ml5v3",
+          "digest": "pfk4rrdfy7iez3u5qkid6fkfd7u24utl",
           "tests": [
             {
               "inputs": {
@@ -262,7 +262,7 @@
       "tasks": {
         "integrate_sample_data": {
           "key": "integrate_sample_data",
-          "digest": "rcbwbwgpehbd4bez5gbwzmofudi22up6",
+          "digest": "qjngtpgf2tzriftjt4hfwgo2i2z2uucg",
           "tests": [
             {
               "inputs": {
@@ -329,7 +329,7 @@
       "tasks": {
         "merge_and_plot_qc_metrics": {
           "key": "merge_and_plot_qc_metrics",
-          "digest": "kppsqzekmaf2vvut6ijgchkdof56io7u",
+          "digest": "tfku5xa5owqltkkjxr2ibq36iw5fh6hx",
           "tests": [
             {
               "inputs": {
@@ -369,7 +369,7 @@
         },
         "filter_and_normalize": {
           "key": "filter_and_normalize",
-          "digest": "lujek6d7l3dinbjtu23rvf2bplcbdkl5",
+          "digest": "526uk3dkuil6gmxfyxiltlyvegxbxpki",
           "tests": [
             {
               "inputs": {
@@ -429,7 +429,7 @@
         },
         "plot_spatial": {
           "key": "plot_spatial",
-          "digest": "mra4pyglrzr5eym4pht6d3e5dtxhks7a",
+          "digest": "ufcwh7kuftyt6nu74cyoawgjvro7lsfv",
           "tests": [
             {
               "inputs": {
@@ -463,7 +463,7 @@
       "tasks": {
         "spatially_variable_gene_analysis": {
           "key": "spatially_variable_gene_analysis",
-          "digest": "swz5i2qx4fxynsb77wgp53zvqraibph3",
+          "digest": "in5bndajrnrb4kupxqv7xydhlqpnmghy",
           "tests": [
             {
               "inputs": {
@@ -522,7 +522,7 @@
       "tasks": {
         "spaceranger_count": {
           "key": "spaceranger_count",
-          "digest": "u5qwsbzibn5jfeyr5jelgd6kxzcydo2o",
+          "digest": "vzxtqwz6w4yusua47lbceqc5smvqkvsf",
           "tests": [
             {
               "inputs": {
@@ -810,7 +810,7 @@
       "tasks": {
         "filter_and_normalize": {
           "key": "filter_and_normalize",
-          "digest": "3aorzvkdrznalhtf4arsxwmurayzkuyp",
+          "digest": "o6cbfdsmcpcuqvxfvqxmeuqkf6tonvu2",
           "tests": [
             {
               "inputs": {
