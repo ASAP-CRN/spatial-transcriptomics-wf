@@ -883,7 +883,7 @@
                   "value": "${geomx_input_file_path}/${process_to_adata_workflow_name}/${geomx_slide_id_new}.processed.h5ad",
                   "test_tasks": [
                     "compare_file_basename",
-                    "check_rds"
+                    "check_hdf5"
                   ]
                 }
               }
