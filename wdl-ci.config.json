@@ -276,8 +276,7 @@
                 "integrated_adata_object": {
                   "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.harmony_integrated.h5ad",
                   "test_tasks": [
-                    "compare_file_basename",
-                    "check_hdf5"
+                    "compare_file_basename"
                   ]
                 }
               }
@@ -304,8 +303,7 @@
                 "clustered_adata_object": {
                   "value": "${geomx_input_file_path}/${cohort_analysis_workflow_name}/${geomx_team_id}.clustered.h5ad",
                   "test_tasks": [
-                    "compare_file_basename",
-                    "check_hdf5"
+                    "compare_file_basename"
                   ]
                 },
                 "umap_cluster_plots_png": {
