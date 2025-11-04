@@ -262,7 +262,7 @@
       "tasks": {
         "integrate_sample_data": {
           "key": "integrate_sample_data",
-          "digest": "qjngtpgf2tzriftjt4hfwgo2i2z2uucg",
+          "digest": "hcdomqajbz6ntwc6xeqrsb65q4end4hn",
           "tests": [
             {
               "inputs": {
