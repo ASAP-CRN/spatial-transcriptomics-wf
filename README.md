@@ -189,9 +189,9 @@ An input template file can be found at [workflows/spatial_visium/inputs.json](wo
 
 ## Generating the inputs JSON
 
-The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The [`generate_inputs` utility script](https://github.com/ASAP-CRN/wf-common/blob/main/util/generate_inputs) may be used to automatically generate the inputs JSON (`inputs.{staging_env}.{source}-{cohort_dataset}.{date}.json`) and a sample list TSV (`{team_id}.{source}-{cohort_dataset}.sample_list.{date}.tsv`); same as the one generated in [the write_cohort_sample_list task](https://github.com/ASAP-CRN/wf-common/wdl/tasks/write_cohort_sample_list.wdl)). The script requires the libraries outlined in [the requirements.txt file](https://github.com/ASAP-CRN/wf-common/util/requirements.txt) and the following inputs:
+The inputs JSON may be generated manually, however when running a large number of samples, this can become unwieldly. The [`generate_inputs` utility script](https://github.com/ASAP-CRN/wf-common/blob/main/util/generate_inputs) may be used to automatically generate the inputs JSON (`inputs.{staging_env}.{cohort_dataset_id}.{date}.json`) and a sample list TSV (`{team_id}.{cohort_dataset_id}.sample_list.{date}.tsv`); same as the one generated in [the write_cohort_sample_list task](https://github.com/ASAP-CRN/wf-common/wdl/tasks/write_cohort_sample_list.wdl)). The script requires the libraries outlined in [the requirements.txt file](https://github.com/ASAP-CRN/wf-common/util/requirements.txt) and the following inputs:
 
-- `project-tsv`: One or more project TSVs with one row per sample and columns team_id, ASAP_dataset_id, ASAP_sample_id, batch, fastq_R1s, fastq_R2s, fastq_I1s, fastq_I2s, embargoed, source, dataset, dataset_DOI_url, and SPATIAL columns if applicable: geomx_config, geomx_dsp_config, geomx_annotation_file, visium_cytassist, visium_probe_set, visium_slide_ref, and visium_capture_area. All samples from all projects may be included in the same project TSV, or multiple project TSVs may be provided.
+- `project-tsv`: One or more project TSVs with one row per sample and columns team_id, ASAP_dataset_id, ASAP_sample_id, batch, fastq_R1s, fastq_R2s, fastq_R3s, fastq_I1s, fastq_I2s, embargoed, source, modality_flavour, dataset_DOI_url, and SPATIAL columns if applicable: geomx_config, geomx_dsp_config, geomx_annotation_file, visium_cytassist, visium_probe_set, visium_slide_ref, and visium_capture_area. All samples from all projects may be included in the same project TSV, or multiple project TSVs may be provided.
 	- `team_id`: A unique identifier for the team from which the sample(s) arose.
 	- `ASAP_dataset_id`: A generated unique identifier for the dataset from which the sample(s) arose.
 	- `ASAP_sample_id`: A generated unique identifier for the sample within the project.
@@ -204,7 +204,7 @@ The inputs JSON may be generated manually, however when running a large number o
 	- `fastq_I2s`: The gs uri to sample FASTQ index 2.
 	- `embargoed`: The internal QC/embargo status of dataset.
 	- `source`: The source of dataset (e.g. 'pmdbs').
-	- `dataset`: The assigned dataset name without the source (e.g. 'sn-rnaseq')
+	- `modality_flavour`: The data modality flavour of dataset (e.g. 'sn-rnaseq')
 	- `dataset_DOI_url`: Generated Zenodo DOI URL referencing the dataset.
 	- `geomx_config`, `geomx_dsp_config`, `geomx_annotation_file`: go to [Nanostring GeoMx inputs](#nanostring-geomx-inputs)
 	- `geomx_slide`: The GeoMx DSP identifier for the slide from which the sample(s) arose.
@@ -213,7 +213,7 @@ The inputs JSON may be generated manually, however when running a large number o
 - `inputs-template`: The inputs template JSON file into which the `projects` information derived from the `project-tsv` will be inserted. Must have a key ending in `*.projects`. Other default values filled out in the inputs template will be written to the output inputs.json file.
 - `run-project-cohort-analysis`: Optionally run project-level cohort analysis for provided projects. This value will apply to all projects. [false]
 - `workflow_name`: WDL workflow name.
-- `cohort-dataset`: Dataset name in cohort bucket name (e.g. 'sc-rnaseq').
+- `cohort-dataset-id`: Dataset name in cohort bucket id (e.g. 'cohort-pmdbs-sc-rnaseq').
 
 Example usage:
 
@@ -222,15 +222,13 @@ Example usage:
 	--project-tsv metadata.tsv \
 	--inputs-template workflows/spatial_geomx/inputs.json \
 	--run-project-cohort-analysis \
-	--workflow-name spatial_geomx_analysis \
-	--cohort-dataset spatial-geomx
+	--workflow-name spatial_geomx_analysis
 
 ./wf-common/util/generate_inputs \
 	--project-tsv metadata.tsv \
 	--inputs-template workflows/spatial_visium/inputs.json \
 	--run-project-cohort-analysis \
-	--workflow-name spatial_visium_analysis \
-	--cohort-dataset spatial-visium
+	--workflow-name spatial_visium_analysis
 ```
 
 # Outputs
