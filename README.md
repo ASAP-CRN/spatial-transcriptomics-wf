@@ -130,11 +130,11 @@ An input template file can be found at [workflows/spatial_visium/inputs.json](wo
 
 | Type | Name | Description |
 | :- | :- | :- |
-| String | team_id | Unique identifier for team; used for naming output files. |
-| String | dataset_id | Unique identifier for dataset; used for naming output files. |
-| String | dataset_doi_url | Generated Zenodo DOI URL referencing the dataset. |
+| String | asap_team_id | ASAP-generated unique identifier for team; used for naming output files. |
+| String | asap_dataset_id | ASAP-generated unique identifier for dataset; used for naming output files. |
+| String | asap_dataset_doi_url | ASAP-generated Zenodo DOI URL referencing the dataset. |
 | Array[[Slide](#nanostring-geomx-slide)] | slides | The set of slides associated with this project. |
-| File | project_sample_metadata_csv | CSV containing all sample information including batch, condition, etc. |
+| File | asap_project_sample_metadata_csv | ASAP-generated CSV containing all sample information including batch, condition, etc. |
 | File | geomx_config_ini | The configuration (.ini) file, containing pipeline processing parameters that is used by the GeoMx NGS pipeline to assist in converting the FASTQ files to DCC files. It is from the GeoMx DSP readout package. Sections can include `[Sequencing]`, `[Processing_v2]`, `[AOI_List]`, and `[Targets]`; see [GeoMx configuration (.ini) files notes](#geomx-configuration-(.ini)-files). |
 | Boolean | run_project_cohort_analysis | Whether or not to run cohort analysis within the project. |
 | String | raw_data_bucket | Raw data bucket; intermediate output files that are not final workflow outputs are stored here. |
@@ -144,7 +144,7 @@ An input template file can be found at [workflows/spatial_visium/inputs.json](wo
 
 | Type | Name | Description |
 | :- | :- | :- |
-| String | slide_id | Unique identifier for the slide within the project; used for naming output files. |
+| String | asap_slide_id | ASAP-generated unique identifier for the slide within the project; used for naming output files. |
 | File | geomx_lab_annotation_xlsx | The annotation (.xlsx) file/lab worksheet, containing phenotypic data from the GeoMx DSP readout package; see [GeoMx Lab Worksheet notes](#geomx-lab-worksheet). |
 | Array[[Sample](#nanostring-geomx-sample)] | samples | The set of samples associated with this project. |
 
@@ -152,7 +152,7 @@ An input template file can be found at [workflows/spatial_visium/inputs.json](wo
 
 | Type | Name | Description |
 | :- | :- | :- |
-| String | sample_id | Unique identifier for the sample within the project. |
+| String | asap_sample_id | ASAP-generated unique identifier for the sample within the project. |
 | String? | batch | The sample's batch. |
 | File | fastq_R1 | Path to the sample's read 1 FASTQ file. |
 | File | fastq_R2 | Path to the sample's read 2 FASTQ file. |
@@ -165,9 +165,9 @@ An input template file can be found at [workflows/spatial_visium/inputs.json](wo
 
 | Type | Name | Description |
 | :- | :- | :- |
-| String | team_id | Unique identifier for team; used for naming output files. |
-| String | dataset_id | Unique identifier for dataset; used for naming output files. |
-| String | dataset_doi_url | Generated Zenodo DOI URL referencing the dataset. |
+| String | asap_team_id | ASAP-generated unique identifier for team; used for naming output files. |
+| String | asap_dataset_id | ASAP-generated unique identifier for dataset; used for naming output files. |
+| String | asap_dataset_doi_url | ASAP-generated Zenodo DOI URL referencing the dataset. |
 | Array[[Sample](#10x-visium-sample)] | samples | The set of samples associated with this project. |
 | Boolean | run_project_cohort_analysis | Whether or not to run cohort analysis within the project. |
 | String | raw_data_bucket | Raw data bucket; intermediate output files that are not final workflow outputs are stored here. |
@@ -177,7 +177,7 @@ An input template file can be found at [workflows/spatial_visium/inputs.json](wo
 
 | Type | Name | Description |
 | :- | :- | :- |
-| String | sample_id | Unique identifier for the sample within the project. |
+| String | asap_sample_id | ASAP-generated unique identifier for the sample within the project. |
 | String? | batch | The sample's batch. |
 | File | fastq_R1 | Path to the sample's read 1 FASTQ file. |
 | File | fastq_R2 | Path to the sample's read 2 FASTQ file. |
