@@ -43,6 +43,7 @@ workflow spatial_geomx_analysis {
 	String workflow_name = "spatial_geomx"
 	String workflow_version = "v1.0.0"
 	String workflow_release = "https://github.com/ASAP-CRN/spatial-transcriptomics-wf/releases/tag/spatial_geomx_analysis-~{workflow_version}"
+	String crn_release_version = "v4.0.0"
 
 	call GetWorkflowMetadata.get_workflow_metadata {
 		input:
@@ -127,6 +128,7 @@ workflow spatial_geomx_analysis {
 					workflow_name = workflow_name,
 					workflow_version = workflow_version,
 					workflow_release = workflow_release,
+					crn_release_version = crn_release_version,
 					run_timestamp = get_workflow_metadata.timestamp,
 					raw_data_path_prefix = project_raw_data_path_prefix,
 					staging_data_buckets = project.staging_data_buckets,
