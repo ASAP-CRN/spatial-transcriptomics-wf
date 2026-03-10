@@ -247,7 +247,7 @@ The raw data bucket will contain *some* artifacts generated as part of workflow 
 In the workflow, task outputs are either specified as `String` (final outputs, which will be copied in order to live in raw data buckets and staging buckets) or `File` (intermediate outputs that are periodically cleaned up, which will live in the cromwell-output bucket). This was implemented to reduce storage costs.
 
 ```bash
-asap-raw-{cohort,team-xxyy}-{source}-{dataset}
+asap-raw-{cohort,team-xxyy}-{source}-{modality_flavour}-{context}
 └── workflow_execution
     └── spatial_geomx
         ├── cohort_analysis
@@ -269,7 +269,7 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset}
                 └── ${qc_task_version}
                     └── <qc output>
 
-asap-raw-{cohort,team-xxyy}-{source}-{dataset}
+asap-raw-{cohort,team-xxyy}-{source}-{modality_flavour}-{context}
 └── workflow_execution
     └── spatial_visium
         ├── cohort_analysis
@@ -290,99 +290,111 @@ asap-raw-{cohort,team-xxyy}-{source}-{dataset}
 
 ### Staging data (intermediate workflow objects and final workflow outputs for the latest run of the workflow)
 
-Following QC by researchers, the objects in the dev or uat bucket are synced into the curated data buckets, maintaining the same file structure. Curated data buckets are named `asap-curated-{team-xxyy}-{source}-{dataset}`.
+Following QC by researchers, the objects in the dev or uat bucket are synced into the curated data buckets, maintaining the same file structure. Curated data buckets are named `asap-curated-{cohort,team-xxyy}-{source}-{modality_flavour}-{context}` and `dataset_id` = `{cohort,team-xxyy}-{source}-{modality_flavour}-{context}`.
 
 Data may be synced using [the `promote_staging_data` script](#promoting-staging-data).
 
 ```bash
-asap-dev-{team-xxyy}-{source}-{dataset}
+asap-dev-{team-xxyy}-{source}-{modality_flavour}-{context}
 └── spatial_geomx
-    ├── cohort_analysis
-    │   ├── ${team_id}.sample_list.tsv
-    │   ├── ${team_id}.merged_metadata.csv
-    │   ├── ${team_id}.merged_processed.h5ad
-    │   ├── ${team_id}.all_genes.csv
-    │   ├── ${team_id}.hvg_genes.csv
-    │   ├── ${team_id}.hvg_dispersion.png
-    │   ├── ${team_id}.umap_cluster.png
-    │   ├── ${team_id}.final.h5ad
-    │   ├── ${team_id}.final_metadata.csv
-    │   └── MANIFEST.tsv
-    ├── process_to_adata
-    │   ├── ${slideN_id}.segment_gene_detection_plot.png
-    │   ├── ${slideN_id}.gene_detection_rate.csv
-    │   ├── ${slideN_id}.q3_negprobe_plot.png
-    │   ├── ${slideN_id}.normalization_plot.png
-    │   └── MANIFEST.tsv
-    └── preprocess
-        ├── ${slideA_id}.DCC.zip
-        ├── ${slideA_id}.geomxngs_out_dir.tar.gz
-        ├── ${slideA_id}.NanoStringGeoMxSet.rds
-        ├── ${slideA_id}.qc.rds
-        ├── ${slideA_id}.segment_qc_summary.csv
-        ├── ${slideA_id}.probe_qc_summary.csv
-        ├── ${slideA_id}.gene_count.csv
-        ├── MANIFEST.tsv
-        ├── ...
-        ├── ${slideN_id}.DCC.zip
-        ├── ${slideN_id}.geomxngs_out_dir.tar.gz
-        ├── ${slideN_id}.NanoStringGeoMxSet.rds
-        ├── ${slideN_id}.qc.rds
-        ├── ${slideN_id}.segment_qc_summary.csv
-        ├── ${slideN_id}.probe_qc_summary.csv
-        ├── ${slideN_id}.gene_count.csv
-        └── MANIFEST.tsv
+    └── release
+        └── ${crn_release_version}
+		    ├── cohort_analysis
+		    │   ├── ${team_id}.sample_list.tsv
+		    │   ├── ${team_id}.merged_metadata.csv
+		    │   ├── ${team_id}.merged_processed.h5ad
+		    │   ├── ${team_id}.all_genes.csv
+		    │   ├── ${team_id}.hvg_genes.csv
+		    │   ├── ${team_id}.hvg_dispersion.png
+		    │   ├── ${team_id}.umap_cluster.png
+		    │   ├── ${team_id}.final.h5ad
+		    │   ├── ${team_id}.final_metadata.csv
+		    │   └── MANIFEST.tsv
+		    ├── process_to_adata
+		    │   ├── ${slideN_id}.segment_gene_detection_plot.png
+		    │   ├── ${slideN_id}.gene_detection_rate.csv
+		    │   ├── ${slideN_id}.q3_negprobe_plot.png
+		    │   ├── ${slideN_id}.normalization_plot.png
+		    │   └── MANIFEST.tsv
+		    ├── preprocess
+            │   ├── ${slideA_id}.DCC.zip
+            │   ├── ${slideA_id}.geomxngs_out_dir.tar.gz
+            │   ├── ${slideA_id}.NanoStringGeoMxSet.rds
+            │   ├── ${slideA_id}.qc.rds
+            │   ├── ${slideA_id}.segment_qc_summary.csv
+            │   ├── ${slideA_id}.probe_qc_summary.csv
+            │   ├── ${slideA_id}.gene_count.csv
+            │   ├── ...
+            │   ├── ${slideN_id}.DCC.zip
+            │   ├── ${slideN_id}.geomxngs_out_dir.tar.gz
+            │   ├── ${slideN_id}.NanoStringGeoMxSet.rds
+            │   ├── ${slideN_id}.qc.rds
+            │   ├── ${slideN_id}.segment_qc_summary.csv
+            │   ├── ${slideN_id}.probe_qc_summary.csv
+            │   ├── ${slideN_id}.gene_count.csv
+            │   └── MANIFEST.tsv
+            ├── workflow_version # plain text file
+            └── workflow_metadata
+                └── ${timestamp}
+                    ├── MANIFEST.tsv # combined
+                    └── data_promotion_report.md
 
-asap-dev-{team-xxyy}-{source}-{dataset}
+asap-dev-{team-xxyy}-{source}-{modality_flavour}-{context}
 └── spatial_visium
-    ├── cohort_analysis
-    │   ├── ${team_id}.sample_list.tsv
-    │   ├── ${team_id}.merged_cleaned_unfiltered.h5ad
-    │   ├── ${team_id}.merged_metadata.csv
-    │   ├── ${team_id}.all_genes.csv
-    │   ├── ${team_id}.hvg_genes.csv
-    │   ├── ${team_id}.qc_violin.png
-    │   ├── ${team_id}.qc_dist.png
-    │   ├── ${team_id}.hvg_dispersion.png
-    │   ├── ${team_id}.umap_cluster.png
-    │   ├── ${team_id}.spatial_scatter.png
-    │   ├── ${team_id}.final.h5ad
-    │   ├── ${team_id}.final_metadata.csv
-    │   ├── ${team_id}.moran_top_10_variable_genes.csv
-    │   ├── ${team_id}.moran_top_4_variable_genes_spatial_scatter.png
-    │   └── MANIFEST.tsv
-    └── preprocess
-        ├── ${sampleA_id}.raw_feature_bc_matrix.h5
-        ├── ${sampleA_id}.filtered_feature_bc_matrix.h5
-        ├── ${sampleA_id}.molecule_info.h5
-        ├── ${sampleA_id}.metrics_summary.csv
-        ├── ${sampleA_id}.spaceranger_spatial_outputs.tar.gz
-        ├── ${sampleA_id}.aligned_fiducials.jpg
-        ├── ${sampleA_id}.detected_tissue_image.jpg
-        ├── ${sampleA_id}.tissue_hires_image.png
-        ├── ${sampleA_id}.tissue_lowres_image.png
-        ├── ${sampleA_id}.scalefactors_json.json
-        ├── ${sampleA_id}.tissue_positions.csv
-        ├── ${sampleA_id}.spatial_enrichment.csv
-        ├── ${sampleA_id}.cleaned_unfiltered.h5ad
-        ├── ${sampleA_id}.qc.h5ad
-        ├── MANIFEST.tsv
-        ├── ...
-        ├── ${sampleN_id}.raw_feature_bc_matrix.h5
-        ├── ${sampleN_id}.filtered_feature_bc_matrix.h5
-        ├── ${sampleN_id}.molecule_info.h5
-        ├── ${sampleN_id}.metrics_summary.csv
-        ├── ${sampleN_id}.spaceranger_spatial_outputs.tar.gz
-        ├── ${sampleN_id}.aligned_fiducials.jpg
-        ├── ${sampleN_id}.detected_tissue_image.jpg
-        ├── ${sampleN_id}.tissue_hires_image.png
-        ├── ${sampleN_id}.tissue_lowres_image.png
-        ├── ${sampleN_id}.scalefactors_json.json
-        ├── ${sampleN_id}.tissue_positions.csv
-        ├── ${sampleN_id}.spatial_enrichment.csv
-        ├── ${sampleN_id}.cleaned_unfiltered.h5ad
-        ├── ${sampleN_id}.qc.h5ad
-        └── MANIFEST.tsv
+    └── release
+        └── ${crn_release_version}
+		    ├── cohort_analysis
+		    │   ├── ${team_id}.sample_list.tsv
+		    │   ├── ${team_id}.merged_cleaned_unfiltered.h5ad
+		    │   ├── ${team_id}.merged_metadata.csv
+		    │   ├── ${team_id}.all_genes.csv
+		    │   ├── ${team_id}.hvg_genes.csv
+		    │   ├── ${team_id}.qc_violin.png
+		    │   ├── ${team_id}.qc_dist.png
+		    │   ├── ${team_id}.hvg_dispersion.png
+		    │   ├── ${team_id}.umap_cluster.png
+		    │   ├── ${team_id}.spatial_scatter.png
+		    │   ├── ${team_id}.final.h5ad
+		    │   ├── ${team_id}.final_metadata.csv
+		    │   ├── ${team_id}.moran_top_10_variable_genes.csv
+		    │   ├── ${team_id}.moran_top_4_variable_genes_spatial_scatter.png
+		    │   └── MANIFEST.tsv
+		    ├── preprocess
+		    │   ├── ${sampleA_id}.raw_feature_bc_matrix.h5
+		    │   ├── ${sampleA_id}.filtered_feature_bc_matrix.h5
+		    │   ├── ${sampleA_id}.molecule_info.h5
+		    │   ├── ${sampleA_id}.metrics_summary.csv
+		    │   ├── ${sampleA_id}.spaceranger_spatial_outputs.tar.gz
+		    │   ├── ${sampleA_id}.aligned_fiducials.jpg
+		    │   ├── ${sampleA_id}.detected_tissue_image.jpg
+		    │   ├── ${sampleA_id}.tissue_hires_image.png
+		    │   ├── ${sampleA_id}.tissue_lowres_image.png
+		    │   ├── ${sampleA_id}.scalefactors_json.json
+		    │   ├── ${sampleA_id}.tissue_positions.csv
+		    │   ├── ${sampleA_id}.spatial_enrichment.csv
+		    │   ├── ${sampleA_id}.cleaned_unfiltered.h5ad
+		    │   ├── ${sampleA_id}.qc.h5ad
+		    │   ├── ...
+		    │   ├── ${sampleN_id}.raw_feature_bc_matrix.h5
+		    │   ├── ${sampleN_id}.filtered_feature_bc_matrix.h5
+		    │   ├── ${sampleN_id}.molecule_info.h5
+		    │   ├── ${sampleN_id}.metrics_summary.csv
+		    │   ├── ${sampleN_id}.spaceranger_spatial_outputs.tar.gz
+		    │   ├── ${sampleN_id}.aligned_fiducials.jpg
+		    │   ├── ${sampleN_id}.detected_tissue_image.jpg
+		    │   ├── ${sampleN_id}.tissue_hires_image.png
+		    │   ├── ${sampleN_id}.tissue_lowres_image.png
+		    │   ├── ${sampleN_id}.scalefactors_json.json
+		    │   ├── ${sampleN_id}.tissue_positions.csv
+		    │   ├── ${sampleN_id}.spatial_enrichment.csv
+		    │   ├── ${sampleN_id}.cleaned_unfiltered.h5ad
+		    │   ├── ${sampleN_id}.qc.h5ad
+		    │   ├── MANIFEST.tsv
+            ├── workflow_version # plain text file
+            └── workflow_metadata
+                └── ${timestamp}
+                    ├── MANIFEST.tsv # combined
+                    └── data_promotion_report.md
 ```
 
 ## Promoting staging data
@@ -401,11 +413,9 @@ The script defaults to a dry run, printing out the files that would be copied or
 
 ```
 -h  Display this message and exit
--t  Space-delimited team(s) to promote data for
 -l  List available teams
--s  Source name in bucket name
--d  Space-delimited dataset name(s) in team bucket name, must follow the same order as {team}
--w  Workflow name used as a directory in bucket
+-w  Workflow name used as a directory in bucket (e.g. 'spatial_visium')
+-v  Release version (e.g. v4.0.0)
 -p  Promote data. If this option is not selected, data that would be copied or deleted is printed out, but files are not actually changed (dry run)
 ```
 
@@ -413,14 +423,14 @@ The script defaults to a dry run, printing out the files that would be copied or
 
 ```bash
 # List available teams
-./wf-common/util/promote_staging_data -t cohort -l -s pmdbs -d spatial-geomx -w spatial_geomx
-./wf-common/util/promote_staging_data -t cohort -l -s mouse -d spatial-visium -w spatial_visium
+./wf-common/util/promote_staging_data -l -w spatial_geomx -v v4.0.0
+./wf-common/util/promote_staging_data -l -w spatial_visium -v v4.0.0
 
-# Print out the files that would be copied or deleted from the staging bucket to the curated bucket for teams team-edwards and team-vila
-./wf-common/util/promote_staging_data -t team-edwards team-vila -s pmdbs -d spatial-geomx-th spatial-geomx-thlc -w spatial_geomx
+# Print out the files that would be copied or deleted from the staging bucket to the curated bucket for teams' datasets processed through the spatial visium pipeline for a specific release version
+./wf-common/util/promote_staging_data -w spatial_visium -v v4.0.0
 
-# Promote data for team-edwards and team-vila
-./wf-common/util/promote_staging_data -t team-edwards team-vila -s pmdbs -d spatial-geomx-th spatial-geomx-thlc -w spatial_geomx -p
+# Promote data for teams' datasets processed through the spatial visium pipeline for a specific release version
+./wf-common/util/promote_staging_data -w spatial_visium -v v4.0.0 -p
 ```
 
 # Docker images
