@@ -54,11 +54,11 @@ workflow spatial_geomx_analysis {
 
 		call Preprocess.preprocess {
 			input:
-				team_id = project.team_id,
-				dataset_id = project.dataset_id,
-				dataset_doi_url = project.dataset_doi_url,
+				team_id = project.asap_team_id,
+				dataset_id = project.asap_dataset_id,
+				dataset_doi_url = project.asap_dataset_doi_url,
 				slides = project.slides,
-				project_sample_metadata_csv = project.project_sample_metadata_csv,
+				project_sample_metadata_csv = project.asap_project_sample_metadata_csv,
 				geomx_config_ini = project.geomx_config_ini,
 				geomxngs_config_pkc = geomxngs_config_pkc,
 				min_segment_reads = min_segment_reads,
@@ -115,7 +115,7 @@ workflow spatial_geomx_analysis {
 		if (project.run_project_cohort_analysis) {
 			call CohortAnalysis.cohort_analysis as project_cohort_analysis {
 				input:
-					cohort_id = project.team_id,
+					cohort_id = project.asap_team_id,
 					project_sample_ids = preprocess.project_sample_ids,
 					processed_adata_objects = process_to_adata.processed_adata_objects,
 					preprocessing_output_file_paths = preprocessing_output_file_paths,
