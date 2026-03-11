@@ -184,7 +184,7 @@ workflow spatial_geomx_analysis {
 	}
 
 	meta {
-		description: "Harmonized human postmortem-derived brain sequencing (PMDBS) and non-human spatial transcriptomics workflow for Nanostring GeoMx data"
+		description: "Harmonized human postmortem-derived brain sequencing (PMDBS) and non-human spatial transcriptomics workflow for Nanostring GeoMx data."
 	}
 
 	parameter_meta {

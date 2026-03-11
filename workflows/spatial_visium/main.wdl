@@ -153,7 +153,7 @@ workflow spatial_visium_analysis {
 	}
 
 	meta {
-		description: "Harmonized human postmortem-derived brain sequencing (PMDBS) and non-human spatial transcriptomics workflow for 10x Visium data"
+		description: "Harmonized human postmortem-derived brain sequencing (PMDBS) and non-human spatial transcriptomics workflow for 10x Visium data."
 	}
 
 	parameter_meta {
