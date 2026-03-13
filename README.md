@@ -222,12 +222,14 @@ Example usage:
 	--project-tsv metadata.tsv \
 	--inputs-template workflows/spatial_geomx/inputs.json \
 	--run-project-cohort-analysis \
+	--release-version v5.0.0 \
 	--workflow-name spatial_geomx_analysis
 
 ./wf-common/util/generate_inputs \
 	--project-tsv metadata.tsv \
 	--inputs-template workflows/spatial_visium/inputs.json \
 	--run-project-cohort-analysis \
+	--release-version v5.0.0 \
 	--workflow-name spatial_visium_analysis
 ```
 
