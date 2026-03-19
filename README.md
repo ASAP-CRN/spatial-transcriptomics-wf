@@ -152,7 +152,7 @@ An input template file can be found at [workflows/spatial_visium/inputs.json](wo
 
 | Type | Name | Description |
 | :- | :- | :- |
-| String | asap_sample_id | ASAP-generated unique identifier for the sample within the project. |
+| String | sample_id | ASAP-generated unique identifier combined with the replicate for the sample within the project. |
 | String? | batch | The sample's batch. |
 | File | fastq_R1 | Path to the sample's read 1 FASTQ file. |
 | File | fastq_R2 | Path to the sample's read 2 FASTQ file. |
@@ -177,7 +177,7 @@ An input template file can be found at [workflows/spatial_visium/inputs.json](wo
 
 | Type | Name | Description |
 | :- | :- | :- |
-| String | asap_sample_id | ASAP-generated unique identifier for the sample within the project. |
+| String | sample_id | ASAP-generated unique identifier combined with the replicate for the sample within the project. |
 | String? | batch | The sample's batch. |
 | File | fastq_R1 | Path to the sample's read 1 FASTQ file. |
 | File | fastq_R2 | Path to the sample's read 2 FASTQ file. |

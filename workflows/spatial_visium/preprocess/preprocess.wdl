@@ -38,9 +38,9 @@ workflow preprocess {
 	String qc_raw_data_path = "~{workflow_raw_data_path_prefix}/qc/~{qc_task_version}"
 
 	scatter (sample_object in samples) {
-		String spaceranger_count_output = "~{spaceranger_raw_data_path}/~{sample_object.asap_sample_id}.raw_feature_bc_matrix.h5"
-		String counts_to_adata_output = "~{adata_raw_data_path}/~{sample_object.asap_sample_id}.cleaned_unfiltered.h5ad"
-		String qc_output = "~{qc_raw_data_path}/~{sample_object.asap_sample_id}.qc.h5ad"
+		String spaceranger_count_output = "~{spaceranger_raw_data_path}/~{sample_object.sample_id}.raw_feature_bc_matrix.h5"
+		String counts_to_adata_output = "~{adata_raw_data_path}/~{sample_object.sample_id}.cleaned_unfiltered.h5ad"
+		String qc_output = "~{qc_raw_data_path}/~{sample_object.sample_id}.qc.h5ad"
 	}
 
 	# For each sample, outputs an array of true/false: [spaceranger_count_complete, counts_to_adata_complete, qc_complete]
@@ -56,31 +56,31 @@ workflow preprocess {
 	scatter (sample_index in range(length(samples))) {
 		Sample sample = samples[sample_index]
 
-		Array[String] project_sample_id = [team_id, sample.asap_sample_id, dataset_doi_url]
+		Array[String] project_sample_id = [team_id, sample.sample_id, dataset_doi_url]
 
 		String spaceranger_count_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][0]
 		String counts_to_adata_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][1]
 		String qc_complete = check_output_files_exist.sample_preprocessing_complete[sample_index][2]
 
-		String spaceranger_raw_counts = "~{spaceranger_raw_data_path}/~{sample.asap_sample_id}.raw_feature_bc_matrix.h5"
-		String spaceranger_filtered_counts = "~{spaceranger_raw_data_path}/~{sample.asap_sample_id}.filtered_feature_bc_matrix.h5"
-		String spaceranger_molecule_info = "~{spaceranger_raw_data_path}/~{sample.asap_sample_id}.molecule_info.h5"
-		String spaceranger_metrics_summary_csv = "~{spaceranger_raw_data_path}/~{sample.asap_sample_id}.metrics_summary.csv"
-		String spaceranger_spatial_outputs_tar_gz = "~{spaceranger_raw_data_path}/~{sample.asap_sample_id}.spaceranger_spatial_outputs.tar.gz"
+		String spaceranger_raw_counts = "~{spaceranger_raw_data_path}/~{sample.sample_id}.raw_feature_bc_matrix.h5"
+		String spaceranger_filtered_counts = "~{spaceranger_raw_data_path}/~{sample.sample_id}.filtered_feature_bc_matrix.h5"
+		String spaceranger_molecule_info = "~{spaceranger_raw_data_path}/~{sample.sample_id}.molecule_info.h5"
+		String spaceranger_metrics_summary_csv = "~{spaceranger_raw_data_path}/~{sample.sample_id}.metrics_summary.csv"
+		String spaceranger_spatial_outputs_tar_gz = "~{spaceranger_raw_data_path}/~{sample.sample_id}.spaceranger_spatial_outputs.tar.gz"
 		Array[String] spaceranger_spatial_images = [
-			"~{spaceranger_raw_data_path}/~{sample.asap_sample_id}.aligned_fiducials.jpg",
-			"~{spaceranger_raw_data_path}/~{sample.asap_sample_id}.detected_tissue_image.jpg",
-			"~{spaceranger_raw_data_path}/~{sample.asap_sample_id}.tissue_hires_image.png",
-			"~{spaceranger_raw_data_path}/~{sample.asap_sample_id}.tissue_lowres_image.png"
+			"~{spaceranger_raw_data_path}/~{sample.sample_id}.aligned_fiducials.jpg",
+			"~{spaceranger_raw_data_path}/~{sample.sample_id}.detected_tissue_image.jpg",
+			"~{spaceranger_raw_data_path}/~{sample.sample_id}.tissue_hires_image.png",
+			"~{spaceranger_raw_data_path}/~{sample.sample_id}.tissue_lowres_image.png"
 		]
-		String spaceranger_scalefactors_json = "~{spaceranger_raw_data_path}/~{sample.asap_sample_id}.scalefactors_json.json"
-		String spaceranger_tissue_positions_csv = "~{spaceranger_raw_data_path}/~{sample.asap_sample_id}.tissue_positions.csv"
-		String spaceranger_spatial_enrichment_csv = "~{spaceranger_raw_data_path}/~{sample.asap_sample_id}.spatial_enrichment.csv"
+		String spaceranger_scalefactors_json = "~{spaceranger_raw_data_path}/~{sample.sample_id}.scalefactors_json.json"
+		String spaceranger_tissue_positions_csv = "~{spaceranger_raw_data_path}/~{sample.sample_id}.tissue_positions.csv"
+		String spaceranger_spatial_enrichment_csv = "~{spaceranger_raw_data_path}/~{sample.sample_id}.spatial_enrichment.csv"
 
 		if (spaceranger_count_complete == "false") {
 			call spaceranger_count {
 				input:
-					sample_id = sample.asap_sample_id,
+					sample_id = sample.sample_id,
 					fastq_R1s = sample.fastq_R1s,
 					fastq_R2s = sample.fastq_R2s,
 					fastq_I1s = sample.fastq_I1s,
@@ -108,14 +108,14 @@ workflow preprocess {
 		File tissue_positions_csv_output = select_first([spaceranger_count.tissue_positions_csv, spaceranger_tissue_positions_csv]) #!FileCoercion
 		File spatial_enrichment_csv_output = select_first([spaceranger_count.spatial_enrichment_csv, spaceranger_spatial_enrichment_csv]) #!FileCoercion
 
-		String counts_to_adata_object = "~{adata_raw_data_path}/~{sample.asap_sample_id}.cleaned_unfiltered.h5ad"
+		String counts_to_adata_object = "~{adata_raw_data_path}/~{sample.sample_id}.cleaned_unfiltered.h5ad"
 
 		if (counts_to_adata_complete == "false") {
 			call counts_to_adata {
 				input:
 					team_id = team_id,
 					dataset_id = dataset_id,
-					sample_id = sample.asap_sample_id,
+					sample_id = sample.sample_id,
 					batch = select_first([sample.batch]),
 					visium_slide_serial_number = sample.visium_slide_serial_number,
 					visium_capture_area = sample.visium_capture_area,
@@ -130,12 +130,12 @@ workflow preprocess {
 
 		File initial_adata_object_output = select_first([counts_to_adata.initial_adata_object, counts_to_adata_object]) #!FileCoercion
 
-		String qc_metrics_adata_object = "~{qc_raw_data_path}/~{sample.asap_sample_id}.qc.h5ad"
+		String qc_metrics_adata_object = "~{qc_raw_data_path}/~{sample.sample_id}.qc.h5ad"
 
 		if (qc_complete == "false") {
 			call qc {
 				input:
-					sample_id = sample.asap_sample_id,
+					sample_id = sample.sample_id,
 					initial_adata_object = initial_adata_object_output,
 					raw_data_path = qc_raw_data_path,
 					workflow_info = workflow_info,

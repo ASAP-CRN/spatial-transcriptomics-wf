@@ -69,7 +69,7 @@ workflow preprocess {
 
 		scatter (sample_index in range(length(slide.samples))) {
 			Sample sample = slide.samples[sample_index]
-			Array[String] project_sample_id = [team_id, sample.asap_sample_id, dataset_doi_url]
+			Array[String] project_sample_id = [team_id, sample.sample_id, dataset_doi_url]
 			Array[File] fastq_R1s = sample.fastq_R1s
 			Array[File] fastq_R2s = sample.fastq_R2s
 		}
