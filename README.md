@@ -391,7 +391,7 @@ asap-dev-{team-xxyy}-{source}-{modality_flavour}-{context}
 		    │   ├── ${sampleN_id}.spatial_enrichment.csv
 		    │   ├── ${sampleN_id}.cleaned_unfiltered.h5ad
 		    │   ├── ${sampleN_id}.qc.h5ad
-		    │   ├── MANIFEST.tsv
+		    │   └── MANIFEST.tsv
             ├── workflow_version # plain text file
             └── workflow_metadata
                 └── ${timestamp}
